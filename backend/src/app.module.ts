@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { S3Service } from './s3.service';
+import { RabbitMQService } from './rabbitmq.service';
 
 @Module({
   imports: [
@@ -10,6 +11,6 @@ import { S3Service } from './s3.service';
     }),
   ],
   controllers: [AppController],
-  providers: [S3Service],
+  providers: [S3Service, RabbitMQService],
 })
 export class AppModule {}

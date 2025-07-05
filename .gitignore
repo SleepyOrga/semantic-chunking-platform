@@ -28,3 +28,5 @@ packages/*/.env
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+semantic-key.pem

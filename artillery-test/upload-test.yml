@@ -1,0 +1,19 @@
+config:
+  target: "http://localhost:4000"
+  phases:
+    - duration: 10 # hoặc duration: 60, arrivalRate: 20  # giữ ~100 concurrent users (20 × ~5s mỗi user)
+    - arrivalCount: 100  # Tạo đúng 100 user một lần
+  processor: "./multipartUpload.js"  
+  payload:
+    path: "files.csv"
+    fields:
+      - username
+
+scenarios:
+  - name: Upload with manual multipart
+    beforeRequest: "multipartUpload"  # tên function trong JS
+    flow:
+      - post:
+          url: "/upload"
+          headers:
+            Content-Type: "multipart/form-data; boundary=--MyBoundary"  # dummy, sẽ bị override

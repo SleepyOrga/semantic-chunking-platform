@@ -13,3 +13,9 @@ This is a monorepo containing:
 1. Install dependencies:
 ```bash
 npm install
+
+2. Watch RabbitMQ on EC2
+Access: http://<EC2_PUBLIC_IP>:15672  #http://54.92.209.245:15672
+
+User/pass: admin / admin
+
