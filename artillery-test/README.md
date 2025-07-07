@@ -25,4 +25,5 @@ npm install -g artillery
 artillery run upload-test.yml
 ```
 
-### 3. Mở http://54.92.209.245:15672/#/queues/%2F/file-process-queue để xem
+### 3. Mở http://54.92.209.245:15672/#/queues/%2F/file-process-queue để xem (development)
+Mở http://52.65.216.159:15672/#/queues/%2F/file-process-queue để xem (production)

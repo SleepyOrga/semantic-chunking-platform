@@ -6,7 +6,7 @@ export class RabbitMQService implements OnModuleInit {
   private channel: amqp.Channel;
 
   async onModuleInit() {
-    const conn = await amqp.connect('amqp://admin:admin@54.92.209.245:5672');
+    const conn = await amqp.connect('amqp://admin:admin@52.65.216.159:5672');
     this.channel = await conn.createChannel();
     await this.channel.assertQueue('file-process-queue', { durable: true });
   }
