@@ -1,8 +1,8 @@
 config:
   target: "http://localhost:4000"
   phases:
-    - duration: 10 # hoặc duration: 60, arrivalRate: 20  # giữ ~100 concurrent users (20 × ~5s mỗi user)
-    - arrivalCount: 100  # Tạo đúng 100 user một lần
+    - duration: 10
+      arrivalRate: 100
   processor: "./multipartUpload.js"  
   payload:
     path: "files.csv"
@@ -11,7 +11,7 @@ config:
 
 scenarios:
   - name: Upload with manual multipart
-    beforeRequest: "multipartUpload"  # tên function trong JS
+    beforeRequest: "multipartUpload" 
     flow:
       - post:
           url: "/upload"
