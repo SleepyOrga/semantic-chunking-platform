@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { AppController } from './app.controller';
-import { S3Service } from './s3.service';
-import { RabbitMQService } from './rabbitmq.service';
+import { AppController } from './upload/upload.controller';
+import { S3Service } from './upload/s3.service';
+import { RabbitMQService } from './queue/rabbitmq.service';
 
 @Module({
   imports: [

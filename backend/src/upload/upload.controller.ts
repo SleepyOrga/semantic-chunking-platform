@@ -1,13 +1,21 @@
-import { Controller, Post, Get, UseInterceptors, UploadedFile, Body, Param } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Get,
+  UseInterceptors,
+  UploadedFile,
+  Body,
+  Param,
+} from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { S3Service } from './s3.service';
-import { RabbitMQService } from './rabbitmq.service';
+import { RabbitMQService } from '../queue/rabbitmq.service';
 
 @Controller('upload')
 export class AppController {
   constructor(
     private readonly s3Service: S3Service,
-    private readonly rabbit: RabbitMQService
+    private readonly rabbit: RabbitMQService,
   ) {}
 
   @Post()
@@ -23,8 +31,8 @@ export class AppController {
     @Body('username') username: string,
   ) {
     const key = await this.s3Service.uploadFile(file, username || 'anonymous');
-    
-    // 👉 Gửi message vào RabbitMQ
+
+    // Gửi message vào RabbitMQ
     await this.rabbit.sendToQueue({
       username: username || 'anonymous',
       filename: file.originalname,
@@ -35,7 +43,7 @@ export class AppController {
     return {
       filename: file.originalname,
       key,
-      uploadedAt: new Date().toISOString()
+      uploadedAt: new Date().toISOString(),
     };
   }
 }
