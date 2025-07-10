@@ -16,8 +16,9 @@ This service handles parsing of Microsoft Excel (.xlsx) and Word (.docx) documen
 # 1. Install packages
 pip install -r requirements.txt
 
-# 2. Run parser (processes all files in Assets/)
-python main.py
+# 2. Run parsers individually
+python parser_docx.py    # Process DOCX files
+python parser_xlsx.py    # Process XLSX files
 ```
 
 ## Setup Environment
@@ -56,30 +57,32 @@ python -c "import docling; from docx import Document; print('All packages instal
 ## Usage
 
 ```bash
-# Process all documents in Assets/ directory
-python main.py
+# Process DOCX files (looks in Assets/Docx/ directory)
+python parser_docx.py
+
+# Process XLSX files (looks in Assets/Xlsx/ directory)  
+python parser_xlsx.py
 ```
 
-That's it! The parser will automatically:
-- Find all DOCX and XLSX files in Assets/ (recursively)
+Each parser will automatically:
+- Find files in their respective Assets/ subdirectory
 - Convert them to markdown
 - Extract all images
-- Save results to Output/Docx/ and Output/Xlsx/
+- Save results to Output/Docx/ or Output/Xlsx/
 
-### Manual Processing (if needed)
+### Manual Processing (advanced usage)
 
 ### Excel Parser
 ```python
-from xlsx.parser_xlsx import extract_images_from_xlsx
+from parser_xlsx import extract_xlsx_to_markdown
 
-# Extract images from Excel file
-image_count = extract_images_from_xlsx('path/to/file.xlsx', 'output/images', 'filename')
-print(f"Extracted {image_count} images")
+# Convert XLSX to markdown with image extraction
+extract_xlsx_to_markdown('path/to/file.xlsx', 'output/directory', extract_images=True)
 ```
 
 ### Word Parser
 ```python
-from docx.parser_docx import extract_docx_to_markdown
+from parser_docx import extract_docx_to_markdown
 
 # Convert DOCX to markdown with image extraction
 extract_docx_to_markdown('path/to/document.docx', 'output/directory', extract_images=True)
@@ -88,11 +91,9 @@ extract_docx_to_markdown('path/to/document.docx', 'output/directory', extract_im
 ### Run the parsers
 ```bash
 # Run Word document parser
-cd docx
 python parser_docx.py
 
-# Run Excel parser  
-cd xlsx
+# Run Excel parser
 python parser_xlsx.py
 ```
 
@@ -100,19 +101,18 @@ python parser_xlsx.py
 
 ```
 xlsx_docx_parser/
-├── main.py                 # Run this file!
+├── parser_docx.py          # DOCX parser - run this for Word files
+├── parser_xlsx.py          # XLSX parser - run this for Excel files
 ├── requirements.txt        # Python dependencies  
 ├── README.md              # This file
 ├── Assets/                # Put your files here (auto-created)
-│   ├── Docx/             # DOCX files
-│   └── Xlsx/             # XLSX files  
-├── Output/               # Results appear here (auto-created)
-│   ├── Docx/            # DOCX markdown output
-│   └── Xlsx/            # XLSX markdown output
-├── xlsx/
-│   └── parser_xlsx.py     # Excel parsing logic
-└── docx/
-    └── parser_docx.py     # Word parsing logic
+│   ├── Docx/             # Place DOCX files here
+│   └── Xlsx/             # Place XLSX files here
+└── Output/               # Results appear here (auto-created)
+    ├── Docx/            # DOCX markdown output
+    │   └── images/      # Extracted DOCX images
+    └── Xlsx/            # XLSX markdown output
+        └── images/      # Extracted XLSX images
 ```
 
 ## Supported File Formats
@@ -138,11 +138,13 @@ xlsx_docx_parser/
 
 ## Key Functions
 
-### Excel Parser (`xlsx/parser_xlsx.py`)
+### Excel Parser (`parser_xlsx.py`)
 - `extract_images_from_xlsx()`: Extracts images from Excel files using zipfile
+- `extract_xlsx_to_markdown()`: Full Excel to markdown conversion
+- `main()`: Batch processing of XLSX files from Assets/Xlsx directory
 - Supports various image formats: PNG, JPG, GIF, BMP, TIFF, SVG, EMF, WMF
 
-### Word Parser (`docx/parser_docx.py`)
+### Word Parser (`parser_docx.py`)
 - `extract_images_from_docx()`: Extracts images using python-docx relationships
 - `extract_docx_to_markdown()`: Full document conversion to markdown
 - `main()`: Batch processing of DOCX files from Assets/Docx directory
@@ -150,9 +152,9 @@ xlsx_docx_parser/
 ## Configuration
 
 ### Default Directories
-- **Input**: `Assets/Docx` (for batch processing)
-- **Output**: `Output/Docx` (markdown files)
-- **Images**: `Output/Docx/images` (extracted images)
+- **Input**: `Assets/Docx` and `Assets/Xlsx` (for respective file types)
+- **Output**: `Output/Docx` and `Output/Xlsx` (markdown files)
+- **Images**: `Output/*/images` (extracted images)
 
 ### Logging
 - Uses Python's built-in logging module
@@ -185,10 +187,10 @@ xlsx_docx_parser/
 
 ```bash
 # Test Word parser
-python -c "from docx.parser_docx import extract_docx_to_markdown; print('Word parser ready')"
+python -c "from parser_docx import extract_docx_to_markdown; print('Word parser ready')"
 
 # Test Excel parser
-python -c "from xlsx.parser_xlsx import extract_images_from_xlsx; print('Excel parser ready')"
+python -c "from parser_xlsx import extract_xlsx_to_markdown; print('Excel parser ready')"
 ```
 
 ## Performance Notes
@@ -205,3 +207,10 @@ python -c "from xlsx.parser_xlsx import extract_images_from_xlsx; print('Excel p
 2. Add custom extraction logic to respective parser files
 3. Update requirements.txt only if new dependencies are needed
 4. Test with various document formats and sizes
+
+### Workflow
+1. Place your DOCX files in `Assets/Docx/`
+2. Place your XLSX files in `Assets/Xlsx/`
+3. Run `python parser_docx.py` for Word documents
+4. Run `python parser_xlsx.py` for Excel documents
+5. Check results in `Output/Docx/` and `Output/Xlsx/`
