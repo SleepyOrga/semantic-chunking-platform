@@ -1,0 +1,6 @@
+# Document conversion with docling
+docling>=1.0.0
+
+# Word document parsing
+python-docx>=0.8.11
+
