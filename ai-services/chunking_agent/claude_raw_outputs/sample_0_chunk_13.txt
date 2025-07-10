@@ -1,0 +1,82 @@
+[
+  {
+    "section_title": "Support Obligations and Scope",
+    "content": "no obligation to provide support to end users of your Application. For the avoidance of doubt, these information and assistance rights do not extend to any of your Applications that are not used to access Google services, bundled with a Google Application, or bundled with an Application that accesses Google services.",
+    "tags": ["support", "obligations", "end users", "google services"]
+  },
+  {
+    "section_title": "Legal Requirements and Third Party Applications",
+    "content": "9. Legal. You must maintain ownership and control of your Application at all times to the extent required to practically and legally enforce the requirements of these guidelines. If you are seeking to permit a third party Application to be bundled with a Google Application, then you must also obtain Google's written approval of that third party Application (in addition to the approval required for your Application). If Google approves the third party Application, you are responsible for ensuring that such third party Application also complies with these Guidelines. Special indemnity and other suspension and/or termination provisions may apply. These are addressed in your agreement with Google.",
+    "tags": ["legal", "ownership", "control", "third party", "approval", "compliance", "indemnity"]
+  },
+  {
+    "section_title": "General Update Requirements",
+    "content": "10. Updates. 10.1 General. As mentioned above, Google may update these Guidelines, including the Attachments, from time to time; provided, however, that no updates will be effective until Google provides you with thirty (30) days' written notice thereof. Once you receive that notice (the date on which you receive such notice, the \"Update Notice Date\"), you will be required to bring your Application into compliance within thirty (30) days",
+    "tags": ["updates", "guidelines", "notice", "compliance", "thirty days"]
+  },
+  {
+    "section_title": "Bundle Uninstaller Requirements",
+    "content": "Google Confidential (d) either (1) the bundle must provide for a master uninstaller that will enable the end user to uninstall every Application in the bundle without undue effort or skill, or (2) if no master uninstaller is provided, the de-installation of any Application may not be dependent or conditioned upon the de-installation of any other Application included in the bundle.",
+    "tags": ["bundle", "uninstaller", "master uninstaller", "de-installation", "end user"]
+  },
+  {
+    "section_title": "Extended Compliance Period Process",
+    "content": "10.2 Extended Compliance Period. If, solely as a result of an updated requirement, one or more of your Applications no longer complies with these Guidelines, as updated, and you are incapable of bringing such Application into compliance prior to the scheduled effective date of such update (the \"Update Effective Date\"), you agree to provide Google with written notice thereof as soon as reasonably practicable, but in any event no later than the Update Effective Date, identifying the Application and the reasons why it may not be brought into compliance prior to the Update Effective Date, and providing such other detail as Google may reasonably request with respect thereto (consistent in any event with your confidentiality obligations).",
+    "tags": ["extended compliance", "updated requirements", "written notice", "update effective date", "confidentiality"]
+  },
+  {
+    "section_title": "Compliance Plan Development",
+    "content": "Thereafter, the parties will consult, and you agree to will work, diligently and in good faith to develop and execute a plan to bring such Application into compliance with these Guidelines, as updated, as soon as reasonably practicable, but in any event within ninety (90) days of the Update Notice Date (the \"Maximum Compliance Period\"). You agree that you will provide Google with such information as Google reasonably requests during this period to keep Google apprised of your progress in bringing your Application into compliance.",
+    "tags": ["compliance plan", "good faith", "ninety days", "maximum compliance period", "progress reporting"]
+  },
+  {
+    "section_title": "Third Party Agreement Protections",
+    "content": "Notwithstanding the foregoing (but subject to the next sentence), in no event may a new requirement provided for in any update to these Guidelines require you to take any action which would violate the terms of any agreement between you and any unaffiliated third party that is in effect on the date that Google delivers notice of the proposed update.",
+    "tags": ["third party agreements", "new requirements", "violation protection", "unaffiliated third party"]
+  },
+  {
+    "section_title": "Non-Compliance Consequences",
+    "content": "In any event, if you are unable to bring any Application into compliance during the Maximum Compliance Period, Google may elect, by providing at least thirty (30) days prior written notice, to require you to cease bundling either the specific non-conforming Application or those versions of the Application which are, or are distributed, in violation of the Guidelines, as updated; it being understood that, at such time, you will be entitled to procure services from an alternative source for those Applications (or versions thereof) with respect to which Google has exercised such election.",
+    "tags": ["non-compliance", "cease bundling", "alternative source", "thirty days notice", "violation"]
+  },
+  {
+    "section_title": "Prohibited Behavior and Content",
+    "content": "Attachment 1 Prohibited Behavior and Content The application may not impact the display of other applications unless you provide clear disclosure in each instance",
+    "tags": ["prohibited behavior", "display impact", "clear disclosure", "other applications"]
+  },
+  {
+    "section_title": "Pre-Download Disclosure Requirements",
+    "content": "Disclosure and Consent Clear and conspicuous disclosure is required prior to download or install: what it is, what it does, and how it will be displayed to the end user",
+    "tags": ["disclosure", "consent", "pre-download", "conspicuous", "end user display"]
+  },
+  {
+    "section_title": "Personal Information and Privacy Policy",
+    "content": "Disclosure and Consent Describe type, method, and use of personal information, if applicable. Point user to privacy policy",
+    "tags": ["personal information", "privacy policy", "disclosure", "consent", "data use"]
+  },
+  {
+    "section_title": "Branding and Attribution Requirements",
+    "content": "Branding & Attribution The visible elements of the application should be easily identifiable to the end user",
+    "tags": ["branding", "attribution", "visible elements", "identifiable", "end user"]
+  },
+  {
+    "section_title": "Standard Uninstall Requirements",
+    "content": "Implementation, Transparency and Deactivation The Application must permit end users to uninstall it in the customary place the applicable operating system has designated for adding or removing programs (e.g., Add/Remove Programs control panel in Windows) in a straightforward manner",
+    "tags": ["uninstall", "operating system", "add remove programs", "straightforward", "implementation"]
+  },
+  {
+    "section_title": "Uninstall Instructions Requirement",
+    "content": "Implementation, Transparency and Deactivation The Application must contain (in an easily found location) clear and concise instructions on how it may be uninstalled",
+    "tags": ["uninstall instructions", "easily found", "clear", "concise", "transparency"]
+  },
+  {
+    "section_title": "Bundle Disclosure Requirements",
+    "content": "Bundling of Applications When bundling, the end user must be made aware of all the applications included prior to installation.",
+    "tags": ["bundling", "end user awareness", "prior to installation", "all applications", "disclosure"]
+  },
+  {
+    "section_title": "Advertising Revenue Relationship Disclosure",
+    "content": "Bundling of Applications When bundling, the end user must be made aware of advertising revenue relationships to other applications, if the continued use of the primary application is conditioned on the other applications being installed and active on the end user's computer",
+    "tags": ["bundling", "advertising revenue", "relationships", "primary application", "conditional use", "installed active"]
+  }
+]

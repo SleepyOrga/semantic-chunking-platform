@@ -1,0 +1,77 @@
+[
+  {
+    "section_title": "Distributor App Restrictions",
+    "content": "be [ * ]from [ * ], or otherwise [ * ]the Distributor App(s) or other products of Distributor to [ * ].",
+    "tags": ["distributor", "app", "restrictions", "products"]
+  },
+  {
+    "section_title": "WARRANTIES - General Warranties",
+    "content": "8. WARRANTIES 8.1 Each party warrants to the other that it will use reasonable care and skill in complying with its obligations under this Agreement. Distributor also represents and warrants that it will undertake commercially reasonable endeavours in good faith to comply with Google's business partner due diligence process including providing requested information.",
+    "tags": ["warranties", "obligations", "due diligence", "reasonable care"]
+  },
+  {
+    "section_title": "Google Product Warranty",
+    "content": "8.2 Google warrants that the Distribution Products will for a period of [ * ] from the date of their supply to Distributor be free from any defect which has a materially adverse effect on their use or operation.",
+    "tags": ["google", "warranty", "distribution products", "defects", "materially adverse"]
+  },
+  {
+    "section_title": "Warranty Breach Notification and Remedy",
+    "content": "8.3 If any of the warranties in Clause 8.1 or 8.2 is breached by Google, Distributor must tell Google as soon as possible. Distributor must give Google a reasonable time to fix the problem and (if necessary) to supply Distributor with a corrected or replacement version of the Distribution Product or a way to work-around the problem that is not materially detrimental to Distributor, or to re-perform any relevant services. This will be done without any additional charge to Distributor. If Google is able to do this within a reasonable time, Google will have no other obligations or liability in relation to that breach.",
+    "tags": ["warranty breach", "notification", "remedy", "replacement", "no additional charge"]
+  },
+  {
+    "section_title": "Google Liability Exclusions",
+    "content": "8.4 Google will not be liable for breach of any of the warranties or other terms in this Agreement to the extent that the breach arises from: (a) use of the Products other than in accordance with normal operating procedures; (b) any alterations or maintenance to the Products done by anyone other than Google or someone authorised by Google; (c) any problem with a computer on which the Products are installed, or with any equipment connected to that computer or any other software which is installed on that computer; (d) any abnormal or incorrect operating conditions; or (e) use of the Products in combination with any other hardware or software, unless this use has been approved by Google in writing.",
+    "tags": ["google", "liability exclusions", "operating procedures", "alterations", "computer problems", "abnormal conditions"]
+  },
+  {
+    "section_title": "Anti-Bribery Compliance",
+    "content": "8.5 Distributor will comply with all applicable commercial and public anti-bribery laws, including, without limitation, the UK's Bribery Act 2010 and the U.S. Foreign Corrupt Practices Act of 1977 (\"Anti-Bribery Laws\"), which prohibit (amongst other things) corrupt offers of anything of value, either directly or indirectly, to a government official to obtain or keep business. ''Government officials\" include any government employee, candidate for public office, and employee of government-owned or government-controlled companies, public international organisations, and political parties. Furthermore, Distributor will not make any facilitation payments, which are payments to induce officials to perform routine functions they are otherwise obligated to perform.",
+    "tags": ["anti-bribery", "compliance", "bribery act", "foreign corrupt practices act", "government officials", "facilitation payments"]
+  },
+  {
+    "section_title": "Warranty Disclaimer",
+    "content": "8.6 No conditions, warranties or other terms apply to the Products, [ * ] or to any other goods or services supplied under this Agreement unless expressly set out in this Agreement. Subject to Clause 9.1, no implied conditions, warranties or other terms apply (including any implied terms as to satisfactory quality, fitness for purpose or conformance with description).",
+    "tags": ["warranty disclaimer", "implied warranties", "satisfactory quality", "fitness for purpose"]
+  },
+  {
+    "section_title": "LIMITATION OF LIABILITY - Non-Excludable Liabilities",
+    "content": "9. LIMITATION OF LIABILITY 9.1 Nothing in this Agreement shall exclude or limit either party's liability for: (a) death or personal injury resulting from the negligence of either party or their servants, agents or employees; (b) fraud or fraudulent misrepresentation;",
+    "tags": ["limitation of liability", "death", "personal injury", "negligence", "fraud", "fraudulent misrepresentation"]
+  },
+  {
+    "section_title": "Contract Year Definition and Calculation",
+    "content": "In this Clause 9.4, \"Contract Year\" means a period of one year starting on the Effective Date or the relevant anniversary of the Effective Date (as appropriate). If the amount referred to in (b) above cannot be calculated accurately at the time the relevant liability is to be assessed (the \"Applicable Time\"), it shall be calculated on a pro-rata basis as X/Y x Z. Where: X = the total sum paid and payable to the Distributor pursuant to Clause 4 in the relevant Contract Year prior to the Applicable Time; Y = the number of days elapsed in the relevant Contract Year prior to the Applicable Time; and Z = 365",
+    "tags": ["contract year", "effective date", "pro-rata calculation", "applicable time", "payment calculation"]
+  },
+  {
+    "section_title": "Additional Non-Excludable Liabilities",
+    "content": "(c) breach of any implied condition as to title or quiet enjoyment; and (d) misuse of confidential information.",
+    "tags": ["title", "quiet enjoyment", "confidential information", "misuse"]
+  },
+  {
+    "section_title": "Specific Clause Liability Exclusions",
+    "content": "9.2 Nothing in this Agreement shall exclude or limit either party's liability under Clause 10 (Indemnities), or Distributor's liability under Clause 2 (License Grants and Restrictions), Clause 3.5 (Exclusivity), Clause 3.6 (End User License Agreement) and Clause 3.7 (Accurate Reproduction) or Clause [ * ].",
+    "tags": ["indemnities", "license grants", "restrictions", "exclusivity", "end user license agreement", "accurate reproduction"]
+  },
+  {
+    "section_title": "Excluded Loss Types",
+    "content": "9.3 Subject to Clauses 9.1 and 9.2, neither party shall be liable under this Agreement (whether in contract, tort or otherwise) for any: (a) loss of anticipated savings; (b) loss of business opportunity (which for the avoidance of doubt shall not include loss of advertising revenue); (c) loss of or corruption of data; (d) loss or damage resulting from third party claims; or (e) indirect or consequential losses; suffered or incurred by the other party (whether or not such losses were within the contemplation of the parties at the date of this Agreement).",
+    "tags": ["excluded losses", "anticipated savings", "business opportunity", "advertising revenue", "data corruption", "third party claims", "consequential losses"]
+  },
+  {
+    "section_title": "Liability Cap",
+    "content": "9.4 Subject to Clauses 9.1 and 9.2, each party's total liability under or in connection with this Agreement (whether in contract, tort or otherwise) arising in any Contract Year is limited to the greater of: (a) [ * ] Euros ([ * ] Euros); and (b) [ * ]% of the total payment due to the Distributor in the relevant Contract Year pursuant to Clause 4 (Payment Terms).",
+    "tags": ["liability cap", "contract year", "euros", "payment terms", "percentage"]
+  },
+  {
+    "section_title": "Distributor User Claims",
+    "content": "By Distributor. User claim arising out of or resulting from such End Users use of any Distributor App(s), including any actions or claims in product liability, tort, contract or equity.",
+    "tags": ["distributor", "user claims", "end users", "distributor apps", "product liability", "tort", "contract", "equity"]
+  },
+  {
+    "section_title": "Google Indemnification",
+    "content": "10. INDEMNIFICATION BY GOOGLE. 10.1 Google [ * ] and will indemnify Distributor against all liabilities, costs, damages and expenses (including settlement costs approved in writing by Google and reasonable legal fees [ * ]) suffered or incurred by Distributor arising from any claim from a third party that any Products or any Google Trademark infringe(s) any copyright, trade secret or trademark of such third party (an \"IP Claim\"), provided that",
+    "tags": ["google indemnification", "liabilities", "costs", "damages", "settlement costs", "legal fees", "ip claim", "copyright", "trade secret", "trademark infringement"]
+  }
+]

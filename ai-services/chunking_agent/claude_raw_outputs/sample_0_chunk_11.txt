@@ -1,0 +1,82 @@
+[
+{
+  "section_title": "Disclosure and Consent before Installation",
+  "content": "You may not bundle any Google Application with any Application unless you (and your distribution and bundling partners, if applicable under the terms of the agreement between you and Google that incorporates these Guidelines) design the installation of any such Application in a manner that ensures that it is installed by end users in a knowing and willful manner - e.g., no \"drive-by' downloads or installs. By \"distribution partner\" we mean any third party who distributes your Application and by \"bundling partner\" we mean any third party who installs your Application in combination with or alongside one or more other Applications.",
+  "tags": ["installation", "consent", "bundling", "distribution", "google application"]
+},
+{
+  "section_title": "Installation Requirements - Disclosure and Consent",
+  "content": "At a minimum, compliance with this provision requires that, prior to installing your Application, you and any third party distributing or bundling your Application: (a) first, fully, accurately, clearly and conspicuously disclose to end users: (i) that they are installing an application, (ii) the name of the Application, identifying you as the entity responsible for it, and (iii) the principal and significant features and functionality of the Application; and (b) then, obtain the end user's affirmative consent to install the Application.",
+  "tags": ["installation", "disclosure", "consent", "requirements", "end user"]
+},
+{
+  "section_title": "Disclosure and Consent for Collection and Transmission of Personally Identifiable Information",
+  "content": "You may not bundle any Google Application with any Application that (1) collects or transmits to any entity other than the end user personally identifiable information, or (2) collects or transmits information related to a user's computer or Internet usage or activity in a manner that could collect or transmit such user's personally identifiable information (such as through keystroke logging), unless prior to the first occurrence of any such collection or transmission you:",
+  "tags": ["personally identifiable information", "data collection", "transmission", "privacy", "consent"]
+},
+{
+  "section_title": "PII Collection Requirements",
+  "content": "(a) first, fully, accurately, clearly and conspicuously disclose: (i) the type of information collected (described with specificity in the case of personally identifiable information), (ii) the method of collection (e.g. by registration, etc.), and (iii) the location of (i.e., a link to) the privacy policy that governs the collection, use and disclosure of the information; and (b) then, obtain the end user's affirmative consent to such collection and/or transmission.",
+  "tags": ["pii", "data collection", "disclosure", "privacy policy", "consent"]
+},
+{
+  "section_title": "Prohibited Browser Activities",
+  "content": "(e) redirect browser traffic away from valid DNS entries (except that your Application may direct unresolved URLs to an alternative URL designated by you, provided that the page to which the end user resolves adequately informs the end user that you and your Application are the source of that page); (f) interfere with the browser default search functionality (except that your Application may permit an end user to change his or her default search engine with proper disclosure, consent and attribution as provided below); or (g) engage in activity that violates any applicable law or regulation.",
+  "tags": ["browser", "dns", "search functionality", "prohibited activities", "legal compliance"]
+},
+{
+  "section_title": "Disclosure and Consent for Setting Changes",
+  "content": "You may not bundle any Google Application with any Application that makes a change to any operating system or Application data setting which will impact the user experience of other Applications (e.g., changing the browser default home page or changing the default application for a file type, such as the default email, browser or media player application), unless prior to making such change you:",
+  "tags": ["system settings", "user experience", "browser settings", "default applications", "consent"]
+},
+{
+  "section_title": "Setting Changes Requirements",
+  "content": "(a) first, fully, accurately, clearly and conspicuously disclose the change in a manner that will explain the practical effect of such change; and (b) then, obtain the end user's affirmative consent to make such change.",
+  "tags": ["setting changes", "disclosure", "consent", "practical effect", "user notification"]
+},
+{
+  "section_title": "Exceptions to Setting Changes Requirements",
+  "content": "Notwithstanding the foregoing, (i) no disclosure and consent need be made for changes to operating system or Application data settings that have only a minor impact on user experience, such as adding a small number of bookmarks to the browser menu or adding an item to a start menu, and (ii) the disclosure and consent requirements of this Section 4.3 will not apply to those setting changes that may be made prior to sale to the end user.",
+  "tags": ["exceptions", "minor changes", "bookmarks", "start menu", "pre-sale changes"]
+},
+{
+  "section_title": "Method of Disclosure and Consent",
+  "content": "In order to satisfy the requirements above, the disclosure of the items specified above (a) must be provided in both (1) the End User License Agreement (EULA) or privacy policy (to the extent required by law or otherwise by industry custom) and (2) separately from the EULA and/or privacy policy (e.g. in installation screens or message boxes, as the case may be), and (b) must be designed so that it will be read by, adequately inform and evidence the consent of a typical Internet user.",
+  "tags": ["disclosure method", "eula", "privacy policy", "installation screens", "user consent"]
+},
+{
+  "section_title": "Sample Disclosure Reference",
+  "content": "See Attachment 1 for sample disclosure and consent implementations that would satisfy certain of the requirements above.",
+  "tags": ["sample disclosure", "attachment", "implementation", "requirements", "reference"]
+},
+{
+  "section_title": "EULA and Privacy Policy Requirements",
+  "content": "You may not bundle any Google Application with any Application unless it conforms, and is distributed pursuant to a EULA that conforms, with all applicable laws and regulations. In addition, you and your Application must comply with the agreements and representations you make with your end users in your EULA and privacy policy.",
+  "tags": ["eula", "privacy policy", "legal compliance", "regulations", "user agreements"]
+},
+{
+  "section_title": "Privacy Policy Accessibility",
+  "content": "Your privacy policy must be accessible from your Application in an easily found location. If your Application collects or transmits any other information related to the user's use of his or her computer, but not required to be disclosed and consented to pursuant to Section 4.2, then the collection and use of such other information must be disclosed in your privacy policy.",
+  "tags": ["privacy policy", "accessibility", "data collection", "disclosure", "user information"]
+},
+{
+  "section_title": "Transparency Requirements",
+  "content": "Neither you nor any of your third party distribution or bundling partners may mislead end users or create end user confusion with regard to the source or owner of an Application or any portion of its purpose, functionality or features.",
+  "tags": ["transparency", "misleading", "user confusion", "application source", "functionality"]
+},
+{
+  "section_title": "Branding and Attribution Requirements",
+  "content": "For example, all elements of your Application that are visible to the end user must clearly identify their source through its branding and attribution, and that identification, whatever form it takes, must correspond to the identification of your application in the menu that permits end users to remove programs.",
+  "tags": ["branding", "attribution", "source identification", "program removal", "user interface"]
+},
+{
+  "section_title": "Advertisement Labeling",
+  "content": "You must clearly label advertisements provided by your Application (if any) as such and clearly identify your Application as the source of those advertisements.",
+  "tags": ["advertisements", "labeling", "source identification", "advertising disclosure", "transparency"]
+},
+{
+  "section_title": "Application Modification Disclosure",
+  "content": "In addition, if your Application modifies the operation or display of other applications or Web sites (other than Web sites that you own), then in each",
+  "tags": ["application modification", "operation changes", "display changes", "website modification", "disclosure"]
+}
+]

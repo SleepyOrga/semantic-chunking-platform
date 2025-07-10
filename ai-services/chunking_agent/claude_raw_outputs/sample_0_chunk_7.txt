@@ -1,0 +1,77 @@
+[
+  {
+    "section_title": "Liability Limitation",
+    "content": "incurred by the other party (whether or not such losses were within the contemplation of the parties at the date of this Agreement). 9.4 Subject to Clauses 9.1 and 9.2, each party's total liability under or in connection with this Agreement (whether in contract, tort or otherwise) arising in any Contract Year is limited to the greater of: (a) [ * ] Euros ([ * ] Euros); and (b) [ * ]% of the total payment due to the Distributor in the relevant Contract Year pursuant to Clause 4 (Payment Terms).",
+    "tags": ["liability", "limitation", "damages", "contract year", "payment terms"]
+  },
+  {
+    "section_title": "Distributor User Claims",
+    "content": "By Distributor. User claim arising out of or resulting from such End Users use of any Distributor App(s), including any actions or claims in product liability, tort, contract or equity.",
+    "tags": ["distributor", "user claims", "end users", "product liability", "tort"]
+  },
+  {
+    "section_title": "Google Indemnification Obligations",
+    "content": "10. INDEMNIFICATION BY GOOGLE. 10.1 Google [ * ] and will indemnify Distributor against all liabilities, costs, damages and expenses (including settlement costs approved in writing by Google and reasonable legal fees [ * ]) suffered or incurred by Distributor arising from any claim from a third party that any Products or any Google Trademark infringe(s) any copyright, trade secret or trademark of such third party (an \"IP Claim\"), provided that Distributor: (a) promptly notifies Google; (b) provides Google with reasonable information, assistance and cooperation in responding to and, where applicable, defending such IP Claim; and (c) gives Google full control and sole authority over the defence and settlement of such IP Claim. Distributor may appoint its own supervising counsel of its choice at its own expense.",
+    "tags": ["indemnification", "google", "ip claims", "copyright", "trademark", "legal fees"]
+  },
+  {
+    "section_title": "Google Indemnification Exclusions",
+    "content": "10.2 Google will not have any obligations or liability under this Clause 10 in relation to any IP Claim arising from: (a) use of the Products or Google Trademarks in a modified form or in combination with materials not furnished by Google; (b) use of the Products or Google Trademarks other than in accordance with this Agreement; or (c) any content, information or data provided to Google by Distributor, End Users or any other third parties;",
+    "tags": ["indemnification exclusions", "modified products", "agreement compliance", "third party content"]
+  },
+  {
+    "section_title": "Google Suspension Rights",
+    "content": "10.3 Google may (at its sole discretion) suspend Distributors distribution or use of the Products or the Google Trademarks which are alleged, or believed by Google, to infringe any third party's Intellectual Property Rights, or modify such items to make them non-infringing. if any suspension under this Clause continues for more than 30 days, Distributor may, at any time until use of the distribution or use of the Products or the Google Trademarks is reinstated, terminate this Agreement immediately upon written notice. [ * ] will use reasonable endeavours to [ * ] with [ * ] (to the extent it is practicable to do so) of the [ * ] or [ * ].",
+    "tags": ["suspension", "intellectual property", "termination rights", "30 days", "written notice"]
+  },
+  {
+    "section_title": "Distributor Indemnification Obligations",
+    "content": "10.4 Distributor [ * ] and will indemnify Google against all liabilities, costs, damages and expenses (including settlement costs approved in writing by Distributor and reasonable legal fees [ * ]) suffered or incurred by Google or any Google Group Company arising from: (a) Distributor's improper (ie not in accordance with the requirements of this Agreement including the Exhibits) or unauthorised, replication, packaging, marketing, distribution, or installation of the Products, including any breach of Clause 8.5 and any claims based on representations, warranties, or misrepresentations made by Distributor, (b) any claim from a third party that the Distributor App(s) infringe any third party copyright, trademark, or trade secret, or (c) any End",
+    "tags": ["distributor indemnification", "improper use", "unauthorized distribution", "third party claims", "copyright infringement"]
+  },
+  {
+    "section_title": "Distributor Indemnification Conditions",
+    "content": "10.5 The indemnification obligations set out in Clause 10.4(b) shall exist only if Google: (a) promptly notifies Distributor of such claim, (b) provides Distributor with reasonable information, assistance and cooperation in responding to and, where applicable, defending the lawsuit or proceeding, and (c) gives Distributor full control and sole authority over the defense and settlement of such claim. Google may join in defense with counsel of its choice at its own expense.",
+    "tags": ["indemnification conditions", "prompt notification", "cooperation", "defense control", "legal counsel"]
+  },
+  {
+    "section_title": "Indemnification Exclusivity",
+    "content": "10.6 The foregoing Clauses 10.1 to 10.5 states the parties' entire liability and exclusive remedy with respect to infringement of a third party's Intellectual Property Rights.",
+    "tags": ["exclusive remedy", "intellectual property", "entire liability", "indemnification scope"]
+  },
+  {
+    "section_title": "General Provisions",
+    "content": "11. GENERAL",
+    "tags": ["general provisions", "miscellaneous"]
+  },
+  {
+    "section_title": "Publicity Restrictions",
+    "content": "11.1 Publicity. Subject to clause 6 (Confidential Information), neither party may make any public statement regarding the relationship contemplated by this Agreement without the other's prior written approval.",
+    "tags": ["publicity", "public statements", "written approval", "confidential information"]
+  },
+  {
+    "section_title": "Notice Requirements",
+    "content": "11.2 Notices. All notices of termination or breach must be in English, in writing, addressed to the other party's Legal Department and sent to Distributor's address set out at the head of this Agreement or to [ * ] (as applicable) or such other address as either party has notified the other in accordance with this Clause. All notices shall be deemed to have been given on receipt as verified by written or automated receipt or electronic log (as applicable). All other notices must be in English, in writing, addressed to the other party's primary contact and sent to their then current postal address or email address.",
+    "tags": ["notices", "termination", "breach", "english language", "legal department", "receipt verification"]
+  },
+  {
+    "section_title": "Assignment Restrictions",
+    "content": "11.3 Assignment. [ * ] may [ * ]any of its rights or obligations under this Agreement without the prior written consent of [ * ]. For the avoidance of doubt, a Change of Control shall be deemed an assignment hereunder unless [ * ] does not exercise its [ * ].",
+    "tags": ["assignment", "written consent", "change of control", "rights and obligations"]
+  },
+  {
+    "section_title": "Force Majeure",
+    "content": "11.4 Force Majeure. Neither party shall be liable for failure to perform or delay in performing any obligation under this Agreement if the failure or delay is caused by any circumstances beyond its reasonable control.",
+    "tags": ["force majeure", "performance failure", "reasonable control", "delay"]
+  },
+  {
+    "section_title": "Export Law Compliance",
+    "content": "11.5 Compliance with Export Laws. Distributor shall comply with all applicable export and re-export control laws and regulations (\"Export Laws\"), which the parties agree include: (a) the Export Administration Regulations maintained by the U.S. Department of Commerce, (b) trade and economic sanctions maintained by the U.S. Treasury Department's Office of Foreign Assets Control, and (c) the International Traffic in Arms Regulations maintained by the U.S. Department of State. Unless Distributor obtains prior authorisation required by applicable Export Laws, Distributor shall not export any Product to Cuba, Iran, North Korea, Sudan or Syria.",
+    "tags": ["export laws", "compliance", "sanctions", "restricted countries", "us regulations"]
+  },
+  {
+    "section_title": "No Waiver Provision",
+    "content": "11.6 No Waiver. Failure or delay in exercising any right or remedy under this Agreement shall not constitute a",
+    "tags": ["no waiver", "rights", "remedies", "exercise of rights"]
+  }
+]

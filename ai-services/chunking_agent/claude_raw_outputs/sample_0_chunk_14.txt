@@ -1,0 +1,17 @@
+[
+  {
+    "section_title": "Implementation, Transparency and Deactivation",
+    "content": "The Application must contain (in an easily found location) clear and concise instructions on how it may be uninstalled",
+    "tags": ["implementation", "transparency", "deactivation", "uninstall", "instructions"]
+  },
+  {
+    "section_title": "Bundling of Applications - User Awareness",
+    "content": "When bundling, the end user must be made aware of all the applications included prior to installation.",
+    "tags": ["bundling", "applications", "user awareness", "installation", "disclosure"]
+  },
+  {
+    "section_title": "Bundling of Applications - Revenue Relationships",
+    "content": "When bundling, the end user must be made aware of advertising revenue relationships to other applications, if the continued use of the primary application is conditioned on the other applications being installed and active on the end user's computer",
+    "tags": ["bundling", "applications", "advertising revenue", "relationships", "disclosure", "conditional use"]
+  }
+]

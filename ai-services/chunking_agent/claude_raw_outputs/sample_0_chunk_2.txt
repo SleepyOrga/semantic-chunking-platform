@@ -1,0 +1,82 @@
+[
+  {
+    "section_title": "Product Usage Restrictions",
+    "content": "not, and shall not allow any third party to (except to the extent that such prohibitions are not permitted by law): (a) disassemble, de-compile or otherwise reverse engineer the Products or otherwise attempt to learn the source code or algorithms underlying the Products; (b) modify the Products, create derivative works from or based on the Products; (c) except as expressly set out in this Agreement, provide, sell, license, distribute, lease, lend, or disclose the Products to any third party; (d) use the Products for timeshare, service bureau, or other unauthorised purposes; or (e) exceed the scope of any license granted to Distributor under this Agreement.",
+    "tags": ["restrictions", "reverse engineering", "licensing", "third party", "products"]
+  },
+  {
+    "section_title": "Trademark License and Use",
+    "content": "2.4 Trademark License and Use. Subject to the terms and conditions of this Agreement, Google grants to Distributor a limited, [ * ] license during the Term to use the Google Trademarks, in accordance with Google's trademark usage guidelines, solely to market and promote the Products consistent with this Agreement, provided that all use of the Google Trademarks shall be subject to Google's prior review and advance written consent. All uses of the Google Trademarks, and all goodwill associated therewith, shall inure solely to the benefit of Google.",
+    "tags": ["trademark", "license", "google", "marketing", "promotion", "consent"]
+  },
+  {
+    "section_title": "Trademark Restrictions",
+    "content": "2.5 Trademark Restrictions. Distributor shall not remove, modify, adapt, or prepare derivative works of any Google Trademarks or Google copyright notices, or other Google proprietary rights notices.",
+    "tags": ["trademark", "restrictions", "copyright", "proprietary rights", "modification"]
+  },
+  {
+    "section_title": "Updated Versions of Distribution Products",
+    "content": "2.6 Updated Versions of Distribution Products. Google may request that Distributor distribute the latest version of the Distribution Products. Distributor shall begin such distribution within [ * ] following Google's request.",
+    "tags": ["updates", "distribution", "products", "versions", "timeline"]
+  },
+  {
+    "section_title": "Distribution and Other Obligations - Delivery",
+    "content": "3. DISTRIBUTION AND OTHER OBLIGATIONS 3.1 Delivery. Google shall deliver the Distribution Products electronically to Distributor at a [ * ] following the Effective Date and prior to Launch (as defined in Clause 3.4 (Launch)).",
+    "tags": ["distribution", "delivery", "electronic", "effective date", "launch"]
+  },
+  {
+    "section_title": "End User License Agreement Requirements",
+    "content": "User to review such EULA via a hyperlink to such EULA: and (c) a button on which each End User may click indicating agreement to the terms of such EULA. In the event that an End User does not affirmatively agree to install the Google Toolbar or Chrome Browser, by clicking on the button to agree to the terms of the applicable EULA, then the Google Toolbar or Chrome Browser (as applicable) shall not be installed on such End User's computer.",
+    "tags": ["eula", "end user", "agreement", "google toolbar", "chrome browser", "installation"]
+  },
+  {
+    "section_title": "Form of Distribution Offering",
+    "content": "3.2 Form of Distribution Offering. Distributor shall ensure that the form of any offering of the Products by Distributor, including the timing, relative and absolute placement, visual presentation to End Users, initial launch of the Products (and any modifications to them) and the presentation of any other applications or products offered with the Products, conforms to the Google Program Guidelines and to Exhibit B of this Agreement. Except as set out in Clause 2 (Licence Grant and Restrictions) and except for End Users as expressly set out in this Agreement, Distributor shall not offer or distribute the Products to any third party. If, during the Term, Exhibit B and the Google Program Guidelines conflict, Exhibit B will take precedence with respect to the conflicting terms.",
+    "tags": ["distribution", "offering", "guidelines", "presentation", "exhibit b", "third party"]
+  },
+  {
+    "section_title": "Guidelines for Applications",
+    "content": "3.3 Guidelines for Applications. Distributor shall comply, and shall ensure that each Third Party Distributor complies, with the Guidelines for Applications set out in Exhibit C.",
+    "tags": ["guidelines", "applications", "compliance", "third party distributor", "exhibit c"]
+  },
+  {
+    "section_title": "Launch Requirements",
+    "content": "3.4 Launch. Distributor shall begin distribution of Bundles in accordance with this Agreement (\"Launch\") within [ * ] days following the Effective Date (the date of such Launch, the \"Launch Date\"). Beginning on the Launch Date and continuing throughout the Term, Distributor shall ensure that [ * ]Distributor App distributed by or on behalf of Distributor is bundled with the Distribution Products as set out in this Agreement.",
+    "tags": ["launch", "bundles", "distribution", "launch date", "effective date", "term"]
+  },
+  {
+    "section_title": "Exclusivity Clause",
+    "content": "3.5 Exclusivity. (a) [ * ] (b) [ * ].",
+    "tags": ["exclusivity", "confidential", "redacted"]
+  },
+  {
+    "section_title": "EULA Distribution Requirements",
+    "content": "3.6 EULA. In connection with Distributor's distribution of the Products under this Agreement, and before the Google Toolbar or Chrome Browser can be installed by an End User, Distributor shall provide each End User with: (a) a clear statement inviting the End User to agree to the terms of the applicable EULA; (b) the opportunity for each End",
+    "tags": ["eula", "distribution", "google toolbar", "chrome browser", "end user", "installation"]
+  },
+  {
+    "section_title": "Accurate Reproduction Requirements",
+    "content": "3.7 Accurate Reproduction. Distributor agrees that in connection with its exercise of the right granted in Clause 2.1 (Products Licence Grant) it shall accurately reproduce the Distribution Products and shall not: (a) modify any Product (including modify the Chrome Browser or Google Toolbar configuration files or registry settings); or (b) insert into the Products any viruses, worms, date bombs, time bombs, or other code that is specifically designed to cause the Products to cease operating, or to damage, interrupt, or interfere with any Products or End User data.",
+    "tags": ["reproduction", "modification", "chrome browser", "google toolbar", "malware", "configuration"]
+  },
+  {
+    "section_title": "Post-Agreement Restrictions",
+    "content": "3.8 [ * ]. During the Term and for a period of [ * ] following the expiration or termination of this Agreement, Distributor shall not, and shall not engage any third party to: (a) restrict, modify, or reconfigure in any manner any of the Products that have been installed by End Users (such End Users, \"Installed Base End Users\") in connection with this Agreement; or (b) engage in activities that encourage Installed Base End Users to modify, uninstall or reconfigure any or the Products.",
+    "tags": ["post-agreement", "restrictions", "installed base", "end users", "modification", "uninstall"]
+  },
+  {
+    "section_title": "Reporting by Distributor",
+    "content": "3.9 Reporting. (a) By Distributor. During the Term, Distributor shall, on a [ * ] basis, no later than the [ * ] of the following [ * ], provide Google with a report identifying, on a country-by-country basis, the total number of: (i) Bundles distributed; (ii) Installs Completed; (iii) Google Toolbar offers presented to End Users; and (iv) Chrome Browser offers presented to End Users, in the preceding [ * ].",
+    "tags": ["reporting", "distributor", "bundles", "installs", "google toolbar", "chrome browser", "country"]
+  },
+  {
+    "section_title": "Reporting by Google",
+    "content": "(b) By Google. During the Term, Google shall on a [ * ] basis, provide Distributor with a report of the [ * ] of [ * ] and [ * ] in the preceding [ * ] broken down on a [ * ] basis and by the [ * ] in Exhibit A.",
+    "tags": ["reporting", "google", "exhibit a", "breakdown", "confidential"]
+  },
+  {
+    "section_title": "Reporting Parameters",
+    "content": "(c) Parameters. Distributor acknowledges, and shall cooperate with Google to [ * ] that: (i) [ * ]: (A) are determined on a [ * ] (B) are only [",
+    "tags": ["parameters", "cooperation", "determination", "confidential", "incomplete"]
+  }
+]

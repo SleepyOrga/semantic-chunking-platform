@@ -1,0 +1,92 @@
+[
+  {
+    "section_title": "Intellectual Property Rights Definition",
+    "content": "\"Intellectual Property Rights\" means all copyright, moral rights, patent rights, trade marks, design right, rights in or relating to databases, rights in or relating to confidential information, rights in relation to domain names, and any other intellectual property rights (registered or unregistered) throughout the world.",
+    "tags": ["definitions", "intellectual property", "copyright", "patents", "trademarks"]
+  },
+  {
+    "section_title": "IPO Definition",
+    "content": "\"IPO\" means an initial public offering of all or any of the shares in Distributor or securities representing those shares for the purposes of being publically traded or quoted on an investment exchange.",
+    "tags": ["definitions", "ipo", "public offering", "securities", "distributor"]
+  },
+  {
+    "section_title": "Maximum Distribution Commitment Definition",
+    "content": "\"Maximum Distribution Commitment\" means [* ] , as may be increased by Google pursuant to Clause 4.2 (Maximum Distribution Commitment).",
+    "tags": ["definitions", "distribution", "commitment", "google", "confidential"]
+  },
+  {
+    "section_title": "Redacted Definition 1",
+    "content": "\"[ * ]\" means a [ * ] or [ * ] entered by the [ * ] into the [ * ] located at the [ * ] of the [ * ]. [ * ] do not include the events listed in Clause 3.9(c)(ii).",
+    "tags": ["definitions", "redacted", "confidential", "events", "exclusions"]
+  },
+  {
+    "section_title": "Products Definition",
+    "content": "\"Products\" means the Google Toolbar, Google Toolbar Installer, Chrome Browser and Chrome Browser Installer.",
+    "tags": ["definitions", "products", "google toolbar", "chrome browser", "installer"]
+  },
+  {
+    "section_title": "Redacted Definition 2",
+    "content": "\"[ * ]\" means the [ * ] received by a [ * ] that, as determined solely by [ * ]: (a) is [ * ] by a [ * ] obtained via a [ * ]; (b) is the next [ * ] that occurs following a [ * ]; and (c) includes the [ * ]. [ * ] only include those [ * ] which meet the requirements set out in Clause 3.9(c)(iii).",
+    "tags": ["definitions", "redacted", "confidential", "requirements", "criteria"]
+  },
+  {
+    "section_title": "Redacted Definition 3",
+    "content": "\"[ * ]\" means a [ * ] received by [ * ] that, as determined solely by [ * ]: (a) is [ * ] by a [ * ] obtained via a [ * ]; (b) is sent for the [ * ] of indicating that an [ * ]: (i) has opened [ * ] following installation of the [ * ], (ii) is [ * ] to the [ * ], and (iii) has [ * ] a [ * ] into the [ * ]; and (c) includes the correct [ * ]. [ * ] only include those [ * ] which meet the requirements set out in Clause 3.9(c)(i).",
+    "tags": ["definitions", "redacted", "confidential", "installation", "requirements"]
+  },
+  {
+    "section_title": "Term Definition",
+    "content": "\"Term\" means the earlier of: (a) the end of the two year period from the Effective Date to 31 July 2013; or (b) the last day of the calendar month within which the Maximum Distribution Commitment is reached.",
+    "tags": ["definitions", "term", "duration", "effective date", "commitment"]
+  },
+  {
+    "section_title": "Territory Definition",
+    "content": "\"Territory\" means those countries listed in Exhibit A, excluding any territory or state prohibited under Clause 11.5.",
+    "tags": ["definitions", "territory", "countries", "exhibit", "exclusions"]
+  },
+  {
+    "section_title": "True Definition",
+    "content": "\"True\" means a \"true\" response (or equivalent positive response) given by the Criteria Checker.",
+    "tags": ["definitions", "true", "response", "criteria checker", "positive"]
+  },
+  {
+    "section_title": "Interpretation Clause",
+    "content": "In this Agreement, the words \"include\" and \"including\" will not limit the generality of any words preceding them.",
+    "tags": ["interpretation", "agreement", "include", "including", "generality"]
+  },
+  {
+    "section_title": "License Grants and Restrictions Section Header",
+    "content": "LICENSE GRANTS AND RESTRICTIONS",
+    "tags": ["license", "grants", "restrictions", "section header"]
+  },
+  {
+    "section_title": "Products License Grant",
+    "content": "Products License Grant. Subject to the terms and conditions of this Agreement, Google grants to Distributor a [* ] license during the Term to: (a) bundle the Distribution Products, in machine-readable binary code format only, solely with Distributor App(s); (b) distribute Bundles directly (or indirectly, subject to Clause 2.2 (Third Party Distribution)) to End Users in the Territory; (c) when indicated by the applicable Criteria Checker and requested by the End User in accordance with clause 3.2 (Form of Distribution Offering), install the Chrome Browser or the Google Toolbar (as applicable) on the End User's system using the Google Installers; and (d) reproduce (or have reproduced by Third Party Distributors as defined in Clause 2.2 (Third Party Distribution)), the Distribution Products to the extent necessary to exercise the rights granted in (a), (b) and (c).",
+    "tags": ["license grant", "products", "google", "distributor", "bundle", "distribution", "installation"]
+  },
+  {
+    "section_title": "Third Party Distribution",
+    "content": "Third Party Distribution. Distributor may distribute Bundles to third parties solely for redistribution of such Bundles by those third parties directly to End Users (such third parties, \"Third Party Distributors\"); provided that: (a) in connection with any and all such offers or distributions, Distributor shall, and shall ensure that each Third Party Distributor shall, distribute Bundles in a manner that is no less protective of the Products and Google than the terms of this Agreement, and (b) Google in its sole discretion may direct Distributor to cease distributing Bundles to any Third Party Distributor that in Google's sole discretion would either: (i) harm or devalue Google's business, brand or name, or (ii) violate Google's privacy policy, and Distributor shall cause any such Third Party Distributor to cease distribution of Bundles as soon as practicable but in no event longer than [ * ] following receipt of such request from Google.",
+    "tags": ["third party distribution", "bundles", "redistribution", "end users", "protection", "google discretion"]
+  },
+  {
+    "section_title": "Third Party Bundling Requirements",
+    "content": "Distributor shall ensure that no Third Party Distributor bundles anything in or with Bundles without Google's prior written approval, and if Google grants its approval, Distributor shall provide Google with information about any such bundling arrangements at Google's request.",
+    "tags": ["third party", "bundling", "approval", "google", "written consent", "information"]
+  },
+  {
+    "section_title": "License Grant Restrictions",
+    "content": "License Grant Restrictions. Distributor shall not, and shall not allow any third party to (except to the extent that such prohibitions are not permitted by law): (a) disassemble, de-compile or otherwise reverse engineer the Products or otherwise attempt to learn the source code or algorithms underlying the Products; (b) modify the Products, create derivative works from or based on the Products; (c) except as expressly set out in this Agreement, provide, sell, license, distribute, lease, lend, or disclose the Products to any third party; (d) use the Products for timeshare, service bureau, or other unauthorised purposes; or (e) exceed the scope of any license granted to Distributor under this Agreement.",
+    "tags": ["license restrictions", "prohibitions", "reverse engineering", "modification", "distribution limits", "unauthorized use"]
+  },
+  {
+    "section_title": "Trademark License and Use",
+    "content": "Trademark License and Use. Subject to the terms and conditions of this Agreement, Google grants to Distributor a limited, [ * ] license during the Term to use the Google Trademarks, in accordance with Google's trademark usage guidelines, solely to market and promote the Products consistent with this Agreement, provided that all use of the Google Trademarks shall be subject to Google's prior review and advance written consent. All uses of the Google Trademarks, and all goodwill associated therewith, shall inure solely to the benefit of Google.",
+    "tags": ["trademark license", "google trademarks", "marketing", "promotion", "usage guidelines", "written consent", "goodwill"]
+  },
+  {
+    "section_title": "Trademark Restrictions",
+    "content": "Trademark Restrictions. Distributor shall not remove,",
+    "tags": ["trademark restrictions", "removal", "incomplete"]
+  }
+]
