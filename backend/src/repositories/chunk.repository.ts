@@ -11,18 +11,32 @@ export class ChunkRepository {
   constructor(@Inject('KNEX_CONNECTION') private readonly knex: Knex) {}
 
   async create(data: CreateChunkData): Promise<string> {
+    // First insert the record without embeddings
     const [chunk] = await this.knex('chunks')
       .insert({
         document_id: data.document_id,
         chunk_index: data.chunk_index,
         content: data.content,
-        embedding: JSON.stringify(data.embedding),
       })
       .returning('id');
 
+    // Then update with properly formatted embeddings
+    if (data.embedding) {
+      await this.knex.raw(
+        `UPDATE chunks SET embedding = ?::vector WHERE id = ?`,
+        [`[${data.embedding.join(',')}]`, chunk.id],
+      );
+    }
+
+    if (data.tag_embedding) {
+      await this.knex.raw(
+        `UPDATE chunks SET tag_embedding = ?::vector WHERE id = ?`,
+        [`[${data.tag_embedding.join(',')}]`, chunk.id],
+      );
+    }
+
     return chunk.id;
   }
-
   async findById(id: string): Promise<ChunkEntity | null> {
     const chunk = await this.knex('chunks').where('id', id).first();
 
@@ -46,13 +60,32 @@ export class ChunkRepository {
   }
 
   async update(id: string, data: UpdateChunkData): Promise<void> {
-    const updateData = { ...data };
+    const updateData: any = {};
 
-    if (updateData.embedding) {
-      updateData.embedding = JSON.stringify(updateData.embedding) as any;
+    if (data.content !== undefined) updateData.content = data.content;
+
+    // First do the regular update
+    if (Object.keys(updateData).length > 0) {
+      await this.knex('chunks').where({ id }).update(updateData);
     }
 
-    await this.knex('chunks').where('id', id).update(updateData);
+    // Handle embedding updates with proper PostgreSQL vector formatting
+    if (data.embedding !== undefined) {
+      // Format the vector for PostgreSQL
+      await this.knex.raw(
+        `UPDATE chunks SET embedding = ?::vector WHERE id = ?`,
+        [`[${data.embedding.join(',')}]`, id],
+      );
+    }
+
+    // Handle tag_embedding updates with proper PostgreSQL vector formatting
+    if (data.tag_embedding !== undefined) {
+      // Format the vector properly for PostgreSQL
+      await this.knex.raw(
+        `UPDATE chunks SET tag_embedding = ?::vector WHERE id = ?`,
+        [`[${data.tag_embedding.join(',')}]`, id],
+      );
+    }
   }
 
   async delete(id: string): Promise<void> {
@@ -129,6 +162,31 @@ export class ChunkRepository {
     return chunks.rows.map((chunk) => ({
       ...chunk,
       embedding: JSON.parse(chunk.embedding),
+    }));
+  }
+  async searchSimilarByTag(
+    tagEmbedding: number[],
+    limit: number = 10,
+  ): Promise<ChunkEntity[]> {
+    // Convert embedding to Postgres vector format
+    const tagEmbeddingStr = `[${tagEmbedding.join(',')}]`;
+
+    const results = await this.knex.raw(
+      `
+    SELECT c.*, d.filename, d.mimetype
+    FROM chunks c
+    JOIN documents d ON c.document_id = d.id
+    WHERE c.tag_embedding IS NOT NULL
+    ORDER BY c.tag_embedding <=> ?::vector
+    LIMIT ?
+  `,
+      [tagEmbeddingStr, limit],
+    );
+
+    return results.rows.map((row) => ({
+      ...row,
+      embedding: Array.isArray(row.embedding) ? row.embedding : [],
+      tag_embedding: Array.isArray(row.tag_embedding) ? row.tag_embedding : [],
     }));
   }
 }

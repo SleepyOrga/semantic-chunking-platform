@@ -3,12 +3,14 @@ export interface AddChunkDto {
   chunk_index: number;
   content: string;
   embedding: number[];
+  tag_embedding?: number[];
 }
 
 export interface UpdateChunkDto {
   id: string;
   content?: string;
   embedding?: number[];
+  tag_embedding?: number[];
 }
 
 export interface ChunkQuery {
@@ -21,4 +23,9 @@ export interface SimilaritySearchDto {
   embedding: number[];
   limit?: number;
   threshold?: number;
+}
+
+export interface TagSimilaritySearchDto {
+  tag_embedding: number[];
+  limit?: number;
 }
