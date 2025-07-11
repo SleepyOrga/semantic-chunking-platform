@@ -25,5 +25,5 @@ USER chunking
 # Expose port (if needed for health checks)
 EXPOSE 8000
 
-# Command to run the application
-CMD ["python", "chunking.py"]
+# Use ENTRYPOINT to support command-line arguments
+ENTRYPOINT ["python", "chunking.py"]
