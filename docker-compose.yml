@@ -14,7 +14,7 @@ services:
   postgres:
     image: ankane/pgvector:latest
     env_file:
-      - ./backend/src/database/.env.development
+      - ./backend/.env.development
     environment:
       POSTGRES_DB: ${DB_NAME:-app_db}
       POSTGRES_USER: ${DB_USER:-app_user}
