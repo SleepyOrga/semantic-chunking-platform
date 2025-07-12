@@ -12,7 +12,7 @@ export async function seed(knex: Knex): Promise<void> {
   // Create test users with UUIDs
   const users = [
     {
-      id: uuidv4(),
+      id: "05b207af-8ea7-4a72-8c37-f5723303d01e",
       email: 'admin@example.com',
       password_hash: passwordHash,
       full_name: 'Admin User',
