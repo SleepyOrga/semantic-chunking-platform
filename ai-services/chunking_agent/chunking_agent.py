@@ -592,7 +592,7 @@ class EnhancedMarkdownSemanticChunker:
                             "content": prompt
                         }
                     ],
-                    "temperature": 0.1
+                    "temperature": 0
                 })
             )
             
@@ -667,6 +667,7 @@ class EnhancedMarkdownSemanticChunker:
         Here are the document sections:
 
         """
+        total_tokens = 0
           # Add each chunk to the prompt with context
         for i, chunk in enumerate(chunks):
             # For context, include information about adjacent chunks
@@ -688,8 +689,9 @@ class EnhancedMarkdownSemanticChunker:
               # Truncate content if too long for the prompt
             content = chunk['content']
             token_estimate = chunk.get('token_count', self._estimate_tokens(content))
-              
-              # If content is very long, truncate for prompt but indicate this
+            total_tokens += token_estimate
+
+            # If content is very long, truncate for prompt but indicate this
             max_content_tokens = 1000  # Maximum tokens to include for a single chunk
             if token_estimate > max_content_tokens:
                   # Truncate content to fit within token limit
@@ -704,6 +706,8 @@ class EnhancedMarkdownSemanticChunker:
 
       """
             prompt += """Please analyze the semantic coherence of each chunk and suggest a reorganization plan in the JSON format described above. Focus on creating semantically complete units that make sense on their own. Consider both content and context when making your decisions. Only return the JSON, nothing else. """
+            
+        print(f"Total tokens in prompt: {total_tokens}")
         return prompt
 
     def _parse_and_apply_reorganization(self, all_chunks: List[Dict[str, Any]], 

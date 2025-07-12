@@ -1,307 +1,161 @@
 [
   {
-    "title": "Paper Title and Authors",
-    "content": "Kaiming He\n\nXiangyu Zhan\n\nShaoqing Ren\n\nMicrosoft Research\n\n$\\{kahe, v-xiangz, v-shren, jiansun\\}@microsoft.com$",
-    "header_level": 1,
-    "original_title": "Deep Residual Learning for Image Recognition",
-    "start_pos": 177,
-    "end_pos": 339,
-    "is_subchunk": false,
-    "token_count": 28,
+    "title": "Ghi chú dự án và công việc cá nhân",
+    "content": "Bản ghi nhớ nhanh cho Dự án Titan. Cần xem lại việc triển khai authentication bằng OAuth2 thay vì JWT đơn thuần, có vẻ an toàn hơn cho các ứng dụng bên thứ ba. Nhớ nói chuyện với An về việc này vào sáng mai. Cuối tuần này phải chốt vé đi Sapa, thời tiết có vẻ đang lạnh đi, cần mang theo áo khoác dày. Tôi đã xem một vài homestay ở Tả Van, view rất đẹp.\n\nLỗi `undefined is not a function` lại xuất hiện trong component `UserDashboard`. Tôi khá chắc là do state không được cập nhật kịp thời trước khi render. Vấn đề bất đồng bộ muôn thuở. Phải dùng `useEffect` với dependency array cho đúng.\n\nVài suy nghĩ về nhiếp ảnh. Ánh sáng là tất cả. Việc hiểu về tam giác phơi sáng (khẩu độ, tốc độ màn trập, ISO) quan trọng hơn việc có một chiếc máy ảnh đắt tiền. Bức ảnh đẹp là bức ảnh kể được một câu chuyện, không chỉ là một bản ghi hình ảnh. Tôi đang nghĩ đến việc mua một ống kính prime 50mm f/1.8, nó rất tuyệt vời để chụp chân dung và trong điều kiện thiếu sáng.\n\nĐây là danh sách những việc cần làm, không theo thứ tự nào cả:\n- Refactor lại hàm `getUserData()` để xử lý lỗi API tốt hơn.\n- Mua thẻ nhớ máy ảnh SDXC V90.\n- Đặt phòng khách sạn ở Sapa trước thứ Tư.\n- Nghiên cứu về `state management` với Zustand, có vẻ nhẹ hơn Redux nhiều.\n- Tìm công thức làm món lẩu cá tầm măng chua, nghe nói là đặc sản ở đó.\n- Cài đặt lại môi trường dev trên máy mới.\n\n> \"The details are not the details. They make the design.\" - Charles Eames.\n\nCâu nói này đúng cho cả việc code và chụp ảnh. Trong code, một dấu chấm phẩy bị thiếu có thể làm sập cả ứng dụng. Trong nhiếp ảnh, một chi tiết nhỏ trong hậu cảnh có thể phá hỏng hoặc làm nên một tác phẩm.\n\nVấn đề về hiệu suất của MongoDB Atlas cần được xem xét kỹ lưỡng.",
+    "header_level": 0,
     "tags": [
-      "Title",
-      "Authors",
-      "Affiliation"
+      "project_notes",
+      "personal_tasks",
+      "travel_plans"
     ],
-    "llm_enhanced": true,
-    "reorganization_reason": "This chunk contains the paper title, authors, and their affiliation, forming a complete semantic unit."
-  },
-  {
-    "title": "Introduction and Motivation (part 1)",
-    "content": "Deeper neural networks are more difficult to train. We present a residual learning framework to ease the training of networks that are substantially deeper than those used previously. We explicitly reformulate the layers as learning residual functions with reference to the layer inputs, instead of learning unprecedented functions. We provide comprehensive empirical evidence showing that these residual networks are easier to optimize, and can gain accuracy from considerably increased depth. On the ImageNet dataset we evaluate $8\\times$ residual nets with a depth of up to 152 layers — $8\\times$ deeper than VGG nets [40] but still having lower complexity. An ensemble of these residual nets achieves 3.57 % error on the ImageNet test set. This result won the 1st place on the ILSVRC 2015 classification task. We also present analysis on CIFAR-10 with 100 and 1000 layers.\n\nThe depth of representations is of central importance for many visual recognition tasks. Solely due to our extremely deep representations, we obtain a 28 % relative improvement on the COCO object detection dataset. Deep residual nets are foundations of our submissions to ILSVRC & COCO 2015 competitions $^1$ , where we also won the 1st places on the tasks of ImageNet detection, ImageNet localization, COCO detection, and COCO segmentation.\n\nDeep convolutional neural networks [22, 21] have led to a series of breakthroughs for image classification [21, 49, 39] . Deep networks naturally integrate low/mid/highlevel features [49] and classifiers in an end-to-end multilayer fashion, and the “ levels ” of features can be enriched by the number of stacked layers (depth). Recent evidence [40, 43] reveals that network depth is of crucial importance, and the leading results [40, 43, 12, 16] on the challenging ImageNet dataset [35] all exploit ” very deep ” [40] models, with a depth of sixteen [40] to thirty [16] . Many other nontrivial visual recognition tasks [7, 11, 6, 32, 27] have also\n\ngreatly benefited from very deep models.",
-    "header_level": 2,
-    "tags": [
-      "Introduction",
-      "Background",
-      "Problem Statement",
-      "Proposed Solution"
-    ],
-    "start_pos": 339,
-    "end_pos": 7578,
+    "start_pos": 0,
+    "end_pos": 3308,
     "is_subchunk": true,
     "subchunk_index": 0,
-    "is_embedding_chunk": true,
-    "parent_chunk": "Introduction and Motivation",
-    "token_count": 503
+    "total_subchunks": 3,
+    "llm_enhanced": true,
+    "split_from": "Untitled Section",
+    "reorganization_reason": "Đoạn văn này bao gồm nhiều chủ đề khác nhau, nên tách thành các phần riêng biệt.",
+    "token_count": 424
   },
   {
-    "title": "Introduction and Motivation (part 2)",
-    "content": "![Figure](figures/page_6_page_001_figure_014.png)\n\nFigure 1. Training error (left) and test error (right) on CIFAR-10 with 20-layer and 56-layer \"plain\" networks. The deeper network has higher training error, and thus test error. Similar phenomena on ImageNet is presented in Fig. 4 .\n\nDriven by the significance of depth, a question arises: Is learning better networks as easy as stacking more layers? An obstacle to answering this question was the notorious problem of vanishing/exploding gradients [14, 1, 8] , which hamper convergence from the beginning. This problem, however, has been largely addressed by normalized initialization [23, 8, 36, 12] and intermediate normalization layers [16] , which enable networks with tens of layers to start converging for stochastic gradient descent (SGD) with backpropagation [22] .\n\nWhen deeper networks are able to start converging, a degradation problem has been exposed: with the network depth increasing, accuracy gets saturated (which might be unsurprising) and then degrades rapidly. Unexpectedly, such degradation is not caused by overfitting , and adding more layers to a suitably deep model leads to higher training error , as reported in [10, 41] and thoroughly verified by our experiments. Fig. 1 shows a typical example.\n\nThe degradation (of training accuracy) indicates that no all systems are similarly easy to optimize. Let us consider a shallower architecture and its deeper counterpart that adds more layers onto it. There exists a solution by construction to the deeper model: the added layers are identity mapping, and the other layers are copied from the learned shallower model. The existence of this constructed solution indicates that a deeper model should produce no higher training error than its shallower counterpart. But experiments show that our current solvers on hand are unable to find solutions that\n\n1http://image-net.org/challenges/LSVRC/2015/ and http://mscoco.org/dataset/#detections-challenge2015.\n\n4/0\n\n---\n\n![Figure](figures/page_6_page_002_figure_000.png)",
-    "header_level": 2,
+    "title": "Vấn đề hiệu suất MongoDB Atlas",
+    "content": " Các truy vấn có `lookup` (tương tự `JOIN` trong SQL) đang làm chậm hệ thống. Cần phải đánh chỉ mục (indexing) cho các trường được tìm kiếm thường xuyên. Chi phí cho cloud đang tăng lên hàng tháng, có lẽ chúng ta nên xem xét việc tối ưu hóa hoặc chuyển sang một giải pháp self-hosted cho các dịch vụ không quá quan trọng. Điều này cũng giống như việc lên kế hoạch ngân sách cho một chuyến đi, phải biết ưu tiên cái gì. Liệu có nên chi nhiều tiền cho một khách sạn sang trọng hay để dành tiền đó cho các trải nghiệm địa phương?\n\nMàu xanh của lá cây ở vùng núi thực sự khác biệt, nó có chiều sâu hơn.",
+    "header_level": 0,
     "tags": [
-      "Introduction",
-      "Background",
-      "Problem Statement",
-      "Proposed Solution"
+      "database",
+      "performance",
+      "optimization"
     ],
-    "start_pos": 339,
-    "end_pos": 7578,
+    "start_pos": 0,
+    "end_pos": 3308,
     "is_subchunk": true,
     "subchunk_index": 1,
-    "is_embedding_chunk": true,
-    "parent_chunk": "Introduction and Motivation",
-    "token_count": 510
+    "total_subchunks": 3,
+    "llm_enhanced": true,
+    "split_from": "Untitled Section",
+    "reorganization_reason": "Đoạn văn này bao gồm nhiều chủ đề khác nhau, nên tách thành các phần riêng biệt.",
+    "token_count": 149
   },
   {
-    "title": "Introduction and Motivation (part 3)",
-    "content": "Figure 2. Residual learning: a building block.\n\nare comparably good or better than the constructed solution (or unable to do so in feasible time).\n\nIn this paper, we address the degradation problem by introducing a deep residual learning framework. Instead of hoping each few stacked layers directly fit a desired underlying mapping, we explicitly let these layers fit a residual mapping. Formally, denoting the desired underlying mapping as $\\mathcal{H}(\\mathbf{x})$ , we let the stacked nonlinear layers fit another mapping of $\\mathcal{F}(\\mathbf{x}):=\\mathcal{H}(\\mathbf{x})-\\mathbf{x}$ . The original mapping is recast into $\\mathcal{F}(\\mathbf{x})+\\mathbf{x}$ . We hypothesize that it is easier to optimize the residual mapping than to optimize the original, unreferenced mapping. To the extreme, if an identity mapping were optimal, it would be easier to push the residual to zero than to fit an identity mapping by a stack of nonlinear layers.\n\nThe formulation of $\\mathcal{F}(\\mathbf{x}) + \\mathbf{x}$ can be realized by feedforward neural networks with “ shortcut connections ” (Fig. 2 ). Shortcut connections [2, 33, 48] are those skipping one or more layers. In our case, the shortcut connections simply perform identity mapping, and their outputs are added to the outputs of the stacked layers (Fig. 2 ). Identity shortcut connections add neither extra parameter nor computational complexity. The entire network can still be trained end-to-end by SGD with backpropagation, and can be easily implemented using common libraries ( e.g. , Caffe [19] ) without modifying the solvers.\n\nWe present comprehensive experiments on ImageNet [35] to show the degradation problem and evaluate our method. We show that: 1) Our extremely deep residual nets are easy to optimize, but the counterpart “ plain ” nets (that simply stack layers) exhibit higher training error when the depth increases; 2) Our deep residual nets can easily enjoy accuracy gains from greatly increased depth, producing results substantially better than previous networks.",
-    "header_level": 2,
+    "title": "Cảm nhận về thiên nhiên",
+    "content": " Tôi muốn chụp một bức ảnh panorama toàn cảnh thung lũng Mường Hoa lúc bình minh.\n\nÀ, đã tìm ra nguyên nhân của lỗi `undefined` trong `UserDashboard`. Là do API trả về một object rỗng `{} ` khi không tìm thấy người dùng, thay vì `null` hoặc một lỗi 404. Đoạn code kiểm tra `if (user)` vẫn trả về `true` nên nó cố gắng truy cập `user.name` và gây ra lỗi. Một trường hợp điển hình của việc hợp đồng API không rõ ràng giữa frontend và backend. Sẽ cập nhật lại logic để kiểm tra `if (user && user.id)`.\n\nCông thức lẩu cá tầm có vẻ đơn giản, quan trọng nhất là nước dùng phải có vị chua thanh từ măng và dứa, không bị gắt. Cá phải tươi thì thịt mới ngọt và không bị tanh. Có lẽ nên gọi món này ở nhà hàng thay vì tự nấu trong homestay.\n\nCuối cùng, kiến trúc của Dự án Titan cần một sơ đồ tổng thể. Một sơ đồ C4 model sẽ rất hữu ích để mọi người trong nhóm, kể cả các thành viên mới, có thể nắm bắt nhanh chóng luồng dữ liệu và sự tương tác giữa các microservice. Tôi sẽ dành buổi chiều thứ Sáu để vẽ nó bằng draw.io.",
+    "header_level": 0,
     "tags": [
-      "Introduction",
-      "Background",
-      "Problem Statement",
-      "Proposed Solution"
+      "nature",
+      "photography",
+      "impressions"
     ],
-    "start_pos": 339,
-    "end_pos": 7578,
+    "start_pos": 0,
+    "end_pos": 3308,
     "is_subchunk": true,
     "subchunk_index": 2,
-    "is_embedding_chunk": true,
-    "parent_chunk": "Introduction and Motivation",
-    "token_count": 511
-  },
-  {
-    "title": "Introduction and Motivation (part 4)",
-    "content": "Similar phenomena are also shown on the CIFAR-10 set [20] , suggesting that the optimization difficulties and the effects of our method are not just akin to a particular dataset. We present successfully trained models on this dataset with over 100 layers, and explore models with over 1000 layers.\n\nOn the ImageNet classification dataset [35] , we obtain excellent results by extremely deep residual nets. Our 152layer residual net is the deepest network ever presented on ImageNet, while still having lower complexity than VGG nets [40] . Our ensemble has 3.57 % top-5 error on the\n\nImageNet test set, and won the 1st place in the ILSVRC 2015 classification competition . The extremely deep representations also have excellent generalization performance on other recognition tasks, and lead us to further win the 1st places on: ImageNet detection , ImageNet localization , COCO detection , and COCO segmentation in ILSVRC & COCO 2015 competitions. This strong evidence shows that the residual learning principle is generic, and we expect that it is applicable in other vision and non-vision problems.",
-    "header_level": 2,
-    "tags": [
-      "Introduction",
-      "Background",
-      "Problem Statement",
-      "Proposed Solution"
-    ],
-    "start_pos": 339,
-    "end_pos": 7578,
-    "is_subchunk": true,
-    "subchunk_index": 3,
-    "is_embedding_chunk": true,
-    "parent_chunk": "Introduction and Motivation",
-    "token_count": 275
-  },
-  {
-    "title": "Related Work (part 1)",
-    "content": "Residual Representations. In image recognition, VLAD [18] is a representation that encodes by the residual vectors with respect to a dictionary, and Fisher Vector [30] can be formulated as a probabilistic version [18] of VLAD. Both of them are powerful shallow representations for image retrieval and classification [4, 47] . For vector quantization, encoding residual vectors [17] is shown to be more effective than encoding original vectors.\n\nIn low-level vision and computer graphics, for solving Partial Differential Equations (PDEs), the widely used Multigrid method [3] reformulates the system as subproblems at multiple scales, where each subproblem is responsible for the residual solution between a coarser and a finer scale. An alternative to Multigrid is hierarchical basis preconditioning [44, 45] , which relies on variables that represent residual vectors between two scales. It has been shown [3, 44, 45] that these solvers converge much faster than standard solvers that are unaware of the residual nature of the solutions. These methods suggest that a good reformulation or preconditioning can simplify the optimization.\n\nShortcut Connections. Practices and theories that lead to shortcut connections [2, 33, 48] have been studied for a long time. An early practice of training multi-layer perceptrons (MLPs) is to add a linear layer connected from the network input to the output [33, 48] . In [43, 24] , a few intermediate layers are directly connected to auxiliary classifiers for addressing vanishing/exploding gradients. The papers of [38, 37, 31, 46] propose methods for centering layer responses, gradients, and propagated errors, implemented by shortcut connections. In [43] , an “ inception ” layer is composed of a shortcut branch and a few deeper branches.",
-    "header_level": 2,
-    "tags": [
-      "Literature Review",
-      "Existing Approaches"
-    ],
-    "start_pos": 7578,
-    "end_pos": 10075,
-    "is_subchunk": true,
-    "subchunk_index": 0,
-    "is_embedding_chunk": true,
-    "parent_chunk": "Related Work",
-    "token_count": 446
-  },
-  {
-    "title": "Related Work (part 2)",
-    "content": "Concurrent with our work, “ highway networks ” [41, 42] present shortcut connections with gating functions [15] . These gates are data-dependent and have parameters, in contrast to our identity shortcuts that are parameter-free. When a gated shortcut is “ closed ” (approaching zero), the layers in highway networks represent non-residual functions. On the contrary, our formulation always learns residual functions; our identity shortcuts are never closed, and all information is always passed through, with additional residual functions to be learned. In addition, high-\n\n101\n\n---\n\nway networks have not demonstrated accuracy gains with extremely increased depth (e.g., over 100 layers).",
-    "header_level": 2,
-    "tags": [
-      "Literature Review",
-      "Existing Approaches"
-    ],
-    "start_pos": 7578,
-    "end_pos": 10075,
-    "is_subchunk": true,
-    "subchunk_index": 1,
-    "is_embedding_chunk": true,
-    "parent_chunk": "Related Work",
-    "token_count": 172
-  },
-  {
-    "title": "Proposed Method: Deep Residual Learning (part 1)",
-    "content": "Let us consider $\\mathcal{H}(\\mathbf{x})$ as an underlying mapping to be fit by a few stacked layers (not necessarily the entire net), with $\\mathbf{x}$ denoting the inputs to the first of these layers. If one hypothesizes that multiple nonlinear layers can asymptotically approximate complicated functions $^2$ , then it is equivalent to hypothesize that they can asymptotically approximate the residual functions, i.e. , $\\mathcal{H}(\\mathbf{x}) - \\mathbf{x}$ (assuming that the input and output are of the same dimensions). So rather than expect stacked layers to approximate $\\mathcal{H}(\\mathbf{x})$ , we explicitly let these layers approximate a residual function $\\mathcal{F}(\\mathbf{x}) := \\mathcal{H}(\\mathbf{x}) - \\mathbf{x}$ . The original function thus becomes $\\mathcal{F}(\\mathbf{x}) + \\mathbf{x}$ . Although both forms should be able to asymptotically approximate the desired functions (as hypothesized), the case of learning might be different.\n\nThis reformulation is motivated by the counterintuitive phenomena about the degradation problem (Fig. 1 , left). As we discussed in the introduction, if the added layers can be constructed as identity mappings, a deeper model should have training error no greater than its shallower counterpart. The degradation problem suggests that the solvers might have difficulties in approximating identity mappings by multiple nonlinear layers. With the residual learning reformulation, if identity mappings are optimal, the solvers may simply drive the weights of the multiple nonlinear layers toward zero to approach identity mappings.",
-    "header_level": 2,
-    "tags": [
-      "Methodology",
-      "Residual Learning",
-      "Network Architecture"
-    ],
-    "start_pos": 10075,
-    "end_pos": 17114,
-    "is_subchunk": true,
-    "subchunk_index": 0,
-    "is_embedding_chunk": true,
-    "parent_chunk": "Proposed Method: Deep Residual Learning",
-    "token_count": 397
-  },
-  {
-    "title": "Proposed Method: Deep Residual Learning (part 2)",
-    "content": "In real cases, it is unlikely that identity mappings are optimal, but our reformulation may help to precondition the problem. If the optimal function is closer to an identity mapping than to a zero mapping, it should be easier for the solver to find the perturbations with reference to an identity mapping, than to learn the function as a new one. We show by experiments (Fig. 7 ) that the learned residual functions in general have small responses, suggesting that identity mappings provide reasonable preconditioning.\n\n$We adopt residual learning to every few stacked layers. \\\\ A building block is shown in Fig. 2 . Formally, in this paper \\\\ we consider a building block defined as: \\\\ $$ \\\\ \\mathbf{y} = \\mathcal{F}(\\mathbf{x}, \\{W_i\\}) + \\mathbf{x}. \\\\ \\eqno(1) \\\\ $$$\n\nHere $\\mathbf{x}$ and $\\mathbf{y}$ are the input and output vectors of the layers considered. The function $\\mathcal{F}(\\mathbf{x},\\{W_i\\})$ represents the residual mapping to be learned. For the example in Fig. 2 that has two layers, $\\mathcal{F}=W_2\\sigma(W_1\\mathbf{x})$ in which $\\sigma$ denotes\n\nReLU [29] and the biases are omitted for simplifying notations. The operation $\\mathcal{F} + \\mathbf{x}$ is performed by a shortcut connection and element-wise addition. We adopt the second nonlinearity after the addition ( i.e. , $\\sigma(\\mathbf{y})$ , see Fig. 2 ).\n\nThe shortcut connections in Eqn.( 1 ) introduce neither extra parameter nor computation complexity. This is not only attractive in practice but also important in our comparisons between plain and residual networks. We can fairly compare plain/residual networks that simultaneously have the same number of parameters, depth, width, and computational cost (except for the negligible element-wise addition).",
-    "header_level": 2,
-    "tags": [
-      "Methodology",
-      "Residual Learning",
-      "Network Architecture"
-    ],
-    "start_pos": 10075,
-    "end_pos": 17114,
-    "is_subchunk": true,
-    "subchunk_index": 1,
-    "is_embedding_chunk": true,
-    "parent_chunk": "Proposed Method: Deep Residual Learning",
-    "token_count": 437
-  },
-  {
-    "title": "Proposed Method: Deep Residual Learning (part 3)",
-    "content": "The dimensions of $\\mathbf{x}$ and $\\mathcal{F}$ must be equal in Eqn.( 1 ). If this is not the case ( e.g. , when changing the input/output channels), we can perform a linear projection $W_s$ by the shortcut connections to match the dimensions: $$ \\\\ \\mathbf{y} = \\mathcal{F}(\\mathbf{x}, \\{W_i\\}) + W_s \\mathbf{x}. \\\\ $$\n\nWe can also use a square matrix $W_s$ in Eqn.( 1 ). But we will show by experiments that the identity mapping is sufficient for addressing the degradation problem and is economical, and thus $W_s$ is only used when matching dimensions.\n\nThe form of the residual function $\\mathcal{F}$ is flexible. Experiments in this paper involve a function $\\mathcal{F}$ that has two or three layers (Fig. 5 ), while more layers are possible. But if $\\mathcal{F}$ has only a single layer, Eqn.( 1 ) is similar to a linear layer: $\\boldsymbol{y}=W_1\\mathbf{x}+\\mathbf{x}$ , for which we have not observed advantages.\n\nWe also note that although the above notations are about fully-connected layers for simplicity, they are applicable to convolutional layers. The function $\\mathcal{F}(\\mathbf{x},\\{W_i\\})$ can represent multiple convolutional layers. The element-wise addition is performed on two feature maps, channel by channel,\n\nWe have tested various plain/residual nets, and have observed consistent phenomena. To provide instances for discussion, we describe two models for ImageNet as follows.",
-    "header_level": 2,
-    "tags": [
-      "Methodology",
-      "Residual Learning",
-      "Network Architecture"
-    ],
-    "start_pos": 10075,
-    "end_pos": 17114,
-    "is_subchunk": true,
-    "subchunk_index": 2,
-    "is_embedding_chunk": true,
-    "parent_chunk": "Proposed Method: Deep Residual Learning",
-    "token_count": 352
-  },
-  {
-    "title": "Proposed Method: Deep Residual Learning (part 4)",
-    "content": "Plain Network. Our plain baselines (Fig. 3 , middle) are mainly inspired by the philosophy of VGG nets [40] (Fig. 3 , left). The convolutional layers mostly have 3 $\\times$ 3 filters and follow two simple design rules: (i) for the same output feature map size, the layers have the same number of filters; and (ii) if the feature map size is halved, the number of filters is doubled so as to preserve the time complexity per layer. We perform downsampling directly by convolutional layers that have a stride of 2. The network ends with a global average pooling layer and a 1000-way fully-connected layer with softmax. The total number of weighted layers is 34 in Fig. 3 (middle).\n\nIt is worth noticing that our model has fewer filters and lower complexity than VGG nets [40] (Fig. 3 , left). Our 34layer baseline has 3.6 billion FLOPs (multiply-adds), which is only 18 % of VGG-19 (19.6 billion FLOPs).\n\n$^{2}$ This hypothesis, however, is still an open question. See [28] .\n\n722\n\n---\n\n![Figure](figures/page_6_page_004_figure_000.png)\n\nFigure 3. Example network architectures for ImageNet. Left : the VGG-19 model [40] (19.6 billion FLOPs) as a reference. Middle : a plain network with 34 parameter layers (3.6 billion FLOPs). Right : a residual network with 34 parameter layers (3.6 billion FLOPs). The dotted shortcuts increase dimensions. Table I shows more details and other variants.",
-    "header_level": 2,
-    "tags": [
-      "Methodology",
-      "Residual Learning",
-      "Network Architecture"
-    ],
-    "start_pos": 10075,
-    "end_pos": 17114,
-    "is_subchunk": true,
-    "subchunk_index": 3,
-    "is_embedding_chunk": true,
-    "parent_chunk": "Proposed Method: Deep Residual Learning",
-    "token_count": 347
-  },
-  {
-    "title": "Proposed Method: Deep Residual Learning (part 5)",
-    "content": "Residual Network. Based on the above plain network, we insert shortcut connections (Fig. 3 , right) which turn the network into its counterpart residual version. The identity shortcuts (Eqn.( 1 )) can be directly used when the input and output are of the same dimensions (solid line shortcuts in Fig. 3 ). When the dimensions increase (dotted line shortcuts in Fig. 3 ), we consider two options: (A) The shortcut still performs identity mapping, with extra zero entries padded for increasing dimensions. This option introduces no extra parameter; (B) The projection shortcut in Eqn.( 2 ) is used to match dimensions (done by 1 $\\times$ 1 convolutions). For both options, when the shortcuts go across feature maps of two sizes, they are performed with a stride of 2.",
-    "header_level": 2,
-    "tags": [
-      "Methodology",
-      "Residual Learning",
-      "Network Architecture"
-    ],
-    "start_pos": 10075,
-    "end_pos": 17114,
-    "is_subchunk": true,
-    "subchunk_index": 4,
-    "is_embedding_chunk": true,
-    "parent_chunk": "Proposed Method: Deep Residual Learning",
-    "token_count": 191
-  },
-  {
-    "title": "Implementation Details",
-    "content": "Our implementation for ImageNet follows the practice in [21, 40] . The image is resized with its shorter side randomly sampled in $[256,480]$ for scale augmentation [40] . A 224 $\\times$ 224 crop is randomly sampled from an image or its horizontal flip, with the per-pixel mean subtracted [21] . The standard color augmentation in [21] is used. We adopt batch normalization (BN) [16] right after each convolution and before activation, following [16] . We initialize the weights as in [12] and train all plain/residual nets from scratch. We use SGD with a mini-batch size of 256. The learning rate starts from 0.1 and is divided by 10 when the error plateaus, and the models are trained for up to $60\\times10^4$ iterations. We use a weight decay of 0.0001 and a momentum of 0.9. We do not use dropout [13] , following the practice in [16] .\n\nIn testing, for comparison studies we adopt the standard 10-crop testing [21] . For best results, we adopt the fullyconvolutional form as in [40, 12] , and average the scores at multiple scales (images are resized such that the shorter side is in $\\{224, 256, 384, 480, 640\\}$ ).",
-    "header_level": 3,
-    "original_title": "3.4. Implementation",
-    "start_pos": 17114,
-    "end_pos": 18262,
-    "is_subchunk": false,
-    "token_count": 280,
-    "tags": [
-      "Implementation",
-      "Training",
-      "Evaluation"
-    ],
+    "total_subchunks": 3,
     "llm_enhanced": true,
-    "reorganization_reason": "This chunk provides implementation details for training and evaluating the models, forming a complete semantic unit."
+    "split_from": "Untitled Section",
+    "reorganization_reason": "Đoạn văn này bao gồm nhiều chủ đề khác nhau, nên tách thành các phần riêng biệt.",
+    "token_count": 252
   },
   {
-    "title": "Object Detection Results",
-    "content": "Our method has good generalization performance on other recognition tasks. Table 7 and 8 show the object detection baseline results on PASCAL VOC 2007 and 2012 [5] and COCO [26] . We adopt Faster R-CNN [32] as the detection method. Here we are interested in the improvements of replacing VGG-16 [40] with ResNet-101. The detection implementation (see appendix) of using both models is the same, so the gains can only be attributed to better networks. Most remarkably, on the challenging COCO dataset we obtain a 6.0 % increase in COCO's standard metric (mAP@ [.5, .95] ), which is a 28 % relative improvement. This gain is solely due to the learned representations.\n\nBased on deep residual nets, we won the 1st places in several tracks in ILSVRC & COCO 2015 competitions: ImageNet detection, ImageNet localization, COCO detection, and COCO segmentation. The details are in the appendix.\n\n727\n\n---",
-    "header_level": 3,
-    "original_title": "4.3. Object Detection on PASCAL and MS COCO",
-    "start_pos": 38700,
-    "end_pos": 39647,
-    "is_subchunk": false,
-    "token_count": 224,
+    "title": "Ghi chú dự án và công việc cá nhân (part 1)",
+    "content": "Bản ghi nhớ nhanh cho Dự án Titan. Cần xem lại việc triển khai authentication bằng OAuth2 thay vì JWT đơn thuần, có vẻ an toàn hơn cho các ứng dụng bên thứ ba. Nhớ nói chuyện với An về việc này vào sáng mai. Cuối tuần này phải chốt vé đi Sapa, thời tiết có vẻ đang lạnh đi, cần mang theo áo khoác dày. Tôi đã xem một vài homestay ở Tả Van, view rất đẹp.\n\nLỗi `undefined is not a function` lại xuất hiện trong component `UserDashboard`. Tôi khá chắc là do state không được cập nhật kịp thời trước khi render. Vấn đề bất đồng bộ muôn thuở. Phải dùng `useEffect` với dependency array cho đúng.\n\nVài suy nghĩ về nhiếp ảnh. Ánh sáng là tất cả. Việc hiểu về tam giác phơi sáng (khẩu độ, tốc độ màn trập, ISO) quan trọng hơn việc có một chiếc máy ảnh đắt tiền. Bức ảnh đẹp là bức ảnh kể được một câu chuyện, không chỉ là một bản ghi hình ảnh. Tôi đang nghĩ đến việc mua một ống kính prime 50mm f/1.8, nó rất tuyệt vời để chụp chân dung và trong điều kiện thiếu sáng.\n\nĐây là danh sách những việc cần làm, không theo thứ tự nào cả:\n- Refactor lại hàm `getUserData()` để xử lý lỗi API tốt hơn.\n- Mua thẻ nhớ máy ảnh SDXC V90.\n- Đặt phòng khách sạn ở Sapa trước thứ Tư.\n- Nghiên cứu về `state management` với Zustand, có vẻ nhẹ hơn Redux nhiều.\n- Tìm công thức làm món lẩu cá tầm măng chua, nghe nói là đặc sản ở đó.\n- Cài đặt lại môi trường dev trên máy mới.\n\n> \"The details are not the details. They make the design.\" - Charles Eames.\n\nCâu nói này đúng cho cả việc code và chụp ảnh. Trong code, một dấu chấm phẩy bị thiếu có thể làm sập cả ứng dụng. Trong nhiếp ảnh, một chi tiết nhỏ trong hậu cảnh có thể phá hỏng hoặc làm nên một tác phẩm.",
+    "header_level": 0,
     "tags": [
-      "Results",
-      "Object Detection",
-      "PASCAL VOC",
-      "MS COCO"
+      "project_notes",
+      "personal_tasks",
+      "travel_plans"
     ],
-    "llm_enhanced": true,
-    "reorganization_reason": "This chunk presents the results on object detection tasks, forming a complete semantic unit."
-  },
-  {
-    "title": "References (part 1)",
-    "content": "[1] Y. Bengio, P. Simard, and P Frasconi. Learning long-term dependencies with gradient descent is difficult. IEEE Transactions on Neural Networks , 5(2):157–166, 1994.\n\n[2] C. M. Bishop. Neural networks for pattern recognition . Oxford university press, 1995. [3] W. L. Briggs, S. F. McCormick, et al. A Multigrid Tutorial . Siam,\n\n2000.\n\n[4] K. Chatfield, V. Lempitsky, A. Vedaldi, and A. Zisserman. The devil is in the details: an evaluation of recent feature encoding methods. In BMVC , 2011.\n\n[5] M. Everingham, L. Van Gool, C. K. Williams, J. Winn, and A. Zisserman. The Pascal Visual Object Classes (VOC) Challenge. IJCV , pages 303–338, 2010.\n\n[6] R. Girshick. Fast R-CNN. In ICCV , 2015.\n\n[7] R. Girshick, J. Donahue, T. Darrell, and J. Malik. Rich feature hierarchies for accurate object detection and semantic segmentation. In CVPR , 2014.\n\n[8] X. Glorot and Y. Bengio. Understanding the difficulty of training deep feedforward neural networks. In AISTATS , 2010.\n\n[9] I. J. Goodfellow, D. Warde-Farley, M. Mirza, A. Courville, and Y. Bengio, Maxcut networks, arXiv:1302.4389 , 2013.\n\n[10] K. He and J. Sun. Convolutional neural networks at constrained time cost. In CVPR , 2015.\n\n[11] K. He, X. Zhang, S. Ren, and J. Sun. Spatial pyramid pooling in deep convolutional networks for visual recognition. In ECCV , 2014. [12] K. He, X. Zhang, S. Ren, and J. Sun. Delving deep into rectifiers:\n\nSurpassing human-level performance on imagenet classification. In ICCV, 2015.\n\n[13] G. E. Hinton, N. Srivastava, A. Krizhevsky, I. Sutskever, and R. R. Salakhutdinov. Improving neural networks by preventing coadaptation of feature detectors. arXiv:1207.0580 , 2012.\n\n[14] S. Hochreiter. Untersuchungen zu dynamischen neuronalen netzen. Diploma thesis, TU Munich , 1991. [15] S. Hochreiter and J. Schmidhuber. Long short-term memory. Neural\n\ncomputation , 9(8):1735–1780, 1997.\n\n[16] S. Ioffe and C. Szegedy. Batch normalization: Accelerating deep network training by reducing internal covariate shift. In ICML , 2015.",
-    "header_level": 2,
-    "tags": [
-      "Bibliography",
-      "Citations"
-    ],
-    "start_pos": 39647,
-    "end_pos": 45987,
+    "start_pos": 0,
+    "end_pos": 3308,
     "is_subchunk": true,
     "subchunk_index": 0,
     "is_embedding_chunk": true,
-    "parent_chunk": "References",
-    "token_count": 504
+    "parent_chunk": "Ghi chú dự án và công việc cá nhân",
+    "token_count": 408
   },
   {
-    "title": "References (part 2)",
-    "content": "[17] H. Jegou, M. Douze, and C. Schmid. Product quantization for nearest neighbor search. TPAMI , 33, 2011.\n\n[18] H. Jegou, F. Perronnin, M. Douze, J. Sanchez, P. Perez, and C. Schmid. Aggregating local image descriptors into compact codes. TPAMI , 2012.\n\n[19] Y. Jia, E. Shelhamer, J. Donahue, S. Karayev, J. Long, R. Girshick, S. Guadarrama, and T. Darrell. Caffe: Convolutional architecture for fast feature embedding. arXiv:1408.5094 , 2014.\n\n[20] A. Krizhevsky. Learning multiple layers of features from tiny images. Tech Report , 2009.\n\n[21] A. Krizhevsky, I. Sutskever, and G. Hinton. Imagenet classification with deep convolutional neural networks. In NIPS , 2012.\n\n[22] Y. LeCun, B. Boser, J. S. Denker, D. Henderson, R. E. Howard, W. Hubbard, and L. D. Jackel. Backpropagation applied to handwritten zip code recognition. Neural computation , 1989.\n\n[23] Y. LeCun, L. Bottou, G. B. Orr, and K.-R. Müller. Efficient backprop. In Neural Networks: Tricks of the Trade , pages 9–50. Springer, 1998.\n\n[24] C.-Y. Lee, S. Xie, P. Gallagher, Z. Zhang, and Z. Tu. Deeplysupervised nets. arXiv:1409.5185 , 2014.\n\n[25] M. Lin, Q. Chen, and S. Yan. Network in network. arXiv:1312.4400 , 2013.\n\n[26] T.-Y. Lin, M. Maire, S. Belongie, J. Hays, P. Perona, D. Ramanan, P. Dollár, and C. L. Zitnick. Microsoft COCO: Common objects in context. In ECCV , 2014.\n\n[27] J. Long, E. Shelhamer, and T. Darrell. Fully convolutional networks for semantic segmentation. In CVPR , 2015.\n\n[28] G. Monttifar, R. Pascanu, K. Cho, and Y. Bengio. On the number of linear regions of deep neural networks. In NIPS , 2014.\n\n[29] V. Nair and G. E. Hinton. Rectified linear units improve restricted boltzmann machines. In ICML , 2010.\n\n[30] F. Perronnin and C. Dance. Fisher kernels on visual vocabularies for image categorization. In CVPR , 2007.\n\n[31] T. Raiko, H. Valpola, and Y. LeCun. Deep learning made easier by linear transformations in perceptrons. In AISTATS , 2012.",
-    "header_level": 2,
+    "title": "Ghi chú dự án và công việc cá nhân (part 2)",
+    "content": "Vấn đề về hiệu suất của MongoDB Atlas cần được xem xét kỹ lưỡng. Các truy vấn có `lookup` (tương tự `JOIN` trong SQL) đang làm chậm hệ thống. Cần phải đánh chỉ mục (indexing) cho các trường được tìm kiếm thường xuyên. Chi phí cho cloud đang tăng lên hàng tháng, có lẽ chúng ta nên xem xét việc tối ưu hóa hoặc chuyển sang một giải pháp self-hosted cho các dịch vụ không quá quan trọng. Điều này cũng giống như việc lên kế hoạch ngân sách cho một chuyến đi, phải biết ưu tiên cái gì. Liệu có nên chi nhiều tiền cho một khách sạn sang trọng hay để dành tiền đó cho các trải nghiệm địa phương?\n\nMàu xanh của lá cây ở vùng núi thực sự khác biệt, nó có chiều sâu hơn. Tôi muốn chụp một bức ảnh panorama toàn cảnh thung lũng Mường Hoa lúc bình minh.\n\nÀ, đã tìm ra nguyên nhân của lỗi `undefined` trong `UserDashboard`. Là do API trả về một object rỗng `{} ` khi không tìm thấy người dùng, thay vì `null` hoặc một lỗi 404. Đoạn code kiểm tra `if (user)` vẫn trả về `true` nên nó cố gắng truy cập `user.name` và gây ra lỗi. Một trường hợp điển hình của việc hợp đồng API không rõ ràng giữa frontend và backend. Sẽ cập nhật lại logic để kiểm tra `if (user && user.id)`.\n\nCông thức lẩu cá tầm có vẻ đơn giản, quan trọng nhất là nước dùng phải có vị chua thanh từ măng và dứa, không bị gắt. Cá phải tươi thì thịt mới ngọt và không bị tanh. Có lẽ nên gọi món này ở nhà hàng thay vì tự nấu trong homestay.\n\nCuối cùng, kiến trúc của Dự án Titan cần một sơ đồ tổng thể. Một sơ đồ C4 model sẽ rất hữu ích để mọi người trong nhóm, kể cả các thành viên mới, có thể nắm bắt nhanh chóng luồng dữ liệu và sự tương tác giữa các microservice. Tôi sẽ dành buổi chiều thứ Sáu để vẽ nó bằng draw.io.",
+    "header_level": 0,
     "tags": [
-      "Bibliography",
-      "Citations"
+      "project_notes",
+      "personal_tasks",
+      "travel_plans"
     ],
-    "start_pos": 39647,
-    "end_pos": 45987,
+    "start_pos": 0,
+    "end_pos": 3308,
     "is_subchunk": true,
     "subchunk_index": 1,
     "is_embedding_chunk": true,
-    "parent_chunk": "References",
-    "token_count": 487
+    "parent_chunk": "Ghi chú dự án và công việc cá nhân",
+    "token_count": 418
   },
   {
-    "title": "References (part 3)",
-    "content": "[32] S. Ren, K. He, R. Girshick, and J. Sun. Faster R-CNN: Towards real-time object detection with region proposal networks. In NIPS , 2015.\n\n[33] B. D. Ripley. Pattern recognition and neural networks . Cambridge university press, 1996.\n\n[34] A. Romero, N. Ballas, S. E. Kahou, A. Chassang, C. Gatta, and Y. Bengio. Fitnets: Hints for thin deep nets. In ICLR , 2015.\n\n[35] O. Russakovsky, J. Deng, H. Su, J. Krause, S. Satheesh, S. Ma, Z. Huang, A. Karpathy, A. Khosla, M. Bernstein, et al. Imagenet large scale visual recognition challenge. arXiv:1409.0575 , 2014.\n\n[36] A. M. Saxe, J. L. McClelland, and S. Ganguli. Exact solutions to the nonlinear dynamics of learning in deep linear neural networks. arXiv:1212.6120 , 2013.\n\n[37] N. N. Schraudolph. Accelerated gradient descent by factor-centering decomposition. Technical report, 1998.\n\n[38] N. N. Schraudolph. Centering neural network gradient factors. In Neural Networks: Tricks of the Trade , pages 207–226. Springer, 1998.\n\n[39] P. Sermanet, D. Eigen, X. Zhang, M. Mathieu, R. Fergus, and Y. LeCun. Overfeat: Integrated recognition, localization and detection using convolutional networks. In ICLR , 2014.\n\n[40] K. Simonyan and A. Zisserman. Very deep convolutional networks for large-scale image recognition. In ICLR , 2015.\n\n[41] R. K. Srivastava, K. Greff, and J. Schmidhuber. Highway networks, arXiv:1505.00387 , 2015.\n\n[42] R. K. Srivastava, K. Greff, and J. Schmidhuber. Training very deep networks. 1507.06228 , 2015.\n\n[43] C. Szegedy, W. Liu, Y. Jia, P. Sermanet, S. Reed, D. Anguelov, D. Er, han, V. Vanhoucke, and A. Rabinovich. Going deeper with convolutions. In CVPR , 2015.\n\n[44] R. Szeliski. Fast surface interpolation using hierarchical basis functions. TPAMI , 1990.\n\n[45] R. Szeliski. Locally adapted hierarchical basis preconditioning. In SIGGRAPH , 2006.",
-    "header_level": 2,
+    "title": "Vấn đề hiệu suất MongoDB Atlas (part 1)",
+    "content": "Bản ghi nhớ nhanh cho Dự án Titan. Cần xem lại việc triển khai authentication bằng OAuth2 thay vì JWT đơn thuần, có vẻ an toàn hơn cho các ứng dụng bên thứ ba. Nhớ nói chuyện với An về việc này vào sáng mai. Cuối tuần này phải chốt vé đi Sapa, thời tiết có vẻ đang lạnh đi, cần mang theo áo khoác dày. Tôi đã xem một vài homestay ở Tả Van, view rất đẹp.\n\nLỗi `undefined is not a function` lại xuất hiện trong component `UserDashboard`. Tôi khá chắc là do state không được cập nhật kịp thời trước khi render. Vấn đề bất đồng bộ muôn thuở. Phải dùng `useEffect` với dependency array cho đúng.\n\nVài suy nghĩ về nhiếp ảnh. Ánh sáng là tất cả. Việc hiểu về tam giác phơi sáng (khẩu độ, tốc độ màn trập, ISO) quan trọng hơn việc có một chiếc máy ảnh đắt tiền. Bức ảnh đẹp là bức ảnh kể được một câu chuyện, không chỉ là một bản ghi hình ảnh. Tôi đang nghĩ đến việc mua một ống kính prime 50mm f/1.8, nó rất tuyệt vời để chụp chân dung và trong điều kiện thiếu sáng.\n\nĐây là danh sách những việc cần làm, không theo thứ tự nào cả:\n- Refactor lại hàm `getUserData()` để xử lý lỗi API tốt hơn.\n- Mua thẻ nhớ máy ảnh SDXC V90.\n- Đặt phòng khách sạn ở Sapa trước thứ Tư.\n- Nghiên cứu về `state management` với Zustand, có vẻ nhẹ hơn Redux nhiều.\n- Tìm công thức làm món lẩu cá tầm măng chua, nghe nói là đặc sản ở đó.\n- Cài đặt lại môi trường dev trên máy mới.\n\n> \"The details are not the details. They make the design.\" - Charles Eames.\n\nCâu nói này đúng cho cả việc code và chụp ảnh. Trong code, một dấu chấm phẩy bị thiếu có thể làm sập cả ứng dụng. Trong nhiếp ảnh, một chi tiết nhỏ trong hậu cảnh có thể phá hỏng hoặc làm nên một tác phẩm.",
+    "header_level": 0,
     "tags": [
-      "Bibliography",
-      "Citations"
+      "database",
+      "performance",
+      "optimization"
     ],
-    "start_pos": 39647,
-    "end_pos": 45987,
+    "start_pos": 0,
+    "end_pos": 3308,
     "is_subchunk": true,
-    "subchunk_index": 2,
+    "subchunk_index": 0,
     "is_embedding_chunk": true,
-    "parent_chunk": "References",
-    "token_count": 458
+    "parent_chunk": "Vấn đề hiệu suất MongoDB Atlas",
+    "token_count": 408
   },
   {
-    "title": "References (part 4)",
-    "content": "[46] T. Vatanen, T. Raiko, H. Valpola, and Y. LeCun. Pushing stochastic gradient towards second-order methods–backpropagation learning with transformations in nonlinearities. In Neural Information Processing , 2013.\n\n[47] A. Vedaldi and B. Fulkerson. VLFeat: An open and portable library of computer vision algorithms, 2008.\n\n[48] W. Venables and B. Ripley. Modern applied statistics with s-plus. 1999.\n\n[49] M. D. Zeiler and R. Fergus. Visualizing and understanding convolutional neural networks. In ECCV , 2014.\n\n77S",
-    "header_level": 2,
+    "title": "Vấn đề hiệu suất MongoDB Atlas (part 2)",
+    "content": "Vấn đề về hiệu suất của MongoDB Atlas cần được xem xét kỹ lưỡng. Các truy vấn có `lookup` (tương tự `JOIN` trong SQL) đang làm chậm hệ thống. Cần phải đánh chỉ mục (indexing) cho các trường được tìm kiếm thường xuyên. Chi phí cho cloud đang tăng lên hàng tháng, có lẽ chúng ta nên xem xét việc tối ưu hóa hoặc chuyển sang một giải pháp self-hosted cho các dịch vụ không quá quan trọng. Điều này cũng giống như việc lên kế hoạch ngân sách cho một chuyến đi, phải biết ưu tiên cái gì. Liệu có nên chi nhiều tiền cho một khách sạn sang trọng hay để dành tiền đó cho các trải nghiệm địa phương?\n\nMàu xanh của lá cây ở vùng núi thực sự khác biệt, nó có chiều sâu hơn. Tôi muốn chụp một bức ảnh panorama toàn cảnh thung lũng Mường Hoa lúc bình minh.\n\nÀ, đã tìm ra nguyên nhân của lỗi `undefined` trong `UserDashboard`. Là do API trả về một object rỗng `{} ` khi không tìm thấy người dùng, thay vì `null` hoặc một lỗi 404. Đoạn code kiểm tra `if (user)` vẫn trả về `true` nên nó cố gắng truy cập `user.name` và gây ra lỗi. Một trường hợp điển hình của việc hợp đồng API không rõ ràng giữa frontend và backend. Sẽ cập nhật lại logic để kiểm tra `if (user && user.id)`.\n\nCông thức lẩu cá tầm có vẻ đơn giản, quan trọng nhất là nước dùng phải có vị chua thanh từ măng và dứa, không bị gắt. Cá phải tươi thì thịt mới ngọt và không bị tanh. Có lẽ nên gọi món này ở nhà hàng thay vì tự nấu trong homestay.\n\nCuối cùng, kiến trúc của Dự án Titan cần một sơ đồ tổng thể. Một sơ đồ C4 model sẽ rất hữu ích để mọi người trong nhóm, kể cả các thành viên mới, có thể nắm bắt nhanh chóng luồng dữ liệu và sự tương tác giữa các microservice. Tôi sẽ dành buổi chiều thứ Sáu để vẽ nó bằng draw.io.",
+    "header_level": 0,
     "tags": [
-      "Bibliography",
-      "Citations"
+      "database",
+      "performance",
+      "optimization"
     ],
-    "start_pos": 39647,
-    "end_pos": 45987,
+    "start_pos": 0,
+    "end_pos": 3308,
     "is_subchunk": true,
-    "subchunk_index": 3,
+    "subchunk_index": 1,
     "is_embedding_chunk": true,
-    "parent_chunk": "References",
-    "token_count": 129
+    "parent_chunk": "Vấn đề hiệu suất MongoDB Atlas",
+    "token_count": 418
+  },
+  {
+    "title": "Cảm nhận về thiên nhiên (part 1)",
+    "content": "Bản ghi nhớ nhanh cho Dự án Titan. Cần xem lại việc triển khai authentication bằng OAuth2 thay vì JWT đơn thuần, có vẻ an toàn hơn cho các ứng dụng bên thứ ba. Nhớ nói chuyện với An về việc này vào sáng mai. Cuối tuần này phải chốt vé đi Sapa, thời tiết có vẻ đang lạnh đi, cần mang theo áo khoác dày. Tôi đã xem một vài homestay ở Tả Van, view rất đẹp.\n\nLỗi `undefined is not a function` lại xuất hiện trong component `UserDashboard`. Tôi khá chắc là do state không được cập nhật kịp thời trước khi render. Vấn đề bất đồng bộ muôn thuở. Phải dùng `useEffect` với dependency array cho đúng.\n\nVài suy nghĩ về nhiếp ảnh. Ánh sáng là tất cả. Việc hiểu về tam giác phơi sáng (khẩu độ, tốc độ màn trập, ISO) quan trọng hơn việc có một chiếc máy ảnh đắt tiền. Bức ảnh đẹp là bức ảnh kể được một câu chuyện, không chỉ là một bản ghi hình ảnh. Tôi đang nghĩ đến việc mua một ống kính prime 50mm f/1.8, nó rất tuyệt vời để chụp chân dung và trong điều kiện thiếu sáng.\n\nĐây là danh sách những việc cần làm, không theo thứ tự nào cả:\n- Refactor lại hàm `getUserData()` để xử lý lỗi API tốt hơn.\n- Mua thẻ nhớ máy ảnh SDXC V90.\n- Đặt phòng khách sạn ở Sapa trước thứ Tư.\n- Nghiên cứu về `state management` với Zustand, có vẻ nhẹ hơn Redux nhiều.\n- Tìm công thức làm món lẩu cá tầm măng chua, nghe nói là đặc sản ở đó.\n- Cài đặt lại môi trường dev trên máy mới.\n\n> \"The details are not the details. They make the design.\" - Charles Eames.\n\nCâu nói này đúng cho cả việc code và chụp ảnh. Trong code, một dấu chấm phẩy bị thiếu có thể làm sập cả ứng dụng. Trong nhiếp ảnh, một chi tiết nhỏ trong hậu cảnh có thể phá hỏng hoặc làm nên một tác phẩm.",
+    "header_level": 0,
+    "tags": [
+      "nature",
+      "photography",
+      "impressions"
+    ],
+    "start_pos": 0,
+    "end_pos": 3308,
+    "is_subchunk": true,
+    "subchunk_index": 0,
+    "is_embedding_chunk": true,
+    "parent_chunk": "Cảm nhận về thiên nhiên",
+    "token_count": 408
+  },
+  {
+    "title": "Cảm nhận về thiên nhiên (part 2)",
+    "content": "Vấn đề về hiệu suất của MongoDB Atlas cần được xem xét kỹ lưỡng. Các truy vấn có `lookup` (tương tự `JOIN` trong SQL) đang làm chậm hệ thống. Cần phải đánh chỉ mục (indexing) cho các trường được tìm kiếm thường xuyên. Chi phí cho cloud đang tăng lên hàng tháng, có lẽ chúng ta nên xem xét việc tối ưu hóa hoặc chuyển sang một giải pháp self-hosted cho các dịch vụ không quá quan trọng. Điều này cũng giống như việc lên kế hoạch ngân sách cho một chuyến đi, phải biết ưu tiên cái gì. Liệu có nên chi nhiều tiền cho một khách sạn sang trọng hay để dành tiền đó cho các trải nghiệm địa phương?\n\nMàu xanh của lá cây ở vùng núi thực sự khác biệt, nó có chiều sâu hơn. Tôi muốn chụp một bức ảnh panorama toàn cảnh thung lũng Mường Hoa lúc bình minh.\n\nÀ, đã tìm ra nguyên nhân của lỗi `undefined` trong `UserDashboard`. Là do API trả về một object rỗng `{} ` khi không tìm thấy người dùng, thay vì `null` hoặc một lỗi 404. Đoạn code kiểm tra `if (user)` vẫn trả về `true` nên nó cố gắng truy cập `user.name` và gây ra lỗi. Một trường hợp điển hình của việc hợp đồng API không rõ ràng giữa frontend và backend. Sẽ cập nhật lại logic để kiểm tra `if (user && user.id)`.\n\nCông thức lẩu cá tầm có vẻ đơn giản, quan trọng nhất là nước dùng phải có vị chua thanh từ măng và dứa, không bị gắt. Cá phải tươi thì thịt mới ngọt và không bị tanh. Có lẽ nên gọi món này ở nhà hàng thay vì tự nấu trong homestay.\n\nCuối cùng, kiến trúc của Dự án Titan cần một sơ đồ tổng thể. Một sơ đồ C4 model sẽ rất hữu ích để mọi người trong nhóm, kể cả các thành viên mới, có thể nắm bắt nhanh chóng luồng dữ liệu và sự tương tác giữa các microservice. Tôi sẽ dành buổi chiều thứ Sáu để vẽ nó bằng draw.io.",
+    "header_level": 0,
+    "tags": [
+      "nature",
+      "photography",
+      "impressions"
+    ],
+    "start_pos": 0,
+    "end_pos": 3308,
+    "is_subchunk": true,
+    "subchunk_index": 1,
+    "is_embedding_chunk": true,
+    "parent_chunk": "Cảm nhận về thiên nhiên",
+    "token_count": 418
   }
 ]
