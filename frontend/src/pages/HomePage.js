@@ -41,6 +41,7 @@ const HomePage = () => {
     try {
       setIsLoading(true);
       const data = await DocumentService.getUserDocuments();
+      console.log("Loaded documents:", data);
       setUploadedFiles(data.documents || []);
     } catch (err) {
       setError('Failed to load documents. Please refresh the page.');

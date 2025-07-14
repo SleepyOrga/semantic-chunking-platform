@@ -69,10 +69,7 @@ async function testDocumentService() {
     // 5. Get documents by user ID
     console.log('\n5. Getting documents by user ID...');
     const userDocuments = await documentService.getDocumentsByUserId(userId);
-    console.log(`Found ${userDocuments.length} documents for user:`);
-    userDocuments.forEach((doc, index) => {
-      console.log(`[${index}] ${doc.filename} (${doc.status})`);
-    });
+    console.log(`Found ${userDocuments} documents for user:`);
     
     // 6. Get documents by status
     console.log('\n6. Getting documents by status...');

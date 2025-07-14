@@ -9,6 +9,7 @@ const AuthPage = () => {
   const navigate = useNavigate();
 
   const handleLoginSuccess = (userData) => {
+    console.log("User logged in:", userData);
     navigate('/');
   };
 

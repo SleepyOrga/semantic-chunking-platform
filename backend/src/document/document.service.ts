@@ -1,17 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { DocumentRepository } from '../repositories/document.repository';
-import { 
-  CreateDocumentDto, 
-  UpdateDocumentDto, 
+import {
+  CreateDocumentDto,
+  UpdateDocumentDto,
   UpdateDocumentStatusDto,
-  DocumentQuery
+  DocumentQuery,
 } from '../dto/document.dto';
 
 @Injectable()
 export class DocumentService {
-  constructor(
-    private readonly documentRepository: DocumentRepository,
-  ) {}
+  constructor(private readonly documentRepository: DocumentRepository) {}
 
   async createDocument(data: CreateDocumentDto): Promise<string> {
     try {
@@ -19,7 +17,7 @@ export class DocumentService {
         ...data,
         status: 'pending',
       });
-      
+
       console.log(`Document created successfully with ID: ${documentId}`);
       return documentId;
     } catch (error) {
@@ -31,11 +29,11 @@ export class DocumentService {
   async getDocumentById(id: string) {
     try {
       const document = await this.documentRepository.findById(id);
-      
+
       if (!document) {
         throw new Error(`Document with ID ${id} not found`);
       }
-      
+
       return document;
     } catch (error) {
       console.error(`Failed to get document ${id}:`, error);
@@ -45,7 +43,21 @@ export class DocumentService {
 
   async getDocumentsByUserId(userId: string, limit = 50, offset = 0) {
     try {
-      return await this.documentRepository.findByUserId(userId, limit, offset);
+      const documents = await this.documentRepository.findByUserId(
+        userId,
+        limit,
+        offset,
+      );
+      return {
+        documents: documents.map((doc) => ({
+          id: doc.id,
+          filename: doc.filename,
+          mimetype: doc.mimetype,
+          size: doc.size,
+          status: doc.status,
+          uploadedAt: doc.created_at,
+        })),
+      };
     } catch (error) {
       console.error(`Failed to get documents for user ${userId}:`, error);
       throw new Error(`Failed to get documents: ${error.message}`);
@@ -68,10 +80,10 @@ export class DocumentService {
       if (!exists) {
         throw new Error(`Document with ID ${data.id} not found`);
       }
-      
+
       const { id, ...updateData } = data;
       await this.documentRepository.update(id, updateData);
-      
+
       console.log(`Document ${id} updated successfully`);
     } catch (error) {
       console.error(`Failed to update document ${data.id}:`, error);
@@ -86,10 +98,16 @@ export class DocumentService {
       if (!exists) {
         throw new Error(`Document with ID ${data.id} not found`);
       }
-      
-      await this.documentRepository.updateStatus(data.id, data.status, data.error_message);
-      
-      console.log(`Document status updated successfully for ID: ${data.id} to ${data.status}`);
+
+      await this.documentRepository.updateStatus(
+        data.id,
+        data.status,
+        data.error_message,
+      );
+
+      console.log(
+        `Document status updated successfully for ID: ${data.id} to ${data.status}`,
+      );
     } catch (error) {
       console.error(`Failed to update document status for ${data.id}:`, error);
       throw error;
@@ -103,11 +121,11 @@ export class DocumentService {
       if (!exists) {
         throw new Error(`Document with ID ${id} not found`);
       }
-      
+
       // Note: We don't handle chunk deletion here - that's the responsibility of ChunkService
       // or a transaction in a higher-level service
       await this.documentRepository.delete(id);
-      
+
       console.log(`Document ${id} deleted successfully`);
     } catch (error) {
       console.error(`Failed to delete document ${id}:`, error);

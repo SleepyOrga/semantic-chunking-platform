@@ -6,6 +6,7 @@ import { RabbitMQService } from './rabbitmq.service';
 import { DocumentModule } from './document/document.module';
 import { ChunkModule } from './chunk/chunk.module';
 import { KnexModule } from './database/knex.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { KnexModule } from './database/knex.module';
     DocumentModule,
     ChunkModule,
     KnexModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [S3Service, RabbitMQService],

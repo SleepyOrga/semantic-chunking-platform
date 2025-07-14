@@ -1,4 +1,3 @@
-// src/services/AuthService.js
 import axios from 'axios';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:4000';
@@ -13,6 +12,9 @@ class AuthService {
       
       if (response.data.token) {
         localStorage.setItem('user', JSON.stringify(response.data));
+        
+        // Dispatch an event to notify the app that auth state has changed
+        window.dispatchEvent(new Event('auth-change'));
       }
       
       return response.data;
@@ -21,31 +23,25 @@ class AuthService {
     }
   }
 
-  async register(email, password, fullName) {
-    try {
-      const response = await axios.post(`${API_URL}/auth/register`, {
-        email,
-        password,
-        full_name: fullName
-      });
-      
-      return response.data;
-    } catch (error) {
-      throw error.response?.data || { message: 'Registration failed' };
-    }
-  }
-
   logout() {
     localStorage.removeItem('user');
+    // Dispatch the event on logout too
+    window.dispatchEvent(new Event('auth-change'));
   }
 
   getCurrentUser() {
-    return JSON.parse(localStorage.getItem('user'));
+    try {
+      return JSON.parse(localStorage.getItem('user'));
+    } catch (e) {
+      return null;
+    }
   }
 
   isAuthenticated() {
     const user = this.getCurrentUser();
-    return !!user && !!user.token;
+    const isAuth = !!user && !!user.token;
+    console.log("Auth check:", isAuth);
+    return isAuth;
   }
 }
 

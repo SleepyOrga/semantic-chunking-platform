@@ -13,7 +13,8 @@ const ChatInput = ({
   onFileButtonClick, 
   onClearFile, 
   isLoading, 
-  fileInputRef 
+  fileInputRef,
+  onFileChange  // <-- This prop needs to be connected to the file input
 }) => {
   return (
     <Paper 
@@ -30,6 +31,15 @@ const ChatInput = ({
     >
       {/* File preview */}
       <FilePreview file={file} onClear={onClearFile} />
+
+      {/* File input (hidden) */}
+      <input
+        type="file"
+        ref={fileInputRef}
+        style={{ display: 'none' }}
+        onChange={onFileChange}  // <-- Make sure this is connected
+        accept=".pdf,.docx,.xlsx,.jpg,.jpeg,.png,.txt"
+      />
 
       {/* File upload button */}
       <IconButton 
@@ -75,14 +85,6 @@ const ChatInput = ({
       >
         {file ? 'Upload' : 'Send'}
       </Button>
-
-      {/* Hidden file input */}
-      <input
-        type="file"
-        ref={fileInputRef}
-        style={{ display: 'none' }}
-        accept=".pdf,.docx,.xlsx,.jpg,.jpeg,.png,.txt"
-      />
     </Paper>
   );
 };
