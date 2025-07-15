@@ -3,3 +3,9 @@ requests
 botocore
 datasets
 nltk
+pika
+boto3
+anthropic[bedrock]
+docling
+pydantic
+langchain

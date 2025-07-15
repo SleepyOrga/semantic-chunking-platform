@@ -1,2 +1,5 @@
 chunking_agent/.venv
 xlsx_docx_parser/.venv
+venv
+.env
+temp
