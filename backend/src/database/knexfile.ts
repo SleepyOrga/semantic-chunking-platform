@@ -4,7 +4,9 @@ import * as path from 'path';
 
 // Load environment variables from project root
 const environment = process.env.NODE_ENV || 'development';
+// const envFile = environment === 'production' ? '.env.production' : '.env.development';
 const envFile = environment === 'production' ? '.env.production' : '.env.development';
+
 
 // Use process.cwd() to get the project root directory
 const envPath = path.resolve(process.cwd(), envFile);

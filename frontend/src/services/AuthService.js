@@ -23,6 +23,27 @@ class AuthService {
     }
   }
 
+  async register(email, password, full_name) {
+    try {
+      const response = await axios.post(`${API_URL}/auth/register`, {
+        email,
+        password,
+        full_name
+      });
+      
+      if (response.data.token) {
+        localStorage.setItem('user', JSON.stringify(response.data));
+        
+        // Dispatch an event to notify the app that auth state has changed
+        window.dispatchEvent(new Event('auth-change'));
+      }
+      
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Registration failed' };
+    }
+  }
+
   logout() {
     localStorage.removeItem('user');
     // Dispatch the event on logout too
@@ -45,4 +66,5 @@ class AuthService {
   }
 }
 
-export default new AuthService();
+const authService = new AuthService();
+export default authService;
