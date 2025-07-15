@@ -11,7 +11,7 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import { S3Service } from './s3.service';
 import { RabbitMQService } from '../queue/rabbitmq.service';
-import { DocumentService } from './document/document.service';
+import { DocumentService } from '../document/document.service';
 
 @Controller('upload')
 export class AppController {
