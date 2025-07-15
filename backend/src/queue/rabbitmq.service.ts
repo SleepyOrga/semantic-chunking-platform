@@ -11,12 +11,23 @@ export class RabbitMQService implements OnModuleInit {
     await this.channel.assertQueue('file-process-queue', { durable: true });
   }
 
+  async awaitConnection(): Promise<void> {
+    while (!this.channel) {
+      await new Promise((res) => setTimeout(res, 100));
+    }
+  }
+
+  async consume(queue: string, onMessage: (msg: any) => void) {
+    if (!this.channel) throw new Error('Channel not initialized');
+    this.channel.consume(queue, onMessage, { noAck: false });
+  }
+
   async sendToQueue(data: any) {
     if (!this.channel) throw new Error('Channel not initialized');
     this.channel.sendToQueue(
       'file-process-queue',
       Buffer.from(JSON.stringify(data)),
-      { persistent: true }
+      { persistent: true },
     );
   }
 }

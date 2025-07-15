@@ -83,6 +83,7 @@ export class AppController {
       filename: file.originalname,
       s3Key: key,
       uploadedAt: new Date().toISOString(),
+      fileType: this.mapMimeToType(file.mimetype),
     });
 
     return {
@@ -90,5 +91,26 @@ export class AppController {
       key,
       uploadedAt: new Date().toISOString(),
     };
+  }
+  
+  private mapMimeToType(
+    mime: string,
+  ): 'docx' | 'pdf' | 'xlsx' | 'image' | 'unknown' {
+    switch (mime) {
+      case 'application/pdf':
+        return 'pdf';
+      case 'application/vnd.openxmlformats-officedocument.wordprocessingml.document':
+        return 'docx';
+      case 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet':
+        return 'xlsx';
+      case 'image/jpeg':
+      case 'image/png':
+      case 'image/gif':
+      case 'image/webp':
+      case 'image/tiff':
+        return 'image';
+      default:
+        return 'unknown';
+    }
   }
 }

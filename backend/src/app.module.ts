@@ -1,12 +1,13 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { AppController } from './upload/upload.controller';
-import { S3Service } from './upload/s3.service';
 import { RabbitMQService } from './queue/rabbitmq.service';
 import { DocumentModule } from './document/document.module';
 import { ChunkModule } from './chunk/chunk.module';
 import { KnexModule } from './database/knex.module';
 import { AuthModule } from './auth/auth.module';
+import { QueueModule } from './queue/queue.module';
+import { UploadModule } from './upload/upload.module';
 
 @Module({
   imports: [
@@ -17,8 +18,10 @@ import { AuthModule } from './auth/auth.module';
     ChunkModule,
     KnexModule,
     AuthModule,
+    QueueModule,
+    UploadModule
   ],
   controllers: [AppController],
-  providers: [S3Service, RabbitMQService],
+  providers: [RabbitMQService],
 })
 export class AppModule {}

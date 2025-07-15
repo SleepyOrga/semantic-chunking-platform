@@ -9,7 +9,7 @@ const envFile = environment === 'production' ? '.env.production' : '.env.develop
 
 
 // Use process.cwd() to get the project root directory
-const envPath = path.resolve(process.cwd(), envFile);
+const envPath = path.resolve(__dirname, '../../', envFile);
 console.log('🔍 Looking for env file at:', envPath);
 const result = config({ path: envPath });
 console.log('📄 Env file loaded?', result.parsed ? 'Yes' : 'No');
