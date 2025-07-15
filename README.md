@@ -14,10 +14,13 @@ This is a monorepo containing:
 ```bash
 npm install
 
-2. Watch RabbitMQ on EC2
+2. Add semantic-chunking.pem to project root and .env to backend
+
+
+3. Watch RabbitMQ on EC2
 Access: http://<EC2_PUBLIC_IP>:15672
 #http://54.92.209.245:15672 (development)
-#http://52.65.216.159:15672(production)
+#http://52.65.216.159:15672 (production)
 
 User/pass: admin / admin
 
