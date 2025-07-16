@@ -1,4 +1,4 @@
-// run this D:\semantic-chunking-platform\backend\src\database> npx cross-env NODE_ENV=production npx ts-node scripts/reset-db.ts
+// run this D:\semantic-chunking-platform\backend\src\database> npx cross-env NODE_ENV=production npx ts-node scripts/reset-db.ts or drop the NODE_ENV=production if you want to run in dev mode
 import { promises as fs } from 'fs';
 import * as path from 'path';
 import knex from 'knex';
@@ -7,7 +7,7 @@ import knexConfig from '../knexfile';
 async function resetDatabase(mode: 'drop' | 'clean') {
   console.log(`Starting database ${mode} operation...`);
 
-  const config = knexConfig.production;
+  const config = knexConfig.development; // becareful with knex.config.production in production
   const db = knex(config);
 
   try {
