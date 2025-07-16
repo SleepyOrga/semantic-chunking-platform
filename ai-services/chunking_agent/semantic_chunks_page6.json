@@ -1,0 +1,284 @@
+[
+  {
+    "section_title": "Network Architecture and Downsampling",
+    "content": "also Fig. 5 ), with the numbers of blocks stacked. Downsampling is performed by conv3 _ 1, conv4 _ 1, and conv5 _ 1 with a stride of 2.",
+    "tags": [
+      "architecture",
+      "downsampling",
+      "convolution",
+      "stride"
+    ]
+  },
+  {
+    "section_title": "ImageNet Training Results Visualization",
+    "content": "Figure 4. Training on ImageNet. Thin curves denote training error, and bold curves denote validation error of the center crops. Left: plain networks of 18 and 34 layers. Right: ResNets of 18 and 34 layers. In this plot, the residual networks have no extra parameter compared to their plain counterparts.",
+    "tags": [
+      "imagenet",
+      "training",
+      "visualization",
+      "plain networks",
+      "resnet",
+      "validation error"
+    ]
+  },
+  {
+    "section_title": "Plain vs ResNet Performance Comparison",
+    "content": "Table 2. Top-1 error ( % , 10-crop testing) on ImageNet validation. Here the ResNets have no extra parameter compared to their plain counterparts. 18 layers: plain 27.94, ResNet 27.88. 34 layers: plain 28.54, ResNet 25.03.",
+    "tags": [
+      "performance",
+      "comparison",
+      "top-1 error",
+      "imagenet",
+      "validation",
+      "plain",
+      "resnet"
+    ]
+  },
+  {
+    "section_title": "Training Procedure Analysis",
+    "content": "Fig. 4 shows the training procedures. 34-layer plain net has higher training error throughout the whole training procedure, even though the solution space of the 18-layer plain network is a subspace of that of the 34-layer one.",
+    "tags": [
+      "training",
+      "analysis",
+      "plain network",
+      "solution space",
+      "optimization"
+    ]
+  },
+  {
+    "section_title": "Optimization Difficulty Analysis",
+    "content": "We argue that this optimization difficulty is unlikely to be caused by vanishing gradients. These plain networks are trained with BN [16] , which ensures forward propagated signals to have non-zero variances. We also verify that the backward propagated gradients exhibit healthy norms with BN. So neither forward nor backward signals vanish.",
+    "tags": [
+      "optimization",
+      "vanishing gradients",
+      "batch normalization",
+      "forward propagation",
+      "backward propagation"
+    ]
+  },
+  {
+    "section_title": "Plain Network Performance Assessment",
+    "content": "In fact, the 34-layer plain net is still able to achieve competitive accuracy (Table 3 ), suggesting that the solver works to some extent. We conjecture that the deep plain nets may have exponentially low convergence rates, which impact the reducing of the training error. The reason for such optimization difficulties will be studied in the future.",
+    "tags": [
+      "plain network",
+      "accuracy",
+      "convergence rates",
+      "optimization",
+      "training error"
+    ]
+  },
+  {
+    "section_title": "ResNet Architecture Description",
+    "content": "Next Networks. Next we evaluate 18-layer and 34layer residual nets ( ResNets ). The baseline architectures are the same as the above plain nets, expect that a shortcut connection is added to each pair of 3 × 3 filters as in Fig. 3 (right).",
+    "tags": [
+      "resnet",
+      "residual networks",
+      "shortcut connection",
+      "architecture",
+      "filters"
+    ]
+  },
+  {
+    "section_title": "Identity Mapping Implementation",
+    "content": "In the first comparison (Table 2 and Fig. 4 right), we use identity mapping for all shortcuts and zero-padding for increasing dimensions (option A). So they have no extra parameter compared to the plain counterparts.",
+    "tags": [
+      "identity mapping",
+      "shortcuts",
+      "zero-padding",
+      "parameters",
+      "dimensions"
+    ]
+  },
+  {
+    "section_title": "ResNet Performance Observations",
+    "content": "We have three major observations from Table 2 and Fig. 4 . First, the situation is reversed with residual learning – the 34-layer ResNet is better than the 18-layer ResNet (by 2.8 % ). More importantly, the 34-layer ResNet exhibits considerably lower training error and is generalizable to the validation data.",
+    "tags": [
+      "resnet",
+      "residual learning",
+      "performance",
+      "training error",
+      "generalization",
+      "validation"
+    ]
+  },
+  {
+    "section_title": "Degradation Problem Solution",
+    "content": "This indicates that the degradation problem is well addressed in this setting and we manage to obtain accuracy gains from increased depth.",
+    "tags": [
+      "degradation problem",
+      "accuracy",
+      "depth",
+      "solution"
+    ]
+  },
+  {
+    "section_title": "ResNet vs Plain Network Comparison",
+    "content": "Second, compared to its plain counterpart, the 34-layer ResNet reduces the top-1 error by 3.5 % (Table 2), resulting from the successfully reduced training error (Fig. 4 right vs. left). This comparison verifies the effectiveness of residual learning on extremely deep systems.",
+    "tags": [
+      "comparison",
+      "top-1 error",
+      "training error",
+      "residual learning",
+      "deep systems"
+    ]
+  },
+  {
+    "section_title": "Shallow Network Performance",
+    "content": "Last, we also note that the 18-layer plain/residual nets are comparably accurate (Table 2 ), but the 18-layer ResNet converges faster (Fig. 4 right vs. left). When the net is \"not overly deep\" (18 layers here), the current SGD solver is still able to find good solutions to the plain net.",
+    "tags": [
+      "shallow network",
+      "convergence",
+      "sgd",
+      "optimization",
+      "plain network"
+    ]
+  },
+  {
+    "section_title": "ResNet Optimization Benefits",
+    "content": "In this case, the ResNet eases the optimization by providing faster convergence at the early stage.",
+    "tags": [
+      "resnet",
+      "optimization",
+      "convergence",
+      "early stage"
+    ]
+  },
+  {
+    "section_title": "Shortcut Connection Types Investigation",
+    "content": "Identity vs. Projection Shortcuts. We have shown that parameter-free, identity shortcuts help with training. Next we investigate projection shortcuts (Eqn.( 2 )).",
+    "tags": [
+      "shortcuts",
+      "identity",
+      "projection",
+      "parameter-free",
+      "training"
+    ]
+  },
+  {
+    "section_title": "Shortcut Options Comparison",
+    "content": "In Table 3 we compare three options: (A) zero-padding shortcuts are used for increasing dimensions, and all shortcuts are parameterfree (the same as Table 2 and Fig. 4 right); (B) projection shortcuts are used for increasing dimensions, and other shortcuts are identity; and (C) all shortcuts are projections.",
+    "tags": [
+      "shortcuts",
+      "zero-padding",
+      "projection",
+      "dimensions",
+      "options"
+    ]
+  },
+  {
+    "section_title": "Bottleneck Architecture Visualization",
+    "content": "Figure 5. A deeper residual function F for ImageNet. Left: a building block (on 56 × 56 feature maps) as in Fig. 3 for ResNet34. Right: a \" bottleneck \" building block for ResNet-50/101/152.",
+    "tags": [
+      "bottleneck",
+      "residual function",
+      "building block",
+      "feature maps",
+      "resnet"
+    ]
+  },
+  {
+    "section_title": "Shortcut Options Performance Analysis",
+    "content": "Table 3 shows that all three options are considerably better than the plain counterpart. B is slightly better than A. We argue that this is because the zero-padded dimensions in A indeed have no residual learning.",
+    "tags": [
+      "performance",
+      "shortcuts",
+      "zero-padding",
+      "residual learning",
+      "comparison"
+    ]
+  },
+  {
+    "section_title": "Projection Shortcuts Analysis",
+    "content": "C is marginally better than B, and we attribute this to the extra parameters introduced by many (thirteen) projection shortcuts. But the small differences among A/B/C indicate that projection shortcuts are not essential for addressing the degradation problem.",
+    "tags": [
+      "projection shortcuts",
+      "parameters",
+      "degradation problem",
+      "performance"
+    ]
+  },
+  {
+    "section_title": "Design Choice Justification",
+    "content": "So we do not use option C in the rest of this paper, to reduce memory/time complexity and model sizes. Identity shortcuts are particularly important for not increasing the complexity of the bottleneck architectures that are introduced below.",
+    "tags": [
+      "design choice",
+      "memory",
+      "complexity",
+      "model size",
+      "identity shortcuts",
+      "bottleneck"
+    ]
+  },
+  {
+    "section_title": "Bottleneck Architecture Introduction",
+    "content": "Deeper Bottleneck Architectures. Next we describe our deeper nets for ImageNet. Because of concerns on the training time that we can afford, we modify the building block as a bottleneck design.",
+    "tags": [
+      "bottleneck",
+      "deep networks",
+      "imagenet",
+      "training time",
+      "building block"
+    ]
+  },
+  {
+    "section_title": "Bottleneck Design Details",
+    "content": "For each residual function F , we use a stack of 3 layers instead of 2 (Fig. 5 ). The three layers are 1×1 , 3×3 , and 1×1 convolutions, where the 1×1 layers are responsible for reducing and then increasing (restoring) dimensions, leaving the 3×3 layer a bottleneck with smaller input/output dimensions.",
+    "tags": [
+      "bottleneck design",
+      "residual function",
+      "convolution",
+      "dimensions",
+      "layer stack"
+    ]
+  },
+  {
+    "section_title": "Bottleneck Time Complexity",
+    "content": "Fig. 5 shows an example, where both designs have similar time complexity. The parameter-free identity shortcuts are particularly important for the bottleneck architectures. If the identity shortcut in Fig. 5 (right) is",
+    "tags": [
+      "time complexity",
+      "parameter-free",
+      "identity shortcuts",
+      "bottleneck",
+      "architecture"
+    ]
+  },
+  {
+    "section_title": "ImageNet Validation Results Table",
+    "content": "Table 3. Error rates ( % , 10-crop testing) on ImageNet validation. VGG-16 [40]: top-1 28.07, top-5 9.33. GoogLeNet [43]: top-5 9.15. PReLU-net [12]: top-1 24.27, top-5 7.38. plain-34: top-1 28.54, top-5 10.02. ResNet-34 A: top-1 25.03, top-5 7.76. ResNet-34 B: top-1 24.52, top-5 7.46. ResNet-34 C: top-1 24.19, top-5 7.40. ResNet-50: top-1 22.85, top-5 6.71. ResNet-101: top-1 21.75, top-5 6.05. ResNet-152: top-1 21.43, top-5 5.71.",
+    "tags": [
+      "imagenet",
+      "validation",
+      "error rates",
+      "vgg",
+      "googlenet",
+      "prelu",
+      "resnet",
+      "performance"
+    ]
+  },
+  {
+    "section_title": "Single Model Results Table",
+    "content": "Table 4. Error rates ( % ) of single-model results on the ImageNet validation set (except † reported on the test set). VGG [40] (ILSVRC + 14): top-5 8.43 †. GoogLeNet [43] (ILSVRC + 14): top-5 7.89. VGG [40] (v5): top-1 24.4, top-5 7.1. PReLU-net [12]: top-1 21.59, top-5 5.71. BN-inception [16]: top-1 21.99, top-5 5.81. ResNet-34 B: top-1 21.84, top-5 5.71. ResNet-34 C: top-1 21.53, top-5 5.60. ResNet-50: top-1 20.74, top-5 5.25. ResNet-101: top-1 19.87, top-5 4.60. ResNet-152: top-1 19.38, top-5 4.49.",
+    "tags": [
+      "single model",
+      "imagenet",
+      "validation",
+      "test set",
+      "error rates",
+      "ilsvrc",
+      "bn-inception"
+    ]
+  },
+  {
+    "section_title": "Ensemble Results Table",
+    "content": "Table 5. Error rates ( % ) of ensembles . The top-5 error is on the test set of ImageNet and reported by the test server. VGG [40] (ILSVRC'14): 7.32. GoogLeNet [43] (ILSVRC'14): 6.66. VGG [40] (v5): 6.8. PReLU-net [12]: 4.94. BN-inception [16]: 4.82. ResNet (ILSVRC'15): 3.57.",
+    "tags": [
+      "ensemble",
+      "test set",
+      "imagenet",
+      "test server",
+      "top-5 error",
+      "ilsvrc"
+    ]
+  }
+]

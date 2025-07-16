@@ -9,3 +9,4 @@ anthropic[bedrock]
 docling
 pydantic
 langchain
+json5
