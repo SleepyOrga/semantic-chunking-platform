@@ -1,192 +1,127 @@
+// src/chunk/repositories/chunk.repository.ts
 import { Injectable, Inject } from '@nestjs/common';
 import { Knex } from 'knex';
-import {
-  ChunkEntity,
-  CreateChunkData,
-  UpdateChunkData,
-} from '../entities/chunk.entity';
+import { AddChunkDto, UpdateChunkDto } from '../dto/chunk.dto';
 
 @Injectable()
 export class ChunkRepository {
   constructor(@Inject('KNEX_CONNECTION') private readonly knex: Knex) {}
 
-  async create(data: CreateChunkData): Promise<string> {
-    // First insert the record without embeddings
-    const [chunk] = await this.knex('chunks')
+  async findOne(id: string): Promise<any> {
+    return this.knex('chunks')
+      .where('id', id)
+      .first();
+  }
+
+  async findByDocumentId(documentId: string): Promise<any[]> {
+    return this.knex('chunks')
+      .where('document_id', documentId)
+      .orderBy('chunk_index', 'asc');
+  }
+
+  async create(data: AddChunkDto): Promise<string> {
+    const [result] = await this.knex('chunks')
       .insert({
         document_id: data.document_id,
         chunk_index: data.chunk_index,
         content: data.content,
+        embedding: data.embedding ? JSON.stringify(data.embedding) : null,
+        tags: data.tags || null,
+        created_at: new Date()
       })
       .returning('id');
-
-    // Then update with properly formatted embeddings
-    if (data.embedding) {
-      await this.knex.raw(
-        `UPDATE chunks SET embedding = ?::vector WHERE id = ?`,
-        [`[${data.embedding.join(',')}]`, chunk.id],
-      );
-    }
-
-    if (data.tag_embedding) {
-      await this.knex.raw(
-        `UPDATE chunks SET tag_embedding = ?::vector WHERE id = ?`,
-        [`[${data.tag_embedding.join(',')}]`, chunk.id],
-      );
-    }
-
-    return chunk.id;
-  }
-  async findById(id: string): Promise<ChunkEntity | null> {
-    const chunk = await this.knex('chunks').where('id', id).first();
-
-    if (!chunk) return null;
-
-    return {
-      ...chunk,
-      embedding: JSON.parse(chunk.embedding),
-    };
+    
+    return result.id;
   }
 
-  async findByDocumentId(documentId: string): Promise<ChunkEntity[]> {
-    const chunks = await this.knex('chunks')
-      .where('document_id', documentId)
-      .orderBy('chunk_index', 'asc');
-
-    return chunks.map((chunk) => ({
-      ...chunk,
-      embedding: JSON.parse(chunk.embedding),
-    }));
-  }
-
-  async update(id: string, data: UpdateChunkData): Promise<void> {
+  async update(data: UpdateChunkDto): Promise<void> {
     const updateData: any = {};
-
-    if (data.content !== undefined) updateData.content = data.content;
-
-    // First do the regular update
-    if (Object.keys(updateData).length > 0) {
-      await this.knex('chunks').where({ id }).update(updateData);
+    
+    if (data.content !== undefined) {
+      updateData.content = data.content;
     }
-
-    // Handle embedding updates with proper PostgreSQL vector formatting
+    
     if (data.embedding !== undefined) {
-      // Format the vector for PostgreSQL
-      await this.knex.raw(
-        `UPDATE chunks SET embedding = ?::vector WHERE id = ?`,
-        [`[${data.embedding.join(',')}]`, id],
-      );
+      updateData.embedding = JSON.stringify(data.embedding);
     }
-
-    // Handle tag_embedding updates with proper PostgreSQL vector formatting
-    if (data.tag_embedding !== undefined) {
-      // Format the vector properly for PostgreSQL
-      await this.knex.raw(
-        `UPDATE chunks SET tag_embedding = ?::vector WHERE id = ?`,
-        [`[${data.tag_embedding.join(',')}]`, id],
-      );
+    
+    if (data.tags !== undefined) {
+      updateData.tags = data.tags;
     }
+    
+    await this.knex('chunks')
+      .where('id', data.id)
+      .update(updateData);
   }
 
   async delete(id: string): Promise<void> {
-    await this.knex('chunks').where('id', id).del();
+    await this.knex('chunks')
+      .where('id', id)
+      .delete();
   }
 
-  async deleteByDocumentId(documentId: string): Promise<void> {
-    await this.knex('chunks').where('document_id', documentId).del();
+  async deleteByDocumentId(documentId: string): Promise<number> {
+    return this.knex('chunks')
+      .where('document_id', documentId)
+      .delete();
   }
 
-  async exists(id: string): Promise<boolean> {
-    try {
-      const count = await this.knex('chunks')
-        .where('id', id)
-        .count('id as count')
-        .first();
-
-      return count ? parseInt(count.count as string) > 0 : false;
-    } catch (error) {
-      console.error(`Error checking if chunk exists: ${error.message}`);
-      return false;
-    }
-  }
-
-  async countByDocumentId(documentId: string): Promise<number> {
-    try {
-      const result = await this.knex('chunks')
-        .where('document_id', documentId)
-        .count('id as count')
-        .first();
-
-      return result ? parseInt(result.count as string) : 0;
-    } catch (error) {
-      console.error(`Error counting chunks by document ID: ${error.message}`);
-      return 0;
-    }
-  }
-  async searchSimilar(embedding: number[], limit = 10): Promise<ChunkEntity[]> {
-    const chunks = await this.knex.raw(
-      `
-      SELECT c.*
-      FROM chunks c
-      JOIN documents d ON c.document_id = d.id
-      WHERE d.status = 'completed'
-      ORDER BY c.embedding <-> ?::vector
-      LIMIT ?
-    `,
-      [JSON.stringify(embedding), limit],
-    );
-
-    return chunks.rows.map((chunk) => ({
-      ...chunk,
-      embedding: JSON.parse(chunk.embedding),
-    }));
-  }
-
-  async searchSimilarWithDocumentInfo(embedding: number[], limit = 10) {
-    const chunks = await this.knex.raw(
-      `
+  async searchSimilar(embedding: number[], limit = 5, threshold = 0.7): Promise<any[]> {
+    const embeddingStr = JSON.stringify(embedding);
+    
+    // Use pgvector's cosine similarity for search
+    const results = await this.knex.raw(`
       SELECT 
-        c.*,
-        d.filename,
-        d.user_id,
-        d.created_at as document_created_at
-      FROM chunks c
-      JOIN documents d ON c.document_id = d.id
-      WHERE d.status = 'completed'
-      ORDER BY c.embedding <-> ?::vector
+        c.id,
+        c.document_id,
+        c.chunk_index,
+        c.content,
+        c.tags,
+        1 - (c.embedding <=> ?) as similarity
+      FROM 
+        chunks c
+      WHERE 
+        1 - (c.embedding <=> ?) >= ?
+      ORDER BY 
+        similarity DESC
       LIMIT ?
-    `,
-      [JSON.stringify(embedding), limit],
-    );
-
-    return chunks.rows.map((chunk) => ({
-      ...chunk,
-      embedding: JSON.parse(chunk.embedding),
-    }));
+    `, [embeddingStr, embeddingStr, threshold, limit]);
+    
+    return results.rows;
   }
-  async searchSimilarByTag(
-    tagEmbedding: number[],
-    limit: number = 10,
-  ): Promise<ChunkEntity[]> {
-    // Convert embedding to Postgres vector format
-    const tagEmbeddingStr = `[${tagEmbedding.join(',')}]`;
 
-    const results = await this.knex.raw(
-      `
-    SELECT c.*, d.filename, d.mimetype
-    FROM chunks c
-    JOIN documents d ON c.document_id = d.id
-    WHERE c.tag_embedding IS NOT NULL
-    ORDER BY c.tag_embedding <=> ?::vector
-    LIMIT ?
-  `,
-      [tagEmbeddingStr, limit],
-    );
+  // New methods for tag operations
 
-    return results.rows.map((row) => ({
-      ...row,
-      embedding: Array.isArray(row.embedding) ? row.embedding : [],
-      tag_embedding: Array.isArray(row.tag_embedding) ? row.tag_embedding : [],
-    }));
+  // Update tags for a chunk
+  async updateTags(id: string, tags: string[]): Promise<void> {
+    await this.knex('chunks')
+      .where('id', id)
+      .update({ tags });
+  }
+
+  // Get tags for a chunk
+  async getChunkTags(id: string): Promise<string[]> {
+    const result = await this.knex('chunks')
+      .where('id', id)
+      .select('tags')
+      .first();
+    
+    return result?.tags || [];
+  }
+
+  // Find chunks by tags (ANY match)
+  async findByTags(tags: string[], limit = 10): Promise<any[]> {
+    return this.knex('chunks')
+      .whereRaw('tags && ?::text[]', [tags])
+      .orderBy('created_at', 'desc')
+      .limit(limit);
+  }
+
+  // Find chunks by tags (ALL match)
+  async findByAllTags(tags: string[], limit = 10): Promise<any[]> {
+    return this.knex('chunks')
+      .whereRaw('tags @> ?::text[]', [tags])
+      .orderBy('created_at', 'desc')
+      .limit(limit);
   }
 }

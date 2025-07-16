@@ -8,6 +8,8 @@ import { KnexModule } from './database/knex.module';
 import { AuthModule } from './auth/auth.module';
 import { QueueModule } from './queue/queue.module';
 import { UploadModule } from './upload/upload.module';
+import { TagsModule } from './tags/tag.module';
+import { ChunkComponentModule } from './chunk-component/chunk-component.module';
 
 @Module({
   imports: [
@@ -19,7 +21,9 @@ import { UploadModule } from './upload/upload.module';
     KnexModule,
     AuthModule,
     QueueModule,
-    UploadModule
+    UploadModule,
+    TagsModule,
+    ChunkComponentModule,
   ],
   controllers: [AppController],
   providers: [RabbitMQService],

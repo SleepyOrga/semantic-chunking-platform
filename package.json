@@ -9,6 +9,7 @@
   "scripts": {
     "start:frontend": "cd frontend && npm start",
     "start:backend": "cd backend && npm run start:dev",
+    "start:backend:prod": "cd backend && npm run start:prod",
     "build:frontend": "cd frontend && npm run build",
     "build:backend": "cd backend && npm run build",
     "dev": "concurrently \"npm run start:backend\" \"npm run start:frontend\""
