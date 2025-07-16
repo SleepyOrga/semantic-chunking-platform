@@ -84,6 +84,7 @@ export class AppController {
       s3Key: key,
       uploadedAt: new Date().toISOString(),
       fileType: this.mapMimeToType(file.mimetype),
+      documentId, // Add documentId to the payload
     });
 
     return {

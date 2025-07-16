@@ -30,28 +30,30 @@ export class ParserConsumerService implements OnModuleInit {
 
     try {
       const payload = JSON.parse(msg.content.toString());
-      const { fileType, s3Key, filename } = payload;
+      const { fileType, s3Key, filename, documentId } = payload;
 
       this.logger.debug(`📦 Raw Payload: ${JSON.stringify(payload)}`);
 
       const inputUrl = await this.s3Service.getSignedUrl(s3Key);
       this.logger.debug(`✅ Signed URL: ${inputUrl}`);
 
-      const outputDir = path.resolve(
-        `/tmp/output-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
-      );
+      // Instead of outputDir, use S3 bucket and prefix
+      const s3Bucket = process.env.S3_BUCKET_NAME || 'semantic-chunking-bucket';
+      // Fallback if documentId is undefined
+      const safeDocumentId = documentId || (filename ? filename.replace(/\W+/g, "_") : `file_${Date.now()}`);
+      const outputS3Prefix = `parsed/${safeDocumentId}/`;
 
       this.logger.log(`🚀 Start processing file: ${filename}`);
       this.logger.log(`🔍 File Type: ${fileType}`);
       this.logger.log(`🌐 Input URL: ${inputUrl}`);
-      this.logger.log(`📁 Output Directory: ${outputDir}`);
+      this.logger.log(`📁 Output Directory: ${outputS3Prefix}`);
       const normalizedInputUrl = inputUrl.replace(/\\/g, '/');
       switch (fileType) {
         case 'docx':
           this.logger.log('⚙️ Launching DOCX parser...');
           await this.runPythonScript(
             '../ai-services/xlsx_docx_parser/parser_docx.py',
-            [normalizedInputUrl, '--output', outputDir],
+            [normalizedInputUrl, '--s3-bucket', s3Bucket, '--s3-prefix', outputS3Prefix],
           );
           break;
 
@@ -59,8 +61,10 @@ export class ParserConsumerService implements OnModuleInit {
           this.logger.log('⚙️ Launching OCR PDF parser...');
           await this.runPythonScript('../ai-services/ocr_parser/main.py', [
             normalizedInputUrl,
-            '--output',
-            outputDir,
+            '--s3-bucket',
+            s3Bucket,
+            '--s3-prefix',
+            outputS3Prefix,
           ]);
           break;
 
@@ -68,7 +72,7 @@ export class ParserConsumerService implements OnModuleInit {
           this.logger.log('⚙️ Launching XLSX parser...');
           await this.runPythonScript(
             '../ai-services/xlsx_docx_parser/parser_xlsx.py',
-            [normalizedInputUrl, '--output', outputDir],
+            [normalizedInputUrl, '--s3-bucket', s3Bucket, '--s3-prefix', outputS3Prefix],
           );
           break;
 

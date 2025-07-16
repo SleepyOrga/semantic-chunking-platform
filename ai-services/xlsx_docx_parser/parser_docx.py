@@ -5,6 +5,7 @@ import os
 import argparse
 import tempfile
 import urllib.request
+import boto3
 
 from docx import Document
 from docx.document import Document as DocumentType
@@ -71,7 +72,13 @@ def process_markdown_with_images(markdown_content, image_mapping):
     return modified_content
 
 
-def extract_docx_to_markdown(input_path, output_dir="Output/Docx", extract_images=True):
+def upload_to_s3(local_path, bucket, s3_key):
+    s3 = boto3.client('s3')
+    s3.upload_file(str(local_path), bucket, s3_key)
+    print(f"Uploaded {local_path} to s3://{bucket}/{s3_key}")
+
+
+def extract_docx_to_markdown(input_path, output_dir, extract_images=True, s3_bucket=None, s3_prefix=None):
     start = time.time()
     os.makedirs(output_dir, exist_ok=True)
     if extract_images:
@@ -118,6 +125,17 @@ def extract_docx_to_markdown(input_path, output_dir="Output/Docx", extract_image
                 f.write(final_markdown)
 
             logging.info(f"✅ Saved markdown: {output_path}")
+
+            # --- S3 upload logic ---
+            if s3_bucket and s3_prefix:
+                # Upload markdown
+                upload_to_s3(output_path, s3_bucket, f"{s3_prefix}{Path(output_path).name}")
+                # Upload images
+                if extract_images and os.path.isdir(images_dir):
+                    for img_file in os.listdir(images_dir):
+                        img_path = os.path.join(images_dir, img_file)
+                        if os.path.isfile(img_path):
+                            upload_to_s3(img_path, s3_bucket, f"{s3_prefix}images/{img_file}")
         except Exception as e:
             logging.error(f"🔥 Error processing {docx_file.name}: {e}")
 
@@ -135,6 +153,8 @@ def main():
     parser = argparse.ArgumentParser(description="DOCX to Markdown converter with image support")
     parser.add_argument("input_file", help="Path to DOCX file or folder or URL")
     parser.add_argument("-o", "--output", default="Output/Docx", help="Output directory")
+    parser.add_argument("--s3-bucket", required=False, help="S3 bucket to upload results")
+    parser.add_argument("--s3-prefix", required=False, help="S3 prefix (folder) for results")
     args = parser.parse_args()
 
     logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
@@ -144,7 +164,13 @@ def main():
     if input_arg.startswith("http://") or input_arg.startswith("https://"):
         input_arg = download_file_from_url(input_arg)
 
-    extract_docx_to_markdown(input_arg, args.output, extract_images=True)
+    # Use a temp dir for output if S3 is specified
+    import tempfile
+    if args.s3_bucket and args.s3_prefix:
+        with tempfile.TemporaryDirectory() as temp_output:
+            extract_docx_to_markdown(input_arg, temp_output, extract_images=True, s3_bucket=args.s3_bucket, s3_prefix=args.s3_prefix)
+    else:
+        extract_docx_to_markdown(input_arg, args.output, extract_images=True)
 
 if __name__ == "__main__":
     main()

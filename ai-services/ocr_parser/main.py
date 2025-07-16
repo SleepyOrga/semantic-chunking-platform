@@ -5,6 +5,7 @@ import os
 import tempfile
 import requests
 import argparse
+import boto3
 
 from docling.datamodel.accelerator_options import AcceleratorDevice, AcceleratorOptions
 from docling.datamodel.base_models import InputFormat
@@ -32,7 +33,13 @@ def download_file_from_url(url):
         return None
 
 
-def process_document(input_file, output_dir):
+def upload_to_s3(local_path, bucket, s3_key):
+    s3 = boto3.client('s3')
+    s3.upload_file(str(local_path), bucket, s3_key)
+    print(f"Uploaded {local_path} to s3://{bucket}/{s3_key}")
+
+
+def process_document(input_file, s3_bucket, s3_prefix):
     temp_file = None
 
     # If input_file is a URL, download it
@@ -44,84 +51,88 @@ def process_document(input_file, output_dir):
         input_file = downloaded
 
     input_doc_path = Path(input_file)
-    output_dir = Path(output_dir)
+    with tempfile.TemporaryDirectory() as output_dir:
+        output_dir = Path(output_dir)
+        print("Downloading RapidOCR models")
+        download_path = snapshot_download(repo_id="SWHL/RapidOCR")
 
-    print("Downloading RapidOCR models")
-    download_path = snapshot_download(repo_id="SWHL/RapidOCR")
+        det_model_path = os.path.join(download_path, "PP-OCRv4", "en_PP-OCRv4_det_infer.onnx")
 
-    det_model_path = os.path.join(download_path, "PP-OCRv4", "en_PP-OCRv4_det_infer.onnx")
+        ocr_options = RapidOcrOptions(
+            det_model_path=det_model_path,
+            # rec_model_path and cls_model_path can be added if needed
+        )
 
-    ocr_options = RapidOcrOptions(
-        det_model_path=det_model_path,
-        # rec_model_path and cls_model_path can be added if needed
-    )
+        pipeline_options = PdfPipelineOptions(
+            ocr_options=ocr_options,
+            accelerator_options=AcceleratorOptions(num_threads=8, device=AcceleratorDevice.CPU),
+            do_ocr=True,
+            do_table_structure=True,
+            images_scale=IMAGE_RESOLUTION_SCALE,
+            generate_page_images=True,
+            generate_picture_images=True,
+            generate_table_images=True,
+        )
+        pipeline_options.table_structure_options.do_cell_matching = True
 
-    pipeline_options = PdfPipelineOptions(
-        ocr_options=ocr_options,
-        accelerator_options=AcceleratorOptions(num_threads=8, device=AcceleratorDevice.CPU),
-        do_ocr=True,
-        do_table_structure=True,
-        images_scale=IMAGE_RESOLUTION_SCALE,
-        generate_page_images=True,
-        generate_picture_images=True,
-        generate_table_images=True,
-    )
-    pipeline_options.table_structure_options.do_cell_matching = True
+        converter = DocumentConverter(
+            format_options={
+                InputFormat.PDF: PdfFormatOption(pipeline_options=pipeline_options)
+            }
+        )
 
-    converter = DocumentConverter(
-        format_options={
-            InputFormat.PDF: PdfFormatOption(pipeline_options=pipeline_options)
-        }
-    )
+        settings.debug.profile_pipeline_timings = True
 
-    settings.debug.profile_pipeline_timings = True
+        print("Converting document...")
+        conv_res = converter.convert(input_doc_path)
 
-    print("Converting document...")
-    conv_res = converter.convert(input_doc_path)
+        doc_filename = conv_res.input.file.stem
 
-    output_dir.mkdir(parents=True, exist_ok=True)
-    doc_filename = conv_res.input.file.stem
-
-    # Save full-page images
-    for page_no, page in conv_res.document.pages.items():
-        image_path = output_dir / f"{doc_filename}-{page_no}.png"
-        with image_path.open("wb") as fp:
-            page.image.pil_image.save(fp, format="PNG")
-
-    # Save tables and figures
-    table_counter = 0
-    picture_counter = 0
-    for element, _ in conv_res.document.iterate_items():
-        if isinstance(element, TableItem):
-            table_counter += 1
-            image_path = output_dir / f"{doc_filename}-table-{table_counter}.png"
+        # Save full-page images
+        for page_no, page in conv_res.document.pages.items():
+            image_path = output_dir / f"{doc_filename}-{page_no}.png"
             with image_path.open("wb") as fp:
-                element.get_image(conv_res.document).save(fp, "PNG")
-        elif isinstance(element, PictureItem):
-            picture_counter += 1
-            image_path = output_dir / f"{doc_filename}-picture-{picture_counter}.png"
-            with image_path.open("wb") as fp:
-                element.get_image(conv_res.document).save(fp, "PNG")
+                page.image.pil_image.save(fp, format="PNG")
+            upload_to_s3(image_path, s3_bucket, f"{s3_prefix}{image_path.name}")
 
-    # Save markdown
-    output_md_path = output_dir / f"{doc_filename}.md"
-    conv_res.document.save_as_markdown(output_md_path, image_mode=ImageRefMode.REFERENCED)
-    print(f"Markdown saved to: {output_md_path}")
-    print(f"Conversion time: {conv_res.timings['pipeline_total'].times:.2f}s")
+        # Save tables and figures
+        table_counter = 0
+        picture_counter = 0
+        for element, _ in conv_res.document.iterate_items():
+            if isinstance(element, TableItem):
+                table_counter += 1
+                image_path = output_dir / f"{doc_filename}-table-{table_counter}.png"
+                with image_path.open("wb") as fp:
+                    element.get_image(conv_res.document).save(fp, "PNG")
+                upload_to_s3(image_path, s3_bucket, f"{s3_prefix}{image_path.name}")
+            elif isinstance(element, PictureItem):
+                picture_counter += 1
+                image_path = output_dir / f"{doc_filename}-picture-{picture_counter}.png"
+                with image_path.open("wb") as fp:
+                    element.get_image(conv_res.document).save(fp, "PNG")
+                upload_to_s3(image_path, s3_bucket, f"{s3_prefix}{image_path.name}")
 
-    # Clean up downloaded file if needed
-    if temp_file:
-        os.unlink(temp_file)
-        print(f"🧹 Temp file deleted: {temp_file}")
+        # Save markdown
+        output_md_path = output_dir / f"{doc_filename}.md"
+        conv_res.document.save_as_markdown(output_md_path, image_mode=ImageRefMode.REFERENCED)
+        upload_to_s3(output_md_path, s3_bucket, f"{s3_prefix}{output_md_path.name}")
+        print(f"Markdown saved to: s3://{s3_bucket}/{s3_prefix}{output_md_path.name}")
+        print(f"Conversion time: {conv_res.timings['pipeline_total'].times:.2f}s")
+
+        # Clean up downloaded file if needed
+        if temp_file:
+            os.unlink(temp_file)
+            print(f"🧹 Temp file deleted: {temp_file}")
 
 
 def main():
     parser = argparse.ArgumentParser(description="OCR PDF processor using Docling")
     parser.add_argument("input_file", help="Path to PDF file or URL")
-    parser.add_argument("-o", "--output", default="All_pages_to_images", help="Output directory")
+    parser.add_argument("--s3-bucket", required=True, help="S3 bucket to upload results")
+    parser.add_argument("--s3-prefix", required=True, help="S3 prefix (folder) for results")
     args = parser.parse_args()
 
-    process_document(args.input_file, args.output)
+    process_document(args.input_file, args.s3_bucket, args.s3_prefix)
 
 
 if __name__ == "__main__":
