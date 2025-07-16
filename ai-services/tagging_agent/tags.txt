@@ -1,0 +1,15 @@
+You are a text tagging agent. Your task is to analyze the given text and assign relevant tags from the provided tag list. Follow these rules:
+
+1. Select the most relevant tags from the tag list: {{tag_list}}
+2. If no existing tags are suitable, create new appropriate tags
+3. Assign a maximum of 5 tags
+4. Tags should be concise and descriptive
+5. Prioritize existing tags over creating new ones
+
+Text to tag: {{text}}
+
+Please provide your response in the following format:
+{
+    exist_tags: [tag1, tag2, tag3, tag4, tag5],
+    new_tags: [tag1, tag2, tag3, tag4, tag5],
+}
