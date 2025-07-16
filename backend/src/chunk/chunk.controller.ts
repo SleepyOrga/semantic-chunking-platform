@@ -1,15 +1,16 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, UseGuards, Query } from '@nestjs/common';
+// src/chunk/chunk.controller.ts
+import { Controller, Get, Post, Put, Delete, Body, Param, Query, UseGuards } from '@nestjs/common';
 import { ChunkService } from './chunk.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import {
   AddChunkDto,
   UpdateChunkDto,
   SimilaritySearchDto,
-  TagSimilaritySearchDto
+  TagSearchDto,
+  ChunkTagsDto
 } from '../dto/chunk.dto';
 
 @Controller('chunks')
-
 export class ChunkController {
   constructor(private readonly chunkService: ChunkService) {}
 
@@ -56,19 +57,31 @@ export class ChunkController {
     return { results };
   }
 
-  @Post('search/tags')
-  @UseGuards(JwtAuthGuard)
-  async searchByTags(@Body() searchDto: TagSimilaritySearchDto) {
-    const results = await this.chunkService.searchByTags(searchDto);
-    return { results };
+  // New tag endpoints
+
+  @Get(':id/tags')
+  async getChunkTags(@Param('id') id: string) {
+    return this.chunkService.getChunkTags(id);
   }
 
-  @Put(':id/tag-embedding')
-  async updateTagEmbedding(
-    @Param('id') id: string,
-    @Body('tag_embedding') tagEmbedding: number[]
-  ) {
-    await this.chunkService.updateTagEmbedding(id, tagEmbedding);
-    return { message: 'Tag embedding updated successfully' };
+  @Put(':id/tags')
+  async setChunkTags(@Param('id') id: string, @Body() tagsDto: ChunkTagsDto) {
+    return this.chunkService.setChunkTags(id, tagsDto);
+  }
+
+  @Post(':id/tags')
+  async addChunkTags(@Param('id') id: string, @Body() tagsDto: ChunkTagsDto) {
+    return this.chunkService.addTagsToChunk(id, tagsDto);
+  }
+
+  @Delete(':id/tags')
+  async removeChunkTags(@Param('id') id: string, @Body() tagsDto: ChunkTagsDto) {
+    return this.chunkService.removeTagsFromChunk(id, tagsDto);
+  }
+
+  @Post('search/tags')
+  @UseGuards(JwtAuthGuard)
+  async searchByTags(@Body() searchDto: TagSearchDto) {
+    return this.chunkService.searchByTags(searchDto);
   }
 }

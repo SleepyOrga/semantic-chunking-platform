@@ -1,84 +1,41 @@
-import { Injectable } from '@nestjs/common';
+// src/chunk/chunk.service.ts
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { ChunkRepository } from '../repositories/chunk.repository';
-import { DocumentRepository } from '../repositories/document.repository';
-import {
-  AddChunkDto,
-  UpdateChunkDto,
+import { 
+  AddChunkDto, 
+  UpdateChunkDto, 
   SimilaritySearchDto,
-  TagSimilaritySearchDto,
+  TagSearchDto,
+  ChunkTagsDto
 } from '../dto/chunk.dto';
 
 @Injectable()
 export class ChunkService {
-  constructor(
-    private readonly chunkRepository: ChunkRepository,
-    private readonly documentRepository: DocumentRepository,
-  ) {}
+  constructor(private readonly chunkRepository: ChunkRepository) {}
 
-  async addChunk(data: AddChunkDto): Promise<string> {
-    try {
-      // Check if document exists
-      const documentExists = await this.documentRepository.exists(
-        data.document_id,
-      );
-      if (!documentExists) {
-        throw new Error(`Document with ID ${data.document_id} not found`);
-      }
-
-      const chunkId = await this.chunkRepository.create(data);
-
-      console.log(`Chunk added successfully with ID: ${chunkId}`);
-      return chunkId;
-    } catch (error) {
-      console.error(
-        `Failed to add chunk to document ${data.document_id}:`,
-        error,
-      );
-      throw new Error(`Failed to add chunk: ${error.message}`);
+  async getChunkById(id: string) {
+    const chunk = await this.chunkRepository.findOne(id);
+    if (!chunk) {
+      throw new NotFoundException(`Chunk with ID ${id} not found`);
     }
+    return chunk;
   }
 
   async getChunksByDocumentId(documentId: string) {
-    try {
-      // Check if document exists
-      const documentExists = await this.documentRepository.exists(documentId);
-      if (!documentExists) {
-        throw new Error(`Document with ID ${documentId} not found`);
-      }
-
-      return await this.chunkRepository.findByDocumentId(documentId);
-    } catch (error) {
-      console.error(`Failed to get chunks for document ${documentId}:`, error);
-      throw error;
-    }
+    return this.chunkRepository.findByDocumentId(documentId);
   }
 
-  async getChunkById(id: string) {
-    try {
-      const chunk = await this.chunkRepository.findById(id);
-
-      if (!chunk) {
-        throw new Error(`Chunk with ID ${id} not found`);
-      }
-
-      return chunk;
-    } catch (error) {
-      console.error(`Failed to get chunk ${id}:`, error);
-      throw error;
-    }
+  async addChunk(data: AddChunkDto): Promise<string> {
+    return this.chunkRepository.create(data);
   }
 
   async updateChunk(data: UpdateChunkDto): Promise<void> {
     try {
-      const exists = await this.chunkRepository.exists(data.id);
-      if (!exists) {
-        throw new Error(`Chunk with ID ${data.id} not found`);
+      const chunk = await this.chunkRepository.findOne(data.id);
+      if (!chunk) {
+        throw new NotFoundException(`Chunk with ID ${data.id} not found`);
       }
-
-      const { id, ...updateData } = data;
-      await this.chunkRepository.update(id, updateData);
-
-      console.log(`Chunk ${id} updated successfully`);
+      await this.chunkRepository.update(data);
     } catch (error) {
       console.error(`Failed to update chunk ${data.id}:`, error);
       throw error;
@@ -86,88 +43,97 @@ export class ChunkService {
   }
 
   async deleteChunk(id: string): Promise<void> {
-    try {
-      const exists = await this.chunkRepository.exists(id);
-      if (!exists) {
-        throw new Error(`Chunk with ID ${id} not found`);
-      }
-
-      await this.chunkRepository.delete(id);
-
-      console.log(`Chunk ${id} deleted successfully`);
-    } catch (error) {
-      console.error(`Failed to delete chunk ${id}:`, error);
-      throw error;
+    const chunk = await this.chunkRepository.findOne(id);
+    if (!chunk) {
+      throw new NotFoundException(`Chunk with ID ${id} not found`);
     }
+    await this.chunkRepository.delete(id);
   }
 
-  async deleteChunksByDocumentId(documentId: string): Promise<void> {
-    try {
-      // Check if document exists
-      const documentExists = await this.documentRepository.exists(documentId);
-      if (!documentExists) {
-        throw new Error(`Document with ID ${documentId} not found`);
-      }
-
-      await this.chunkRepository.deleteByDocumentId(documentId);
-
-      console.log(`All chunks for document ${documentId} deleted successfully`);
-    } catch (error) {
-      console.error(
-        `Failed to delete chunks for document ${documentId}:`,
-        error,
-      );
-      throw error;
-    }
+  async deleteChunksByDocumentId(documentId: string): Promise<number> {
+    return this.chunkRepository.deleteByDocumentId(documentId);
   }
 
-  async searchSimilarChunks(data: SimilaritySearchDto) {
-    try {
-      const { embedding, limit = 10 } = data;
-      return await this.chunkRepository.searchSimilarWithDocumentInfo(
-        embedding,
-        limit,
-      );
-    } catch (error) {
-      console.error('Failed to search similar chunks:', error);
-      throw new Error(`Failed to search similar chunks: ${error.message}`);
-    }
+  async searchSimilarChunks(searchDto: SimilaritySearchDto) {
+    return this.chunkRepository.searchSimilar(
+      searchDto.embedding,
+      searchDto.limit || 5,
+      searchDto.threshold || 0.7
+    );
   }
 
-  async searchByTags(data: TagSimilaritySearchDto) {
-    try {
-      const { tag_embedding, limit = 10 } = data;
-      return await this.chunkRepository.searchSimilarByTag(
-        tag_embedding,
-        limit,
-      );
-    } catch (error) {
-      console.error('Failed to search chunks by tag:', error);
-      throw new Error(`Failed to search chunks by tag: ${error.message}`);
+  // New tag-related methods
+
+  // Get tags for a chunk
+  async getChunkTags(id: string) {
+    const chunk = await this.chunkRepository.findOne(id);
+    if (!chunk) {
+      throw new NotFoundException(`Chunk with ID ${id} not found`);
     }
+    return { tags: chunk.tags || [] };
   }
 
-  async updateTagEmbedding(
-    chunkId: string,
-    tagEmbedding: number[],
-  ): Promise<void> {
-    try {
-      const exists = await this.chunkRepository.exists(chunkId);
-      if (!exists) {
-        throw new Error(`Chunk with ID ${chunkId} not found`);
-      }
+  // Add tags to a chunk
+  async addTagsToChunk(id: string, tagsDto: ChunkTagsDto) {
+    // Get existing tags
+    const existingTags = await this.chunkRepository.getChunkTags(id);
+    
+    // Combine with new tags and remove duplicates
+    const uniqueTags = [...new Set([...existingTags, ...tagsDto.tags])];
+    
+    // Update the chunk with the combined tags
+    await this.chunkRepository.updateTags(id, uniqueTags);
+    
+    return { 
+      message: 'Tags added successfully',
+      tags: uniqueTags
+    };
+  }
 
-      await this.chunkRepository.update(chunkId, {
-        tag_embedding: tagEmbedding,
-      });
+  // Remove tags from a chunk
+  async removeTagsFromChunk(id: string, tagsDto: ChunkTagsDto) {
+    // Get existing tags
+    const existingTags = await this.chunkRepository.getChunkTags(id);
+    
+    // Filter out the tags to remove
+    const updatedTags = existingTags.filter(tag => !tagsDto.tags.includes(tag));
+    
+    // Update the chunk with the filtered tags
+    await this.chunkRepository.updateTags(id, updatedTags);
+    
+    return { 
+      message: 'Tags removed successfully',
+      tags: updatedTags
+    };
+  }
 
-      console.log(`Tag embedding for chunk ${chunkId} updated successfully`);
-    } catch (error) {
-      console.error(
-        `Failed to update tag embedding for chunk ${chunkId}:`,
-        error,
-      );
-      throw error;
+  // Set all tags for a chunk (replace existing)
+  async setChunkTags(id: string, tagsDto: ChunkTagsDto) {
+    const chunk = await this.chunkRepository.findOne(id);
+    if (!chunk) {
+      throw new NotFoundException(`Chunk with ID ${id} not found`);
     }
+    
+    await this.chunkRepository.updateTags(id, tagsDto.tags);
+    
+    return { 
+      message: 'Tags updated successfully',
+      tags: tagsDto.tags
+    };
+  }
+
+  // Search chunks by tags
+  async searchByTags(searchDto: TagSearchDto) {
+    let chunks;
+    
+    if (searchDto.matchAll) {
+      // Find chunks that have ALL the specified tags
+      chunks = await this.chunkRepository.findByAllTags(searchDto.tags, searchDto.limit || 10);
+    } else {
+      // Find chunks that have ANY of the specified tags
+      chunks = await this.chunkRepository.findByTags(searchDto.tags, searchDto.limit || 10);
+    }
+    
+    return { chunks };
   }
 }
