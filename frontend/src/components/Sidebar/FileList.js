@@ -1,4 +1,3 @@
-// src/components/Sidebar/FileList.js
 import React from 'react';
 import { List, ListItem, ListItemText, ListItemAvatar, Avatar, ListItemSecondaryAction, IconButton, Tooltip } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -7,7 +6,7 @@ import ImageIcon from '@mui/icons-material/Image';
 import DescriptionIcon from '@mui/icons-material/Description';
 import InsertDriveFileIcon from '@mui/icons-material/InsertDriveFile';
 
-const FileList = ({ files, onDeleteFile }) => {
+const FileList = ({ files, onDeleteFile, onSelectFile, selectedFileId }) => {
   const getFileIcon = (mimetype) => {
     if (mimetype.includes('pdf')) return <PictureAsPdfIcon color="error" />;
     if (mimetype.includes('image')) return <ImageIcon color="primary" />;
@@ -23,8 +22,11 @@ const FileList = ({ files, onDeleteFile }) => {
           key={item.id} 
           sx={{ 
             borderBottom: '1px solid #f0f0f0',
-            '&:hover': { bgcolor: '#f5f5f5' }
+            '&:hover': { bgcolor: '#f5f5f5' },
+            bgcolor: selectedFileId === item.id ? '#e3f2fd' : 'inherit',
+            cursor: 'pointer'
           }}
+          onClick={() => onSelectFile(item)}
         >
           <ListItemAvatar>
             <Avatar sx={{ bgcolor: '#f0f0f0' }}>
@@ -38,7 +40,7 @@ const FileList = ({ files, onDeleteFile }) => {
               noWrap: true,
               style: { 
                 maxWidth: '160px',
-                fontWeight: '500'
+                fontWeight: selectedFileId === item.id ? '600' : '500'
               }
             }}
           />
@@ -47,7 +49,10 @@ const FileList = ({ files, onDeleteFile }) => {
               <IconButton 
                 edge="end" 
                 size="small"
-                onClick={() => onDeleteFile(item.id)}
+                onClick={(e) => {
+                  e.stopPropagation(); // Prevent triggering the ListItem onClick
+                  onDeleteFile(item.id);
+                }}
               >
                 <DeleteIcon fontSize="small" />
               </IconButton>

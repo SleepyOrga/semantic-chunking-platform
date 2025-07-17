@@ -27,7 +27,7 @@ export class ChunkComponentRepository {
         chunk_id: createDto.chunk_id,
         component_index: createDto.component_index,
         content: createDto.content,
-        embedding: createDto.embedding ? JSON.stringify(createDto.embedding) : null,
+        embedding: createDto.embedding ? createDto.embedding : null,
         created_at: new Date()
       })
       .returning('id');
@@ -41,7 +41,7 @@ export class ChunkComponentRepository {
       chunk_id: dto.chunk_id,
       component_index: dto.component_index,
       content: dto.content,
-      embedding: dto.embedding ? JSON.stringify(dto.embedding) : null,
+      embedding: dto.embedding ? dto.embedding : null,
       created_at: new Date()
     }));
     
@@ -61,7 +61,7 @@ export class ChunkComponentRepository {
     }
     
     if (updateDto.embedding !== undefined) {
-      updateData.embedding = JSON.stringify(updateDto.embedding);
+      updateData.embedding = this.knex.raw(`ARRAY[${updateDto.embedding.join(',')}]::vector`);
     }
     
     if (updateDto.component_index !== undefined) {
@@ -89,7 +89,7 @@ export class ChunkComponentRepository {
 
   async searchSimilar(embedding: number[], limit = 5, threshold = 0.7): Promise<any[]> {
     // Convert the embedding array to a string for the raw query
-    const embeddingStr = JSON.stringify(embedding);
+    const embeddingStr = embedding;
     
     // Use pgvector's cosine similarity to find similar components
     const results = await this.knex.raw(`

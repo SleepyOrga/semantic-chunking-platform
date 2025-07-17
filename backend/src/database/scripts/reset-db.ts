@@ -7,7 +7,7 @@ import knexConfig from '../knexfile';
 async function resetDatabase(mode: 'drop' | 'clean') {
   console.log(`Starting database ${mode} operation...`);
 
-  const config = knexConfig.development; // becareful with knex.config.production in production
+  const config = knexConfig.production; // becareful with knex.config.production in production
   const db = knex(config);
 
   try {
