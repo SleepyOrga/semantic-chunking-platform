@@ -104,7 +104,7 @@ export class ParserConsumerService implements OnModuleInit {
   private async runPythonScript(scriptPath: string, args: string[]): Promise<string> {
     return new Promise((resolve, reject) => {
       const fullPath = path.resolve(scriptPath);
-      const pythonPath = path.resolve(__dirname, '../../../ai-services/.venv/Scripts/python.exe');
+      const pythonPath = path.resolve(__dirname, '../../../ai-services/venv/bin/python');
   
       if (!fs.existsSync(pythonPath)) {
         this.logger.error(`❌ Python not found at ${pythonPath}`);

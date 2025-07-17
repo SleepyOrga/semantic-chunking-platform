@@ -6,13 +6,19 @@ import json
 import os
 import sys
 import traceback
-import psycopg2
+import requests
+from dotenv import load_dotenv
+
+load_dotenv()  # Load environment variables from .env file
 
 # ✅ Địa chỉ RabbitMQ server mặc định dùng remote IP
 RABBITMQ_URL = os.environ.get("RABBITMQ_URL", "amqp://admin:admin@52.65.216.159:5672/")
 QUEUE_NAME = "chunking-queue"
 CHUNKER_SCRIPT = os.environ.get("CHUNKER_SCRIPT", "chunking_agent.py")
 AWS_REGION = os.environ.get("AWS_REGION", "ap-southeast-2")
+
+# Backend API URL
+BACKEND_URL = os.environ.get("BACKEND_URL", "http://localhost:4000")
 
 # PostgreSQL connection from environment
 PG_HOST = os.environ.get("PG_HOST", "localhost")
@@ -24,38 +30,39 @@ PG_DB = os.environ.get("PG_DB", "app_db")
 s3 = boto3.client("s3", region_name=AWS_REGION)
 
 def insert_chunks_to_postgres(document_id, chunks):
-    print(f"[DEBUG] Inserting {len(chunks)} chunks into PostgreSQL for document {document_id}")
+    print(f"[DEBUG] Inserting {len(chunks)} chunks via API for document {document_id}")
+    chunk_ids = []
     try:
-        conn = psycopg2.connect(
-            host=PG_HOST,
-            port=PG_PORT,
-            user=PG_USER,
-            password=PG_PASSWORD,
-            dbname=PG_DB
-        )
-        cur = conn.cursor()
         for idx, chunk in enumerate(chunks):
-            cur.execute(
-                """
-                INSERT INTO chunks (document_id, chunk_index, content, embedding, tag_embedding)
-                VALUES (%s, %s, %s, %s, %s)
-                ON CONFLICT (document_id, chunk_index) DO NOTHING
-                """,
-                (
-                    document_id,
-                    idx,
-                    chunk.get('content', ''),
-                    None,  # embedding
-                    None   # tag_embedding
-                )
+            payload = {
+                'document_id': document_id,
+                'chunk_index': idx,
+                'content': chunk.get('content', '')
+            }
+            
+            response = requests.post(
+                f"{BACKEND_URL}/chunks",
+                json=payload,
+                headers={'Content-Type': 'application/json'},
+                timeout=30
             )
-        conn.commit()
-        cur.close()
-        conn.close()
-        print(f"[DEBUG] Inserted {len(chunks)} chunks into PostgreSQL for document {document_id}")
+            
+            if response.status_code in [200, 201]:
+                result = response.json()
+                print(result)
+                chunk_id = result.get('id') or result.get('chunk_id')
+                chunk_ids.append(chunk_id)
+                print(f"[DEBUG] Created chunk {idx} with ID: {chunk_id}")
+            else:
+                print(f"[ERROR] Failed to create chunk {idx}: {response.status_code} - {response.text}")
+                chunk_ids.append(None)
+                
+        print(f"[DEBUG] Inserted {len(chunks)} chunks via API for document {document_id}")
+        return chunk_ids
     except Exception as e:
-        print(f"[ERROR] Failed to insert chunks into PostgreSQL: {e}")
+        print(f"[ERROR] Failed to insert chunks via API: {e}")
         traceback.print_exc()
+        return []
 
 def process_chunking_job(job):
     print(f"[DEBUG] Processing job: {job}")
@@ -107,8 +114,39 @@ def process_chunking_job(job):
     try:
         with open(output_json, 'r', encoding='utf-8') as f:
             chunks = json.load(f)
-        insert_chunks_to_postgres(document_id, chunks)
-
+        chunk_ids = insert_chunks_to_postgres(document_id, chunks)
+         # --- Send each chunk to embedding-input-queue ---
+        try:
+            EMBEDDING_QUEUE = 'embedding-input-queue'
+            print(f"[DEBUG] Connecting to RabbitMQ for embedding queue: {RABBITMQ_URL}")
+            embedding_conn = pika.BlockingConnection(pika.URLParameters(RABBITMQ_URL))
+            embedding_channel = embedding_conn.channel()
+            embedding_channel.queue_declare(queue=EMBEDDING_QUEUE, durable=True)
+            for idx, chunk in enumerate(chunks):
+                chunk_id = chunk_ids[idx] if idx < len(chunk_ids) else None
+                message = {
+                    'id': chunk_id,
+                    'title': chunk.get('title', f'Chunk {idx}'),
+                    'content': chunk.get('content', ''),
+                    'chunk_index': idx,
+                    'documentId': document_id,
+                    "type": "chunk"
+                }
+                embedding_channel.basic_publish(
+                    exchange='',
+                    routing_key=EMBEDDING_QUEUE,
+                    body=json.dumps(message).encode('utf-8'),
+                    properties=pika.BasicProperties(
+                        content_type='application/json',
+                        delivery_mode=2  # persistent
+                    )
+                )
+                print(f"[DEBUG] Published chunk {idx} (ID: {chunk_id}) to embedding-input-queue")
+            embedding_conn.close()
+            print(f"[DEBUG] All chunks published to embedding-input-queue.")
+        except Exception as e:
+            print(f"[ERROR] Failed to publish chunks to embedding-input-queue: {e}")
+            traceback.print_exc()
         # --- Send each chunk to tagging-input-queue ---
         try:
             TAGGING_QUEUE = 'tagging-input-queue'
@@ -117,7 +155,9 @@ def process_chunking_job(job):
             tag_channel = tag_conn.channel()
             tag_channel.queue_declare(queue=TAGGING_QUEUE, durable=True)
             for idx, chunk in enumerate(chunks):
+                chunk_id = chunk_ids[idx] if idx < len(chunk_ids) else None
                 message = {
+                    'id': chunk_id,
                     'title': chunk.get('title', f'Chunk {idx}'),
                     'content': chunk.get('content', ''),
                     'chunk_index': idx,
@@ -132,7 +172,7 @@ def process_chunking_job(job):
                         delivery_mode=2  # persistent
                     )
                 )
-                print(f"[DEBUG] Published chunk {idx} to tagging-input-queue")
+                print(f"[DEBUG] Published chunk {idx} (ID: {chunk_id}) to tagging-input-queue")
             tag_conn.close()
             print(f"[DEBUG] All chunks published to tagging-input-queue.")
         except Exception as e:

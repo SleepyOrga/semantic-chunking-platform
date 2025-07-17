@@ -16,8 +16,8 @@ export class AddChunkDto {
 
   @IsOptional()
   @IsArray()
-  @ArrayMinSize(1536)
-  @ArrayMaxSize(1536)
+  @ArrayMinSize(1024)
+  @ArrayMaxSize(1024)
   embedding?: number[];
 
   @IsOptional()
@@ -37,8 +37,8 @@ export class UpdateChunkDto {
 
   @IsOptional()
   @IsArray()
-  @ArrayMinSize(1536)
-  @ArrayMaxSize(1536)
+  @ArrayMinSize(1024)
+  @ArrayMaxSize(1024)
   embedding?: number[];
 
   @IsOptional()
@@ -50,8 +50,8 @@ export class UpdateChunkDto {
 export class SimilaritySearchDto {
   @IsNotEmpty()
   @IsArray()
-  @ArrayMinSize(1536)
-  @ArrayMaxSize(1536)
+  @ArrayMinSize(1024)
+  @ArrayMaxSize(1024)
   embedding: number[];
 
   @IsOptional()

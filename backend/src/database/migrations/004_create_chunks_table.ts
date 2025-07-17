@@ -7,8 +7,8 @@ export async function up(knex: Knex): Promise<void> {
     table.integer('chunk_index').notNullable()
       .comment('Sequential index of chunk within document');
     table.text('content').notNullable();
-    table.specificType('embedding', 'vector(1536)')
-      .comment('OpenAI embedding vector with 1536 dimensions');
+    table.specificType('embedding', 'vector(1024)')
+      .comment('OpenAI embedding vector with 1024 dimensions');
     // Replace tag_embedding with tags array
     table.specificType('tags', 'TEXT[]')
       .nullable()

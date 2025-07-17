@@ -68,9 +68,10 @@ async def send_chunk_component_to_backend(chunk_id: str, component_index: int, c
             "component_index": component_index,
             "content": content
         }
+        print(payload)
         try:
             async with session.post(f"{BACKEND_URL}/chunk-components", json=payload) as response:
-                if response.status == 200:
+                if response.status in [200, 201]:
                     print(f"Successfully sent component {component_index} for chunk {chunk_id}")
                     # Get the response to extract the created component ID
                     response_data = await response.json()
@@ -124,10 +125,9 @@ async def create_new_tag(tag_name: str):
 async def process_message(msg: aio_pika.IncomingMessage):
     async with msg.process(ignore_processed=True):
         chunk = json.loads(msg.body.decode())
-        chunk_id = chunk.get("chunk_id", "")
+        chunk_id = chunk.get("id", "")
         title = chunk.get("title", "")
         content = chunk.get("content", "")
-        print(content)
         # Fetch tags and process both tags and propositions concurrently
         tags_task = fetch_tags()
         tags_llm_task = call_tags_llm_async(content, await tags_task)

@@ -6,3 +6,4 @@ temp
 ocr_parser/.venv
 ocr_parser/__pycache__
 ocr_parser/venv/
+venv

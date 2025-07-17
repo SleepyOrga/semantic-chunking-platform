@@ -9,7 +9,7 @@ export async function up(knex: Knex): Promise<void> {
       .comment('Sequential index of component within chunk');
     table.text('content').notNullable()
       .comment('Sub-content of the chunk component');
-    table.specificType('embedding', 'vector(1536)')
+    table.specificType('embedding', 'vector(1024)')
       .comment('OpenAI embedding vector for this component');
     table.timestamp('created_at').defaultTo(knex.fn.now()).notNullable();
     
