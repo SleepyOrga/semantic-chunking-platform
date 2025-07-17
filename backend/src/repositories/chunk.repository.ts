@@ -25,7 +25,7 @@ export class ChunkRepository {
         document_id: data.document_id,
         chunk_index: data.chunk_index,
         content: data.content,
-        embedding: data.embedding ? JSON.stringify(data.embedding) : null,
+        embedding: data.embedding ? this.knex.raw(`ARRAY[${data.embedding.join(',')}]::vector`) : null,
         tags: data.tags || null,
         created_at: new Date()
       })
@@ -42,7 +42,7 @@ export class ChunkRepository {
     }
     
     if (data.embedding !== undefined) {
-      updateData.embedding = JSON.stringify(data.embedding);
+      updateData.embedding = this.knex.raw(`ARRAY[${data.embedding.join(',')}]::vector`);
     }
     
     if (data.tags !== undefined) {
@@ -67,7 +67,7 @@ export class ChunkRepository {
   }
 
   async searchSimilar(embedding: number[], limit = 5, threshold = 0.7): Promise<any[]> {
-    const embeddingStr = JSON.stringify(embedding);
+    const embeddingStr = this.knex.raw(`ARRAY[${embedding.join(',')}]::vector`);
     
     // Use pgvector's cosine similarity for search
     const results = await this.knex.raw(`

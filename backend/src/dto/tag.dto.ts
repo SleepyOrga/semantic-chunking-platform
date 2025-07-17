@@ -3,17 +3,17 @@ import { IsNotEmpty, IsString, MinLength, MaxLength, IsOptional, IsNumber } from
 export class CreateTagDto {
   @IsNotEmpty()
   @IsString()
-  @MinLength(2)
-  @MaxLength(255)
+  @MinLength(1)
+  @MaxLength(50)
   name: string;
 }
 
 export class UpdateTagDto {
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
-  @MinLength(2)
-  @MaxLength(255)
-  name: string;
+  @MinLength(1)
+  @MaxLength(50)
+  name?: string;
 }
 
 export class TagResponseDto {

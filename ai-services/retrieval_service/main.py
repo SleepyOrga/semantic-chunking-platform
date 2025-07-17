@@ -9,7 +9,7 @@ import os
 load_dotenv()
 
 # Cấu hình
-EMBED_ENDPOINT = "inference-embedding-endpoint"
+EMBED_ENDPOINT = "embedding-endpoint"
 RERANK_ENDPOINT = "reranker-endpoint"
 REGION = os.getenv("AWS_REGION", "us-east-1")
 

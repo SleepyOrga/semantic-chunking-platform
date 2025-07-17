@@ -27,7 +27,7 @@ export class ChunkComponentRepository {
         chunk_id: createDto.chunk_id,
         component_index: createDto.component_index,
         content: createDto.content,
-        embedding: createDto.embedding ? JSON.stringify(createDto.embedding) : null,
+        embedding: createDto.embedding ? this.knex.raw(`ARRAY[${createDto.embedding.join(',')}]::vector`) : null,
         created_at: new Date()
       })
       .returning('id');
@@ -41,7 +41,7 @@ export class ChunkComponentRepository {
       chunk_id: dto.chunk_id,
       component_index: dto.component_index,
       content: dto.content,
-      embedding: dto.embedding ? JSON.stringify(dto.embedding) : null,
+      embedding: dto.embedding ? this.knex.raw(`ARRAY[${dto.embedding.join(',')}]::vector`) : null,
       created_at: new Date()
     }));
     
@@ -61,7 +61,7 @@ export class ChunkComponentRepository {
     }
     
     if (updateDto.embedding !== undefined) {
-      updateData.embedding = JSON.stringify(updateDto.embedding);
+      updateData.embedding = updateDto.embedding ? this.knex.raw(`ARRAY[${updateDto.embedding.join(',')}]::vector`) : null;
     }
     
     if (updateDto.component_index !== undefined) {
@@ -88,9 +88,6 @@ export class ChunkComponentRepository {
   }
 
   async searchSimilar(embedding: number[], limit = 5, threshold = 0.7): Promise<any[]> {
-    // Convert the embedding array to a string for the raw query
-    const embeddingStr = JSON.stringify(embedding);
-    
     // Use pgvector's cosine similarity to find similar components
     const results = await this.knex.raw(`
       SELECT 
@@ -99,17 +96,17 @@ export class ChunkComponentRepository {
         cc.component_index,
         cc.content,
         c.document_id,
-        1 - (cc.embedding <=> ?) as similarity
+        1 - (cc.embedding <=> ARRAY[${embedding.join(',')}]::vector) as similarity
       FROM 
         chunk_components cc
       JOIN
         chunks c ON cc.chunk_id = c.id
       WHERE 
-        1 - (cc.embedding <=> ?) >= ?
+        1 - (cc.embedding <=> ARRAY[${embedding.join(',')}]::vector) >= ?
       ORDER BY 
         similarity DESC
       LIMIT ?
-    `, [embeddingStr, embeddingStr, threshold, limit]);
+    `, [threshold, limit]);
     
     return results.rows;
   }

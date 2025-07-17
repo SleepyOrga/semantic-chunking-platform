@@ -1,70 +1,100 @@
 // src/tags/tags.service.ts
-import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
-import { TagRepository } from '../repositories/tag.repository';
+import { Injectable, Inject, ConflictException, NotFoundException } from '@nestjs/common';
+import { Knex } from 'knex';
 import { CreateTagDto, UpdateTagDto } from '../dto/tag.dto';
 
 @Injectable()
 export class TagsService {
-  constructor(private readonly tagRepository: TagRepository) {}
+  constructor(@Inject('KNEX_CONNECTION') private readonly knex: Knex) {}
 
-  async findAll(search?: string) {
-    const tags = await this.tagRepository.findAll(search);
-    return { tags };
+  async findAll(search?: string): Promise<any[]> {
+    let query = this.knex('tags').orderBy('name', 'asc');
+    
+    if (search) {
+      query = query.whereILike('name', `%${search}%`);
+    }
+    
+    return query;
   }
 
-  async findOne(id: number) {
-    const tag = await this.tagRepository.findOne(id);
+  async findOne(id: number): Promise<any> {
+    const tag = await this.knex('tags').where('id', id).first();
+    
     if (!tag) {
       throw new NotFoundException(`Tag with ID ${id} not found`);
     }
-    return { tag };
+    
+    return tag;
   }
 
-  async create(createTagDto: CreateTagDto) {
+  async findByName(name: string): Promise<any> {
+    return this.knex('tags').where('name', name).first();
+  }
+
+  async create(createTagDto: CreateTagDto): Promise<any> {
     try {
       // Check if tag already exists
-      const existingTag = await this.tagRepository.findByName(createTagDto.name);
+      const existingTag = await this.findByName(createTagDto.name);
       if (existingTag) {
-        throw new ConflictException(`Tag "${createTagDto.name}" already exists`);
+        throw new ConflictException(`Tag with name '${createTagDto.name}' already exists`);
       }
 
-      const tagId = await this.tagRepository.create(createTagDto);
-      const tag = await this.tagRepository.findOne(tagId);
-      return { tag, message: 'Tag created successfully' };
+      const [result] = await this.knex('tags')
+        .insert({
+          name: createTagDto.name,
+          created_at: new Date()
+        })
+        .returning('*');
+      
+      return result;
     } catch (error) {
-      if (error instanceof ConflictException) {
-        throw error;
+      // Handle database unique constraint error
+      if (error.code === '23505' || error.constraint?.includes('tags_name_unique')) {
+        throw new ConflictException(`Tag with name '${createTagDto.name}' already exists`);
       }
-      throw new Error(`Failed to create tag: ${error.message}`);
+      throw error;
     }
   }
 
-  async update(id: number, updateTagDto: UpdateTagDto) {
-    const tag = await this.tagRepository.findOne(id);
-    if (!tag) {
-      throw new NotFoundException(`Tag with ID ${id} not found`);
-    }
-
-    // Check if updated name already exists (but not for this tag)
-    if (updateTagDto.name && updateTagDto.name !== tag.name) {
-      const existingTag = await this.tagRepository.findByName(updateTagDto.name);
-      if (existingTag && existingTag.id !== id) {
-        throw new ConflictException(`Tag "${updateTagDto.name}" already exists`);
+  async update(id: number, updateTagDto: UpdateTagDto): Promise<any> {
+    try {
+      // Check if tag exists
+      await this.findOne(id);
+      
+      // Check if new name conflicts with existing tag
+      if (updateTagDto.name) {
+        const existingTag = await this.findByName(updateTagDto.name);
+        if (existingTag && existingTag.id !== id) {
+          throw new ConflictException(`Tag with name '${updateTagDto.name}' already exists`);
+        }
       }
-    }
 
-    await this.tagRepository.update(id, updateTagDto);
-    const updatedTag = await this.tagRepository.findOne(id);
-    return { tag: updatedTag, message: 'Tag updated successfully' };
+      const [result] = await this.knex('tags')
+        .where('id', id)
+        .update(updateTagDto)
+        .returning('*');
+      
+      return result;
+    } catch (error) {
+      if (error.code === '23505' || error.constraint?.includes('tags_name_unique')) {
+        throw new ConflictException(`Tag with name '${updateTagDto.name}' already exists`);
+      }
+      throw error;
+    }
   }
 
-  async remove(id: number) {
-    const tag = await this.tagRepository.findOne(id);
-    if (!tag) {
-      throw new NotFoundException(`Tag with ID ${id} not found`);
-    }
+  async remove(id: number): Promise<void> {
+    const tag = await this.findOne(id);
+    
+    await this.knex('tags').where('id', id).delete();
+  }
 
-    await this.tagRepository.remove(id);
-    return { message: 'Tag deleted successfully' };
+  async createIfNotExists(name: string): Promise<any> {
+    const existingTag = await this.findByName(name);
+    if (existingTag) {
+      return existingTag;
+    }
+    
+    return this.create({ name });
   }
 }

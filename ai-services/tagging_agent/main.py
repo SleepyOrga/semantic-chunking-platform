@@ -5,6 +5,7 @@ import time
 from dotenv import load_dotenv
 import boto3
 import aiohttp
+import pika
 
 # Load environment variables
 load_dotenv()
@@ -18,7 +19,8 @@ BACKEND_URL = os.getenv("BACKEND_URL", "http://localhost:4000")
 
 async def fetch_tags():
     """Fetch tags from the backend API"""
-    async with aiohttp.ClientSession() as session:
+    timeout = aiohttp.ClientTimeout(total=30)
+    async with aiohttp.ClientSession(timeout=timeout) as session:
         try:
             # You can add search parameter if needed
             async with session.get(f"{BACKEND_URL}/tags") as response:
@@ -46,7 +48,8 @@ async def fetch_tags():
 
 async def send_chunk_to_backend(chunk_id: str, tags: list):
     """Send chunk data with tags to the backend /chunks endpoint"""
-    async with aiohttp.ClientSession() as session:
+    timeout = aiohttp.ClientTimeout(total=30)
+    async with aiohttp.ClientSession(timeout=timeout) as session:
         payload = {
             "id": chunk_id,
             "tags": tags
@@ -56,13 +59,14 @@ async def send_chunk_to_backend(chunk_id: str, tags: list):
                 if response.status == 200:
                     print(f"Successfully sent chunk {chunk_id} to backend")
                 else:
-                    print(f"Failed to send chunk {chunk_id}, status: {response.status}")
+                    print(f"Failed to send chunk {chunk_id}, status: {response}")
         except Exception as e:
             print(f"Error sending chunk to backend: {e}")
 
 async def send_chunk_component_to_backend(chunk_id: str, component_index: int, content: str):
     """Send chunk component (proposition) to the backend /chunk-component endpoint"""
-    async with aiohttp.ClientSession() as session:
+    timeout = aiohttp.ClientTimeout(total=30)
+    async with aiohttp.ClientSession(timeout=timeout) as session:
         payload = {
             "chunk_id": chunk_id,
             "component_index": component_index,
@@ -74,7 +78,7 @@ async def send_chunk_component_to_backend(chunk_id: str, component_index: int, c
                     print(f"Successfully sent component {component_index} for chunk {chunk_id}")
                     # Get the response to extract the created component ID
                     response_data = await response.json()
-                    component_id = response_data.get("id")
+                    component_id = response_data.get('component').get("id")
                     return component_id
                 else:
                     print(f"Failed to send component {component_index} for chunk {chunk_id}, status: {response.status}")
@@ -83,10 +87,14 @@ async def send_chunk_component_to_backend(chunk_id: str, component_index: int, c
             print(f"Error sending chunk component to backend: {e}")
             return None
 
-async def publish_to_embedding_queue(connection, component_id: str, content: str):
+async def publish_to_embedding_queue(component_id: str, content: str):
     """Publish proposition to embedding queue"""
     try:
+        # Use async connection for better performance
+        connection = await aio_pika.connect_robust(AMQP_URL)
         channel = await connection.channel()
+        
+        # Declare queue
         queue = await channel.declare_queue(EMBEDDING_QUEUE, durable=True)
         
         message_payload = {
@@ -100,15 +108,21 @@ async def publish_to_embedding_queue(connection, component_id: str, content: str
             delivery_mode=aio_pika.DeliveryMode.PERSISTENT
         )
         
-        await channel.default_exchange.publish(message, routing_key=EMBEDDING_QUEUE)
+        await channel.default_exchange.publish(
+            message,
+            routing_key=EMBEDDING_QUEUE
+        )
+        
         print(f"Published proposition {component_id} to embedding queue")
+        await connection.close()
         
     except Exception as e:
         print(f"Error publishing to embedding queue: {e}")
 
 async def create_new_tag(tag_name: str):
     """Create a new tag in the backend"""
-    async with aiohttp.ClientSession() as session:
+    timeout = aiohttp.ClientTimeout(total=30)
+    async with aiohttp.ClientSession(timeout=timeout) as session:
         payload = {
             "name": tag_name
         }
@@ -117,12 +131,12 @@ async def create_new_tag(tag_name: str):
                 if response.status >= 200 and response.status < 400:
                     print(f"Successfully created new tag: {tag_name}")
                 else:
-                    print(f"Failed to create tag {tag_name}, status: {response.status}")
+                    print(f"Failed to create tag {tag_name}, status: {response}")
         except Exception as e:
             print(f"Error creating new tag: {e}")
 
 async def process_message(msg: aio_pika.IncomingMessage):
-    async with msg.process(ignore_processed=True):
+    try:
         chunk = json.loads(msg.body.decode())
         chunk_id = chunk.get("id", "")
         title = chunk.get("title", "")
@@ -197,8 +211,8 @@ async def process_message(msg: aio_pika.IncomingMessage):
                 component_id = await send_chunk_component_to_backend(chunk_id, index, prop_content)
                 
                 # If component was created successfully, publish to embedding queue
-                if component_id:
-                    await publish_to_embedding_queue(msg.channel.connection, component_id, prop_content)
+                # if component_id:
+                #     await publish_to_embedding_queue(component_id, prop_content)
                 
         except Exception as e:
             print(f"Error processing propositions: {e}")
@@ -209,7 +223,15 @@ async def process_message(msg: aio_pika.IncomingMessage):
                 
                 # If component was created successfully, publish to embedding queue
                 if component_id:
-                    await publish_to_embedding_queue(msg.channel.connection, component_id, line)
+                    await publish_to_embedding_queue(component_id, line)
+        
+        # Acknowledge message only after successful processing
+        await msg.ack()
+        
+    except Exception as e:
+        print(f"Error processing message: {e}")
+        # Reject message and requeue for retry
+        await msg.reject(requeue=True)
 
 # Claude Sonnet 4 APAC settings
 AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
@@ -319,6 +341,7 @@ async def main():
     print(AMQP_URL)
     conn = await aio_pika.connect_robust(AMQP_URL)
     ch = await conn.channel()
+    await ch.set_qos(prefetch_count=1)  # Process one message at a time
     q = await ch.declare_queue(TAGGING_INPUT_QUEUE, durable=True)
     await q.consume(process_message)
     print("Agent listening…")

@@ -1,5 +1,5 @@
 // src/tags/tags.controller.ts
-import { Controller, Get, Post, Put, Delete, Body, Param, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Body, Param, Query, UseGuards, HttpStatus, HttpCode } from '@nestjs/common';
 import { TagsService } from './tag.service';
 import { CreateTagDto, UpdateTagDto } from '../dto/tag.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -19,6 +19,7 @@ export class TagsController {
   }
 
   @Post()
+  @HttpCode(HttpStatus.CREATED)
   async create(@Body() createTagDto: CreateTagDto) {
     return this.tagsService.create(createTagDto);
   }
@@ -29,7 +30,14 @@ export class TagsController {
   }
 
   @Delete(':id')
+  @HttpCode(HttpStatus.NO_CONTENT)
   async remove(@Param('id') id: number) {
     return this.tagsService.remove(id);
+  }
+
+  @Post('create-if-not-exists')
+  @HttpCode(HttpStatus.OK)
+  async createIfNotExists(@Body() createTagDto: CreateTagDto) {
+    return this.tagsService.createIfNotExists(createTagDto.name);
   }
 }
