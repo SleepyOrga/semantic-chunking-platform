@@ -189,7 +189,8 @@ async def process_message(msg: aio_pika.IncomingMessage):
 AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
 AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
 AWS_REGION = os.getenv('AWS_REGION', 'us-east-1')
-MODEL_NAME = 'amazon.nova-lite-v1:0'
+MODEL_LITE = 'amazon.nova-lite-v1:0'
+MODEL_MICRO = 'amazon.nova-micro-v1:0'
 
 # RabbitMQ config
 RABBITMQ_HOST = os.getenv("RABBITMQ_HOST", "52.65.216.159")
@@ -230,7 +231,7 @@ async def call_tags_llm_async(text: str, tags: list):
     response = response = await loop.run_in_executor(
         None,
         lambda: client.invoke_model(
-            modelId=MODEL_NAME,
+            modelId=MODEL_MICRO,
             body=body,
             contentType="application/json",
             accept="application/json"
@@ -258,7 +259,7 @@ async def call_proposition_llm_async(text: str):
     response = response = await loop.run_in_executor(
         None,
         lambda: client.invoke_model(
-            modelId=MODEL_NAME,
+            modelId=MODEL_LITE,
             body=body,
             contentType="application/json",
             accept="application/json"
