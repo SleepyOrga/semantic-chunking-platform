@@ -50,13 +50,13 @@ def process_document(input_file, output_dir, s3_bucket=None, s3_prefix=None):
     output_dir = Path(output_dir)
     logging.info("Downloading RapidOCR models")
     download_path = snapshot_download(repo_id="SWHL/RapidOCR")
-    det_model_path = os.path.join(download_path, "PP-OCRv4", "en_PP-OCRv4_det_infer.onnx")
+    det_model_path = os.path.join(download_path, "PP-OCRv4", "en_PP-OCRv3_det_infer.onnx")
     ocr_options = RapidOcrOptions(
         det_model_path=det_model_path,
     )
     pipeline_options = PdfPipelineOptions(
         ocr_options=ocr_options,
-        accelerator_options=AcceleratorOptions(num_threads=8, device=AcceleratorDevice.CPU),
+        accelerator_options=AcceleratorOptions(num_threads=10, device=AcceleratorDevice.CPU),
         do_ocr=True,
         do_table_structure=True,
         images_scale=IMAGE_RESOLUTION_SCALE,
