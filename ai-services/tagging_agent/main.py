@@ -4,6 +4,7 @@ import re
 import time
 from dotenv import load_dotenv
 import boto3
+import aiohttp
 
 # Load environment variables
 load_dotenv()
@@ -12,31 +13,116 @@ import asyncio
 import aio_pika
 import asyncpg
 
+BACKEND_URL = os.getenv("BACKEND_URL", "http://localhost:8000")
+
 async def fetch_tags():
-    return [
-            "banking", "loan", "credit_card", "personal_loan", "mortgage",
-            "savings_account", "investment", "insurance", "vpbank",
-            "customer_service", "application", "financial_product",
-            "risk_management", "compliance", "documentation",
-            "income_verification", "credit_history", "account_opening",
-            "portfolio", "premium", "policy", "consultation"
-        ]
-    conn = await asyncpg.connect(
-        host=os.getenv('DB_HOST'),
-        port=os.getenv('DB_PORT', 5432),
-        database=os.getenv('DB_NAME'),
-        user=os.getenv('DB_USER'),
-        password=os.getenv('DB_PASSWORD')
-    )
+    """Fetch tags from the backend API"""
+    async with aiohttp.ClientSession() as session:
+        try:
+            # You can add search parameter if needed
+            async with session.get(f"{BACKEND_URL}/tags") as response:
+                if response.status == 200:
+                    tags_data = await response.json()
+                    # Extract tag names from the response
+                    if isinstance(tags_data, list):
+                        return [tag.get("name", str(tag)) if isinstance(tag, dict) else str(tag) for tag in tags_data]
+                    else:
+                        return []
+                else:
+                    print(f"Failed to fetch tags, status: {response.status}")
+                    return []
+        except Exception as e:
+            print(f"Error fetching tags: {e}")
+            # Fallback to hardcoded tags
+            return [
+                "banking", "loan", "credit_card", "personal_loan", "mortgage",
+                "savings_account", "investment", "insurance", "vpbank",
+                "customer_service", "application", "financial_product",
+                "risk_management", "compliance", "documentation",
+                "income_verification", "credit_history", "account_opening",
+                "portfolio", "premium", "policy", "consultation"
+            ]
+
+async def send_chunk_to_backend(chunk_id: str, tags: list):
+    """Send chunk data with tags to the backend /chunks endpoint"""
+    async with aiohttp.ClientSession() as session:
+        payload = {
+            "id": chunk_id,
+            "tags": tags
+        }
+        try:
+            async with session.put(f"{BACKEND_URL}/chunks", json=payload) as response:
+                if response.status == 200:
+                    print(f"Successfully sent chunk {chunk_id} to backend")
+                else:
+                    print(f"Failed to send chunk {chunk_id}, status: {response.status}")
+        except Exception as e:
+            print(f"Error sending chunk to backend: {e}")
+
+async def send_chunk_component_to_backend(chunk_id: str, component_index: int, content: str):
+    """Send chunk component (proposition) to the backend /chunk-component endpoint"""
+    async with aiohttp.ClientSession() as session:
+        payload = {
+            "chunk_id": chunk_id,
+            "component_index": component_index,
+            "content": content
+        }
+        try:
+            async with session.post(f"{BACKEND_URL}/chunk-component", json=payload) as response:
+                if response.status == 200:
+                    print(f"Successfully sent component {component_index} for chunk {chunk_id}")
+                    # Get the response to extract the created component ID
+                    response_data = await response.json()
+                    component_id = response_data.get("id")
+                    return component_id
+                else:
+                    print(f"Failed to send component {component_index} for chunk {chunk_id}, status: {response.status}")
+                    return None
+        except Exception as e:
+            print(f"Error sending chunk component to backend: {e}")
+            return None
+
+async def publish_to_embedding_queue(connection, component_id: str, content: str):
+    """Publish proposition to embedding queue"""
     try:
-        rows = await conn.fetch("SELECT tag_name FROM tags;")
-        return [row[0] for row in rows]
-    finally:
-        await conn.close()
+        channel = await connection.channel()
+        queue = await channel.declare_queue(EMBEDDING_QUEUE, durable=True)
+        
+        message_payload = {
+            "id": component_id,
+            "content": content
+        }
+        
+        message = aio_pika.Message(
+            json.dumps(message_payload).encode(),
+            delivery_mode=aio_pika.DeliveryMode.PERSISTENT
+        )
+        
+        await channel.default_exchange.publish(message, routing_key=EMBEDDING_QUEUE)
+        print(f"Published proposition {component_id} to embedding queue")
+        
+    except Exception as e:
+        print(f"Error publishing to embedding queue: {e}")
+
+async def create_new_tag(tag_name: str):
+    """Create a new tag in the backend"""
+    async with aiohttp.ClientSession() as session:
+        payload = {
+            "name": tag_name
+        }
+        try:
+            async with session.post(f"{BACKEND_URL}/tags", json=payload) as response:
+                if response.status == 200:
+                    print(f"Successfully created new tag: {tag_name}")
+                else:
+                    print(f"Failed to create tag {tag_name}, status: {response.status}")
+        except Exception as e:
+            print(f"Error creating new tag: {e}")
 
 async def process_message(msg: aio_pika.IncomingMessage):
     async with msg.process(ignore_processed=True):
         chunk = json.loads(msg.body.decode())
+        chunk_id = chunk.get("chunk_id", "")
         title = chunk.get("title", "")
         content = chunk.get("content", "")
         print(content)
@@ -46,11 +132,57 @@ async def process_message(msg: aio_pika.IncomingMessage):
         propositions_task = call_proposition_llm_async(f"Title: {title} Content: {content}")
         
         # Wait for both operations to complete
-        tagged_text, propositions = await asyncio.gather(tags_llm_task, propositions_task)
+        tagged_dict, propositions = await asyncio.gather(tags_llm_task, propositions_task)
 
-        print("Tagged:", tagged_text)
-        print("Propositions:", propositions)
-        # TODO: store or forward results
+        # Parse tags from LLM response and send to backend
+        try:
+            all_tags = []
+            exist_tags = tagged_dict.get("exist_tags", [])
+            new_tags = tagged_dict.get("new_tags", [])
+            
+            # Create new tags first
+            for new_tag in new_tags:
+                await create_new_tag(new_tag)
+            
+            # Combine all tags
+            all_tags.extend(exist_tags)
+            all_tags.extend(new_tags)
+            
+            # Send to backend
+            await send_chunk_to_backend(chunk_id, all_tags)
+            
+        except Exception as e:
+            print(f"Error processing tags: {e}")
+
+        # Parse propositions and send to backend
+        try:
+            # Try to extract JSON array from propositions
+            propositions_list = extract_json(propositions)
+            
+            # Send each proposition as a chunk component
+            for index, proposition in enumerate(propositions_list):
+                if isinstance(proposition, dict):
+                    prop_content = proposition.get("content", proposition.get("text", str(proposition)))
+                else:
+                    prop_content = str(proposition)
+                
+                # Send to backend and get component ID
+                component_id = await send_chunk_component_to_backend(chunk_id, index, prop_content)
+                
+                # If component was created successfully, publish to embedding queue
+                if component_id:
+                    await publish_to_embedding_queue(msg.channel.connection, component_id, prop_content)
+                
+        except Exception as e:
+            print(f"Error processing propositions: {e}")
+            # Fallback: split by lines and send each as component
+            prop_lines = [line.strip() for line in propositions.split('\n') if line.strip()]
+            for index, line in enumerate(prop_lines):
+                component_id = await send_chunk_component_to_backend(chunk_id, index, line)
+                
+                # If component was created successfully, publish to embedding queue
+                if component_id:
+                    await publish_to_embedding_queue(msg.channel.connection, component_id, line)
 
 # Claude Sonnet 4 APAC settings
 AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
@@ -67,6 +199,7 @@ AMQP_URL = f"amqp://{RABBITMQ_USER}:{RABBITMQ_PASS}@{RABBITMQ_HOST}:{RABBITMQ_PO
 
 TAGGING_INPUT_QUEUE = "tagging-input-queue"
 TAGGING_OUTPUT_QUEUE = "tagging-output-queue"
+EMBEDDING_QUEUE = "embedding-queue"
 
 client = boto3.client("bedrock-runtime", region_name=AWS_REGION,
                       aws_access_key_id=AWS_ACCESS_KEY_ID,
