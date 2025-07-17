@@ -191,11 +191,13 @@ AWS_REGION = os.getenv('AWS_REGION', 'us-east-1')
 MODEL_NAME = 'amazon.nova-lite-v1:0'
 
 # RabbitMQ config
-RABBITMQ_HOST = os.getenv("RABBITMQ_HOST", "localhost")
+RABBITMQ_HOST = os.getenv("RABBITMQ_HOST", "52.65.216.159")
 RABBITMQ_PORT = int(os.getenv("RABBITMQ_PORT", 5672))
 RABBITMQ_USER = os.getenv("RABBITMQ_USER", "admin")
 RABBITMQ_PASS = os.getenv("RABBITMQ_PASS", "admin")
+
 AMQP_URL = f"amqp://{RABBITMQ_USER}:{RABBITMQ_PASS}@{RABBITMQ_HOST}:{RABBITMQ_PORT}/"
+
 
 TAGGING_INPUT_QUEUE = "tagging-input-queue"
 TAGGING_OUTPUT_QUEUE = "tagging-output-queue"

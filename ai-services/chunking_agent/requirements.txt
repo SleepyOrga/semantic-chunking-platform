@@ -10,3 +10,4 @@ docling
 pydantic
 langchain
 json5
+psycopg2
