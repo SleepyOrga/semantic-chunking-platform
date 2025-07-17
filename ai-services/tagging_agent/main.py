@@ -113,7 +113,7 @@ async def create_new_tag(tag_name: str):
         }
         try:
             async with session.post(f"{BACKEND_URL}/tags", json=payload) as response:
-                if response.status == 200:
+                if response.status >= 200 and response.status < 400:
                     print(f"Successfully created new tag: {tag_name}")
                 else:
                     print(f"Failed to create tag {tag_name}, status: {response.status}")
