@@ -56,7 +56,7 @@ def process_document(input_file, output_dir, s3_bucket=None, s3_prefix=None):
     )
     pipeline_options = PdfPipelineOptions(
         ocr_options=ocr_options,
-        accelerator_options=AcceleratorOptions(num_threads=8, device=AcceleratorDevice.CPU),
+        accelerator_options=AcceleratorOptions(num_threads=10, device=AcceleratorDevice.CPU),
         do_ocr=True,
         do_table_structure=True,
         images_scale=IMAGE_RESOLUTION_SCALE,
