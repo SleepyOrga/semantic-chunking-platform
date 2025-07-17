@@ -203,7 +203,7 @@ AMQP_URL = f"amqp://{RABBITMQ_USER}:{RABBITMQ_PASS}@{RABBITMQ_HOST}:{RABBITMQ_PO
 
 TAGGING_INPUT_QUEUE = "tagging-input-queue"
 TAGGING_OUTPUT_QUEUE = "tagging-output-queue"
-EMBEDDING_QUEUE = "embedding-queue"
+EMBEDDING_QUEUE = "embedding-input-queue"
 
 client = boto3.client("bedrock-runtime", region_name=AWS_REGION,
                       aws_access_key_id=AWS_ACCESS_KEY_ID,
