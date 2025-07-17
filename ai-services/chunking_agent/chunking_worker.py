@@ -83,7 +83,7 @@ def process_chunking_job(job):
         raise
 
     # Run chunking agent
-    output_json = f"{tmp_md_path}.chunks.json"
+    output_json = f".{tmp_md_path}.chunks.json"
     try:
         print(f"[DEBUG] Running chunking agent: {CHUNKER_SCRIPT} {tmp_md_path} --output_file {output_json}")
         result = subprocess.run([
@@ -114,6 +114,7 @@ def process_chunking_job(job):
     try:
         with open(output_json, 'r', encoding='utf-8') as f:
             chunks = json.load(f)
+        print(chunks)
         chunk_ids = insert_chunks_to_postgres(document_id, chunks)
          # --- Send each chunk to embedding-input-queue ---
         try:
@@ -186,8 +187,8 @@ def process_chunking_job(job):
 
     # Clean up temp files
     try:
-        os.remove(tmp_md_path)
-        os.remove(output_json)
+        # os.remove(tmp_md_path)
+        # os.remove(output_json)
         print(f"[DEBUG] Cleaned up temp files: {tmp_md_path}, {output_json}")
     except Exception as e:
         print(f"[WARN] Failed to clean up temp files: {e}")

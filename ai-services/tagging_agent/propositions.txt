@@ -1,4 +1,3 @@
-{{text}}
 Decompose the "Content" into clear and simple propositions, ensuring they are interpretable out of
 context.
 1. Split compound sentence into simple sentences. Maintain the original phrasing from the input
@@ -9,6 +8,7 @@ information into its own distinct proposition.
 and replacing pronouns (e.g., "it", "he", "she", "they", "this", "that") with the full name of the
 entities they refer to.
 4. Present the results as a list of strings
+Examples:
 Input: Title: Eostre. Section: Theories and interpretations, Connection to Easter Hares. Content: ¯
 The earliest evidence for the Easter Hare (Osterhase) was recorded in south-west Germany in
 1678 by the professor of medicine Georg Franck von Franckenau, but it remained unknown in
@@ -33,5 +33,6 @@ century the influence of Easter cards, toys, and books was to make the Easter Ha
 throughout Europe.", "German immigrants exported the custom of the Easter Hare/Rabbit to
 Britain and America.", "The custom of the Easter Hare/Rabbit evolved into the Easter Bunny in
 Britain and America." ]
+My Input: {{text}}
 Please provide your response in the following format:
 [sentence1, sentence2, sentence3, sentence4, sentence5]

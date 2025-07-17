@@ -68,7 +68,6 @@ async def send_chunk_component_to_backend(chunk_id: str, component_index: int, c
             "component_index": component_index,
             "content": content
         }
-        print(payload)
         try:
             async with session.post(f"{BACKEND_URL}/chunk-components", json=payload) as response:
                 if response.status in [200, 201]:
@@ -128,12 +127,15 @@ async def process_message(msg: aio_pika.IncomingMessage):
         chunk_id = chunk.get("id", "")
         title = chunk.get("title", "")
         content = chunk.get("content", "")
-        # Fetch tags and process both tags and propositions concurrently
-        tags_task = fetch_tags()
-        tags_llm_task = call_tags_llm_async(content, await tags_task)
+        
+        # Fetch existing tags first
+        existing_tags = await fetch_tags()
+        
+        # Process LLM tasks concurrently using the existing tags
+        tags_llm_task = call_tags_llm_async(content, existing_tags)
         propositions_task = call_proposition_llm_async(f"Title: {title} Content: {content}")
         
-        # Wait for both operations to complete
+        # Wait for both LLM operations to complete
         tagged_dict, propositions = await asyncio.gather(tags_llm_task, propositions_task)
 
         # Ensure tagged_dict is a dict, not a string
@@ -147,22 +149,34 @@ async def process_message(msg: aio_pika.IncomingMessage):
                     print("Failed to parse tags LLM output as JSON or Python dict. Output was:", tagged_dict)
                     tagged_dict = {"exist_tags": [], "new_tags": []}
 
-        # Parse tags from LLM response and send to backend
+        # Parse tags from LLM response and process them
         try:
-            all_tags = []
-            exist_tags = tagged_dict.get("exist_tags", [])
-            new_tags = tagged_dict.get("new_tags", [])
+            # Get all tags from LLM output
+            llm_exist_tags = tagged_dict.get("exist_tags", [])
+            llm_new_tags = tagged_dict.get("new_tags", [])
+            all_llm_tags = llm_exist_tags + llm_new_tags
             
-            # Create new tags first
-            for new_tag in new_tags:
+            # Convert existing tags to lowercase for case-insensitive comparison
+            existing_tags_lower = [tag.lower() for tag in existing_tags]
+            
+            # Find tags that don't exist in the backend
+            tags_to_create = []
+            final_tags = []
+            
+            for tag in all_llm_tags:
+                if tag.lower() not in existing_tags_lower:
+                    tags_to_create.append(tag)
+                final_tags.append(tag)
+            
+            # Create new tags that don't exist
+            for new_tag in tags_to_create:
                 await create_new_tag(new_tag)
             
-            # Combine all tags
-            all_tags.extend(exist_tags)
-            all_tags.extend(new_tags)
+            # Combine newly created tags with existing tags for future use
+            existing_tags.extend(tags_to_create)
             
-            # Send to backend
-            await send_chunk_to_backend(chunk_id, all_tags)
+            # Send all tags to backend
+            await send_chunk_to_backend(chunk_id, final_tags)
             
         except Exception as e:
             print(f"Error processing tags: {e}")
