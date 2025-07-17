@@ -158,7 +158,7 @@ async def process_message(msg: aio_pika.IncomingMessage):
         # Parse propositions and send to backend
         try:
             # Try to extract JSON array from propositions
-            propositions_list = extract_json(propositions)
+            propositions_list = json.loads(propositions)
             
             # Send each proposition as a chunk component
             for index, proposition in enumerate(propositions_list):
