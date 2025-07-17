@@ -68,7 +68,7 @@ async def send_chunk_component_to_backend(chunk_id: str, component_index: int, c
             "content": content
         }
         try:
-            async with session.post(f"{BACKEND_URL}/chunk-component", json=payload) as response:
+            async with session.post(f"{BACKEND_URL}/chunk-components", json=payload) as response:
                 if response.status == 200:
                     print(f"Successfully sent component {component_index} for chunk {chunk_id}")
                     # Get the response to extract the created component ID
