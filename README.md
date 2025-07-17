@@ -1,26 +1,94 @@
-# Document Processing Platform
+# 📄 Document Processing Platform
 
-A scalable platform for document upload, processing, and semantic search.
+A scalable and modular platform for **document upload**, **semantic chunking**, **tagging**, and **search** using AI and event-driven architecture.
 
-## Project Structure
+---
 
-This is a monorepo containing:
-- `packages/frontend`: React + Material UI frontend
-- `packages/backend`: NestJS backend with S3 integration
+## 🏗️ Project Structure
 
-## Getting Started
+This monorepo includes:
 
-1. Install dependencies:
+| Path                          | Description                                 |
+|-------------------------------|---------------------------------------------|
+| `frontend`                    | React + Material UI frontend UI             |
+| `backend`                     | NestJS backend with S3, PostgreSQL, RabbitMQ|
+| `ai-services/chunking_agent`  | Python agent for semantic chunking (LLM)    |
+| `ai-services/tagging_agent`   | Python agent for tagging + proposition LLM  |
+
+---
+
+## ⚙️ Getting Started
+
+### 1. Install dependencies
+
 ```bash
 npm install
+```
 
-2. Add semantic-chunking.pem to project root and .env to backend
+### 2. Prepare environment
 
+- Add `semantic-chunking.pem` (AWS credential key) to project root
+- Create `.env` file in `backend` with necessary keys
 
-3. Watch RabbitMQ on EC2
-Access: http://<EC2_PUBLIC_IP>:15672
-#http://54.92.209.245:15672 (development)
-#http://52.65.216.159:15672 (production)
+Example `.env`:
 
-User/pass: admin / admin
+```bash
+BACKEND_URL=http://localhost:4000
+AWS_ACCESS_KEY_ID=...
+AWS_SECRET_ACCESS_KEY=...
+AWS_REGION=ap-southeast-2
+RABBITMQ_HOST=52.65.216.159
+RABBITMQ_USER=admin
+RABBITMQ_PASS=admin
+```
+
+---
+
+## 🚀 Running the Platform
+
+### Step 1: Run Backend
+
+```bash
+cd backend
+npm run db:migrate     # Run database migrations
+npm start              # Start NestJS backend
+```
+
+### Step 2: Run Frontend
+
+```bash
+cd frontend
+npm start              # Start React frontend
+```
+
+### Step 3: Run Chunking Worker
+
+```bash
+cd ai-services/chunking_agent
+python chunking_worker.py
+```
+
+### Step 4: Run Tagging Agent
+
+```bash
+cd ai-services/tagging_agent
+python main.py
+```
+
+### Step 5: Run Embedding Agent
+
+```bash
+cd ai-services/embedding_agent
+python main.py
+```
+
+---
+
+## 🧪 RabbitMQ Queue Dashboard
+
+You can monitor all queues (input/output/embedding) via the RabbitMQ dashboard:
+
+- 🌐 URL: http://52.65.216.159:15672/#/queues
+- 🔑 Username: admin
+- �� Password: admin
 

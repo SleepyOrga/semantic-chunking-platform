@@ -12,8 +12,9 @@ load_dotenv()
 import asyncio
 import aio_pika
 import asyncpg
+import ast
 
-BACKEND_URL = os.getenv("BACKEND_URL", "http://localhost:8000")
+BACKEND_URL = os.getenv("BACKEND_URL", "http://localhost:4000")
 
 async def fetch_tags():
     """Fetch tags from the backend API"""
@@ -134,6 +135,17 @@ async def process_message(msg: aio_pika.IncomingMessage):
         
         # Wait for both operations to complete
         tagged_dict, propositions = await asyncio.gather(tags_llm_task, propositions_task)
+
+        # Ensure tagged_dict is a dict, not a string
+        if isinstance(tagged_dict, str):
+            try:
+                tagged_dict = json.loads(tagged_dict)
+            except Exception:
+                try:
+                    tagged_dict = ast.literal_eval(tagged_dict)
+                except Exception:
+                    print("Failed to parse tags LLM output as JSON or Python dict. Output was:", tagged_dict)
+                    tagged_dict = {"exist_tags": [], "new_tags": []}
 
         # Parse tags from LLM response and send to backend
         try:
@@ -274,7 +286,7 @@ async def call_proposition_llm_async(text: str):
 def extract_json(output: str):
     match = re.search(r"\[\s*{.*?}\s*]", output, re.DOTALL)
     if not match:
-        with open("last_claude_output.txt", "w") as f:
+        with open("last_claude_output.txt", "w", encoding="utf-8") as f:
             f.write(output)
         raise ValueError("Claude output does not contain valid JSON array")
 
@@ -285,7 +297,7 @@ def extract_json(output: str):
         cleaned_json = re.sub(r'\\(?![nrt"\\/])', r'\\\\', raw_json)
         return json.loads(cleaned_json)
     except Exception as e:
-        with open("last_claude_output_raw.txt", "w") as f:
+        with open("last_claude_output_raw.txt", "w", encoding="utf-8") as f:
             f.write(raw_json)
         raise ValueError(f"❌ Failed to parse cleaned JSON: {e}")
     

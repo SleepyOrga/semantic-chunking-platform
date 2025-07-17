@@ -1,0 +1,3 @@
+boto3
+aio-pika
+python-dotenv
