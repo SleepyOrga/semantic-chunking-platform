@@ -114,7 +114,7 @@ async def create_new_tag(tag_name: str):
         }
         try:
             async with session.post(f"{BACKEND_URL}/tags", json=payload) as response:
-                if response.status == 200:
+                if response.status >= 200 and response.status < 400:
                     print(f"Successfully created new tag: {tag_name}")
                 else:
                     print(f"Failed to create tag {tag_name}, status: {response.status}")
@@ -170,7 +170,7 @@ async def process_message(msg: aio_pika.IncomingMessage):
         # Parse propositions and send to backend
         try:
             # Try to extract JSON array from propositions
-            propositions_list = extract_json(propositions)
+            propositions_list = json.loads(propositions)
             
             # Send each proposition as a chunk component
             for index, proposition in enumerate(propositions_list):
@@ -201,7 +201,8 @@ async def process_message(msg: aio_pika.IncomingMessage):
 AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
 AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
 AWS_REGION = os.getenv('AWS_REGION', 'us-east-1')
-MODEL_NAME = 'amazon.nova-lite-v1:0'
+MODEL_LITE = 'amazon.nova-lite-v1:0'
+MODEL_MICRO = 'amazon.nova-micro-v1:0'
 
 # RabbitMQ config
 RABBITMQ_HOST = os.getenv("RABBITMQ_HOST", "52.65.216.159")
@@ -214,7 +215,7 @@ AMQP_URL = f"amqp://{RABBITMQ_USER}:{RABBITMQ_PASS}@{RABBITMQ_HOST}:{RABBITMQ_PO
 
 TAGGING_INPUT_QUEUE = "tagging-input-queue"
 TAGGING_OUTPUT_QUEUE = "tagging-output-queue"
-EMBEDDING_QUEUE = "embedding-queue"
+EMBEDDING_QUEUE = "embedding-input-queue"
 
 client = boto3.client("bedrock-runtime", region_name=AWS_REGION,
                       aws_access_key_id=AWS_ACCESS_KEY_ID,
@@ -242,7 +243,7 @@ async def call_tags_llm_async(text: str, tags: list):
     response = response = await loop.run_in_executor(
         None,
         lambda: client.invoke_model(
-            modelId=MODEL_NAME,
+            modelId=MODEL_MICRO,
             body=body,
             contentType="application/json",
             accept="application/json"
@@ -270,7 +271,7 @@ async def call_proposition_llm_async(text: str):
     response = response = await loop.run_in_executor(
         None,
         lambda: client.invoke_model(
-            modelId=MODEL_NAME,
+            modelId=MODEL_LITE,
             body=body,
             contentType="application/json",
             accept="application/json"
