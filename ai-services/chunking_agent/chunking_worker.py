@@ -102,13 +102,44 @@ def process_chunking_job(job):
     except Exception as e:
         print(f"[ERROR] Failed to upload to S3: {e}")
         traceback.print_exc()
-        raise
 
     # Insert chunks into PostgreSQL
     try:
         with open(output_json, 'r', encoding='utf-8') as f:
             chunks = json.load(f)
         insert_chunks_to_postgres(document_id, chunks)
+
+        # --- Send each chunk to tagging-input-queue ---
+        try:
+            TAGGING_QUEUE = 'tagging-input-queue'
+            print(f"[DEBUG] Connecting to RabbitMQ for tagging queue: {RABBITMQ_URL}")
+            tag_conn = pika.BlockingConnection(pika.URLParameters(RABBITMQ_URL))
+            tag_channel = tag_conn.channel()
+            tag_channel.queue_declare(queue=TAGGING_QUEUE, durable=True)
+            for idx, chunk in enumerate(chunks):
+                message = {
+                    'title': chunk.get('title', f'Chunk {idx}'),
+                    'content': chunk.get('content', ''),
+                    'chunk_index': idx,
+                    'documentId': document_id
+                }
+                tag_channel.basic_publish(
+                    exchange='',
+                    routing_key=TAGGING_QUEUE,
+                    body=json.dumps(message).encode('utf-8'),
+                    properties=pika.BasicProperties(
+                        content_type='application/json',
+                        delivery_mode=2  # persistent
+                    )
+                )
+                print(f"[DEBUG] Published chunk {idx} to tagging-input-queue")
+            tag_conn.close()
+            print(f"[DEBUG] All chunks published to tagging-input-queue.")
+        except Exception as e:
+            print(f"[ERROR] Failed to publish chunks to tagging-input-queue: {e}")
+            traceback.print_exc()
+        # --- End send to tagging-input-queue ---
+
     except Exception as e:
         print(f"[ERROR] Failed to insert chunks into PostgreSQL: {e}")
         traceback.print_exc()

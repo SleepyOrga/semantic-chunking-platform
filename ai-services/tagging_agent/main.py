@@ -22,11 +22,11 @@ async def fetch_tags():
             "portfolio", "premium", "policy", "consultation"
         ]
     conn = await asyncpg.connect(
-        host=os.getenv('DB_HOST'),
+        host=os.getenv('DB_HOST', 'localhost'),
         port=os.getenv('DB_PORT', 5432),
-        database=os.getenv('DB_NAME'),
-        user=os.getenv('DB_USER'),
-        password=os.getenv('DB_PASSWORD')
+        database=os.getenv('DB_NAME', 'app_db'),
+        user=os.getenv('DB_USER', 'app_user'),
+        password=os.getenv('DB_PASSWORD', 'secret123')
     )
     try:
         rows = await conn.fetch("SELECT tag_name FROM tags;")
@@ -59,11 +59,13 @@ AWS_REGION = os.getenv('AWS_REGION', 'us-east-1')
 MODEL_NAME = 'amazon.nova-lite-v1:0'
 
 # RabbitMQ config
-RABBITMQ_HOST = os.getenv("RABBITMQ_HOST", "localhost")
+RABBITMQ_HOST = os.getenv("RABBITMQ_HOST", "52.65.216.159")
 RABBITMQ_PORT = int(os.getenv("RABBITMQ_PORT", 5672))
 RABBITMQ_USER = os.getenv("RABBITMQ_USER", "admin")
 RABBITMQ_PASS = os.getenv("RABBITMQ_PASS", "admin")
+
 AMQP_URL = f"amqp://{RABBITMQ_USER}:{RABBITMQ_PASS}@{RABBITMQ_HOST}:{RABBITMQ_PORT}/"
+
 
 TAGGING_INPUT_QUEUE = "tagging-input-queue"
 TAGGING_OUTPUT_QUEUE = "tagging-output-queue"

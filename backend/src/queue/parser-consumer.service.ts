@@ -94,6 +94,7 @@ export class ParserConsumerService implements OnModuleInit {
   
       this.logger.log(`📤 Pushed job to chunking-queue for: ${safeDocumentId}`);
       this.logger.log(`🎉 Finished processing: ${filename}`);
+      this.rabbitMQService['channel'].ack(msg);
     } catch (error) {
       this.logger.error('🔥 Error while handling message:', error);
     }
