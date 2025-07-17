@@ -45,9 +45,9 @@ def extract_images_from_docx(docx_path, images_dir, docx_stem):
                     image_count += 1
                     logging.info(f"🖼️ Extracted image: {image_filename}")
                 except Exception as e:
-                    logging.warning(f"⚠️ Failed to extract image: {e}")
+                    logging.warning(f"Failed to extract image: {e}")
     except Exception as e:
-        logging.warning(f"⚠️ python-docx error: {e}")
+        logging.warning(f"python-docx error: {e}")
     return image_mapping
 
 
@@ -76,7 +76,7 @@ def process_markdown_with_images(markdown_content, image_mapping):
 def upload_to_s3(local_path, bucket, s3_key):
     s3 = boto3.client('s3')
     s3.upload_file(str(local_path), bucket, s3_key)
-    print(f"Uploaded {local_path} to s3://{bucket}/{s3_key}")
+    logging.info(f"Uploaded {local_path} to s3://{bucket}/{s3_key}")
 
 
 def extract_docx_to_markdown(input_path, output_dir, extract_images=True, s3_bucket=None, s3_prefix=None):
@@ -101,7 +101,7 @@ def extract_docx_to_markdown(input_path, output_dir, extract_images=True, s3_buc
     elif input_path.is_dir():
         files_to_process = list(input_path.glob("*.docx"))
     else:
-        logging.error(f"❌ Invalid input path: {input_path}")
+        logging.error(f"Invalid input path: {input_path}")
         return
 
     logging.info(f"📄 Found {len(files_to_process)} DOCX files")
@@ -125,7 +125,7 @@ def extract_docx_to_markdown(input_path, output_dir, extract_images=True, s3_buc
             with open(output_path, "w", encoding="utf-8") as f:
                 f.write(final_markdown)
 
-            logging.info(f"✅ Saved markdown: {output_path}")
+            logging.info(f"Saved markdown: {output_path}")
 
             # --- S3 upload logic ---
             if s3_bucket and s3_prefix:
@@ -142,15 +142,15 @@ def extract_docx_to_markdown(input_path, output_dir, extract_images=True, s3_buc
                         if os.path.isfile(img_path):
                             upload_to_s3(img_path, s3_bucket, f"{s3_prefix}images/{img_file}")
         except Exception as e:
-            logging.error(f"🔥 Error processing {docx_file.name}: {e}")
+            logging.error(f"Error processing {docx_file.name}: {e}")
 
-    logging.info(f"⏱️ Completed in {time.time() - start:.2f} seconds")
+    logging.info(f"Completed in {time.time() - start:.2f} seconds")
 
 def download_file_from_url(url):
     # Tạo file tạm
     temp_fd, temp_path = tempfile.mkstemp(suffix=".docx")
     os.close(temp_fd)  # Đóng file descriptor
-    logging.info(f"🌐 Downloading from URL: {url}")
+    logging.info(f"Downloading from URL: {url}")
     urllib.request.urlretrieve(url, temp_path)
     return temp_path
 
