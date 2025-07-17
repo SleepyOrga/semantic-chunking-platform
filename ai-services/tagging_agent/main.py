@@ -90,7 +90,8 @@ async def publish_to_embedding_queue(connection, component_id: str, content: str
         
         message_payload = {
             "id": component_id,
-            "content": content
+            "content": content,
+            "type": "proposition"  # Specify type for clarity
         }
         
         message = aio_pika.Message(

@@ -10,6 +10,6 @@ Text to tag: {{text}}
 
 Please provide your response in the following format:
 {
-    exist_tags: [tag1, tag2, tag3, tag4, tag5],
-    new_tags: [tag1, tag2, tag3, tag4, tag5],
+    "exist_tags": [tag1, tag2, tag3, tag4, tag5],
+    "new_tags": [tag1, tag2, tag3, tag4, tag5],
 }
