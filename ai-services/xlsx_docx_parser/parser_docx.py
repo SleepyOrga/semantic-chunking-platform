@@ -6,6 +6,7 @@ import argparse
 import tempfile
 import urllib.request
 import boto3
+import json
 
 from docx import Document
 from docx.document import Document as DocumentType
@@ -129,7 +130,11 @@ def extract_docx_to_markdown(input_path, output_dir, extract_images=True, s3_buc
             # --- S3 upload logic ---
             if s3_bucket and s3_prefix:
                 # Upload markdown
-                upload_to_s3(output_path, s3_bucket, f"{s3_prefix}{Path(output_path).name}")
+                md_s3_key = f"{s3_prefix}{Path(output_path).name}"
+                upload_to_s3(output_path, s3_bucket, md_s3_key)
+
+                # Print JSON so NestJS can capture it
+                print(json.dumps({"md_s3_key": md_s3_key}))
                 # Upload images
                 if extract_images and os.path.isdir(images_dir):
                     for img_file in os.listdir(images_dir):
