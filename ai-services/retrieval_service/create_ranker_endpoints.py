@@ -26,7 +26,7 @@ def get_image_uri(instance_type):
     return get_huggingface_llm_image_uri(key, version="1.2.3")
 
 # 🧠 3. Configure model
-instance_type = "ml.c5.2xlarge"  # swap to "ml.g5.xlarge" for GPU
+instance_type = "ml.c6i.2xlarge"  # swap to "ml.g5.xlarge" for GPU
 image_uri = get_image_uri(instance_type)
 model_id = "BAAI/bge-reranker-large"  # or sentence-transformers/paraphrase‑xlm‑r‑multilingual‑v1
 
