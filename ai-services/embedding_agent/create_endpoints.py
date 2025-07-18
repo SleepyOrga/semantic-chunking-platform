@@ -1,6 +1,3 @@
-
-
-
 import boto3
 import os
 from sagemaker.huggingface import HuggingFaceModel, get_huggingface_llm_image_uri
