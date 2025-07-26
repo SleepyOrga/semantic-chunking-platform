@@ -3,6 +3,7 @@ import { RabbitMQService } from './rabbitmq.service';
 import { spawn } from 'child_process';
 import * as path from 'path';
 import * as fs from 'fs';
+import * as os from 'os';
 import { S3Service } from 'src/upload/s3.service';
 
 @Injectable()
@@ -104,33 +105,35 @@ export class ParserConsumerService implements OnModuleInit {
   private async runPythonScript(scriptPath: string, args: string[]): Promise<string> {
     return new Promise((resolve, reject) => {
       const fullPath = path.resolve(scriptPath);
-      const pythonPath = path.resolve(__dirname, '../../../ai-services/venv/bin/python');
-  
+      const pythonPath = os.platform() === 'win32'
+        ? path.resolve(__dirname, '../../../ai-services/.venv/Scripts/python.exe')
+        : path.resolve(__dirname, '../../../ai-services/.venv/bin/python');
+
       if (!fs.existsSync(pythonPath)) {
         this.logger.error(`❌ Python not found at ${pythonPath}`);
         return reject(new Error(`Python executable not found`));
       }
-  
+
       const quotedArgs = args.map((arg) => `"${arg}"`);
       const child = spawn(pythonPath, [fullPath, ...quotedArgs], { shell: true });
-  
+
       let stdoutBuffer = '';
-  
+
       child.stdout.on('data', (data) => {
         const str = data.toString();
         stdoutBuffer += str;
         this.logger.log(`🟢 [stdout] ${str.trim()}`);
       });
-  
+
       child.stderr.on('data', (data) => {
         this.logger.error(`🔴 [stderr] ${data.toString().trim()}`);
       });
-  
+
       child.on('close', (code) => {
         if (code === 0) {
           try {
             const json = JSON.parse(stdoutBuffer.trim().split('\n').pop()!);
-            resolve(json.md_s3_key); // Trả về md_s3_key
+            resolve(json.md_s3_key);
           } catch (err) {
             this.logger.error(`❌ Failed to parse parser output: ${stdoutBuffer}`);
             reject(err);
@@ -141,5 +144,6 @@ export class ParserConsumerService implements OnModuleInit {
         }
       });
     });
-  }  
+  }
+
 }

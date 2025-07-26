@@ -19,6 +19,7 @@ This monorepo includes:
 
 ## ⚙️ Getting Started
 
+
 ### 1. Install dependencies
 
 ```bash
@@ -45,6 +46,11 @@ RABBITMQ_PASS=admin
 ---
 
 ## 🚀 Running the Platform
+
+### 0. Build docker
+```bash
+docker compose up --build
+```
 
 ### Step 1: Run Backend
 
@@ -92,3 +98,9 @@ You can monitor all queues (input/output/embedding) via the RabbitMQ dashboard:
 - 🔑 Username: admin
 - �� Password: admin
 
+### pgadmin
+
+http://localhost:5050/login?next=/
+
+- 🔑 Username: admin@admin.com
+- �� Password: admin
