@@ -83,7 +83,7 @@ def process_chunking_job(job):
         raise
 
     # Run chunking agent
-    output_json = f".{tmp_md_path}.chunks.json"
+    output_json = f"{tmp_md_path}.chunks.json"
     try:
         print(f"[DEBUG] Running chunking agent: {CHUNKER_SCRIPT} {tmp_md_path} --output_file {output_json}")
         result = subprocess.run([

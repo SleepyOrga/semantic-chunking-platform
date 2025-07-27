@@ -1,0 +1,36 @@
+[
+  {
+    "title": "Data Table (part 1)",
+    "content": "|   SR.",
+    "header_level": 0,
+    "tags": [
+      "tabular data",
+      "personal information",
+      "demographics"
+    ],
+    "start_pos": 0,
+    "end_pos": 1958633,
+    "is_subchunk": true,
+    "subchunk_index": 0,
+    "is_embedding_chunk": true,
+    "parent_chunk": "Data Table",
+    "token_count": 1
+  },
+  {
+    "title": "Data Table (part 2)",
+    "content": "| NAME     | GENDER   |   AGE | DATE       | COUNTRY       |\n|-------|----------|----------|-------|------------|---------------|\n|     1 | Dett     | Male     |    18 | 21/05/2015 | Great Britain |\n|     2 | Nern     | Female   |    19 | 15/10/2017 | France        |\n|     3 | Kallsie  | Male     |    20 | 16/08/2016 | France        |\n|     4 | Siuau    | Female   |    21 | 21/05/2015 | Great Britain |\n|     5 | Shennice | Male     |    22 | 21/05/2016 | France        |\n|     6 | Chasse   | Female   |    23 | 15/10/2018 | France        |\n|     7 | Tommye   | Male     |    24 | 16/08/2017 | United States |\n|     8 | Dorcast  | Female   |    25 | 21/05/2016 | United States |\n|     9 | Angelee  | Male     |    26 | 21/05/2017 | Great Britain |\n|    10 | Willoom  | Female   |    27 | 15/10/2019 | France        |\n|    11 | Waeston  | Male     |    28 | 16/08/2018 | Great Britain |\n|    12 | Rosma    | Female   |    29 | 21/05/2017 | France        |\n|    13 | Felisaas | Male     |    30 | 21/05/2018 | France        |\n|    14 | Demetas  | Female   |    31 | 15/10/2020 | Great Britain |\n|    15 | Jeromyw  | Female   |    32 | 16/08/2019 | France        |\n|    16 | Rashid   | Female   |    33 | 21/05/2018 | France        |\n|    17 | Dett     | Female   |    34 | 21/05/2019 | United States |\n|    18 | Nern     | Female   |    35 | 15/10/2021 | United States |\n|    19 | Kallsie  | Female   |    36 | 16/08/2020 | Great Britain |\n|    20 | Siuau    | Female   |    37 | 21/05/2019 | France        |\n|    21 | Shennice | Female   |    38 | 21/05/2020 | Great Britain |\n|    22 | Chasse   | Female   |    39 | 15/10/2022 | France        |\n|    23 | Tommye   | Female   |    40 | 16/08/2021 | France        |\n|    24 | Dorcast  | Female   |    41 | 21/05/2020 | Great Britain |\n|    25 | Angelee  | Female   |    42 | 21/05/2021 | France        |\n|    26 | Willoom  | Female   |    43 | 15/10/2023 | France        |\n|    27 | Waeston  | Female   |    44 | 16/08/2022 | United States |\n|    28 | Rosma    | Female   |    45 | 21/05/2021 | Un",
+    "header_level": 0,
+    "tags": [
+      "tabular data",
+      "personal information",
+      "demographics"
+    ],
+    "start_pos": 0,
+    "end_pos": 1958633,
+    "is_subchunk": true,
+    "subchunk_index": 1,
+    "is_embedding_chunk": true,
+    "parent_chunk": "Data Table",
+    "token_count": 512
+  }
+]
