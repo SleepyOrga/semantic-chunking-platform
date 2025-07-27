@@ -6,6 +6,7 @@ import Sidebar from '../components/Sidebar/SideBar';
 import MessageList from '../components/Chat/MessageList';
 import ChatInput from '../components/Chat/ChatInput';
 import ErrorAlert from '../components/Common/ErrorAlert';
+import DocumentViewer from '../components/Document/DocumentViewer';
 import DocumentService from '../services/DocumentService';
 import SearchService from '../services/SearchService';
 import AuthService from '../services/AuthService';
@@ -21,6 +22,8 @@ const HomePage = () => {
   const [error, setError] = useState('');
   const [uploadedFiles, setUploadedFiles] = useState([]);
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [documentViewerOpen, setDocumentViewerOpen] = useState(false);
+  const [selectedDocument, setSelectedDocument] = useState(null);
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
   const isMobile = useMediaQuery('(max-width:768px)');
@@ -168,6 +171,18 @@ const HomePage = () => {
     }
   };
 
+  // Handle viewing a document
+  const handleViewDocument = (document) => {
+    setSelectedDocument(document);
+    setDocumentViewerOpen(true);
+  };
+
+  // Handle closing document viewer
+  const handleCloseDocumentViewer = () => {
+    setDocumentViewerOpen(false);
+    setSelectedDocument(null);
+  };
+
   // Handle sending a message/query
   const handleSendMessage = async (e) => {
     e.preventDefault();
@@ -237,6 +252,7 @@ const HomePage = () => {
         files={uploadedFiles}
         onDeleteFile={handleDeleteFile}
         onUploadClick={handleFileButtonClick}
+        onViewFile={handleViewDocument}
       />
       
       {/* Main content */}
@@ -281,6 +297,14 @@ const HomePage = () => {
           onFileChange={handleFileChange}
         />
       </Box>
+
+      {/* Document Viewer Dialog */}
+      <DocumentViewer
+        open={documentViewerOpen}
+        onClose={handleCloseDocumentViewer}
+        documentId={selectedDocument?.id}
+        documentName={selectedDocument?.filename}
+      />
     </Box>
   );
 };
