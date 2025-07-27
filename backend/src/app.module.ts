@@ -1,7 +1,5 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { AppController } from './upload/upload.controller';
-import { RabbitMQService } from './queue/rabbitmq.service';
 import { DocumentModule } from './document/document.module';
 import { ChunkModule } from './chunk/chunk.module';
 import { KnexModule } from './database/knex.module';
@@ -10,6 +8,7 @@ import { QueueModule } from './queue/queue.module';
 import { UploadModule } from './upload/upload.module';
 import { TagsModule } from './tags/tag.module';
 import { ChunkComponentModule } from './chunk-component/chunk-component.module';
+import { ParserGatewayModule } from './parser-gateway/parser-gateway.module';
 
 @Module({
   imports: [
@@ -24,8 +23,9 @@ import { ChunkComponentModule } from './chunk-component/chunk-component.module';
     UploadModule,
     TagsModule,
     ChunkComponentModule,
+    ParserGatewayModule,
   ],
-  controllers: [AppController],
-  providers: [RabbitMQService],
+  controllers: [], // Moved AppController to UploadModule where it belongs
+  providers: [],
 })
 export class AppModule {}

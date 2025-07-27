@@ -18,9 +18,24 @@ export class RabbitMQService implements OnModuleInit {
     }
   }
 
+  async assertQueue(queueName: string, options: any = { durable: true }) {
+    if (!this.channel) throw new Error('Channel not initialized');
+    return await this.channel.assertQueue(queueName, options);
+  }
+
   async consume(queue: string, onMessage: (msg: any) => void) {
     if (!this.channel) throw new Error('Channel not initialized');
     this.channel.consume(queue, onMessage, { noAck: false });
+  }
+
+  ackMessage(msg: any) {
+    if (!this.channel) throw new Error('Channel not initialized');
+    this.channel.ack(msg);
+  }
+
+  nackMessage(msg: any, allUpTo: boolean = false, requeue: boolean = true) {
+    if (!this.channel) throw new Error('Channel not initialized');
+    this.channel.nack(msg, allUpTo, requeue);
   }
 
   async sendToQueue(data: any, queueName: string = 'file-process-queue') {

@@ -1,0 +1,48 @@
+# Docker Compose configuration for new parser workers
+# Add these services to your existing docker-compose.yml
+
+  # Parser Workers
+  docx-parser:
+    build:
+      context: ./ai-services/xlsx_docx_parser
+      dockerfile: Dockerfile.docx
+    environment:
+      - RABBITMQ_URL=amqp://admin:admin@rabbitmq:5672/
+      - AWS_REGION=ap-southeast-2
+      - AWS_S3_BUCKET_NAME=semantic-chunking-bucket
+    depends_on:
+      - rabbitmq
+    restart: unless-stopped
+    volumes:
+      - ./ai-services/xlsx_docx_parser:/app
+    command: ["python", "docx_worker.py"]
+
+  xlsx-parser:
+    build:
+      context: ./ai-services/xlsx_docx_parser
+      dockerfile: Dockerfile.xlsx
+    environment:
+      - RABBITMQ_URL=amqp://admin:admin@rabbitmq:5672/
+      - AWS_REGION=ap-southeast-2
+      - AWS_S3_BUCKET_NAME=semantic-chunking-bucket
+    depends_on:
+      - rabbitmq
+    restart: unless-stopped
+    volumes:
+      - ./ai-services/xlsx_docx_parser:/app
+    command: ["python", "xlsx_worker.py"]
+
+  pdf-parser:
+    build:
+      context: ./ai-services/ocr_parser
+      dockerfile: Dockerfile.pdf
+    environment:
+      - RABBITMQ_URL=amqp://admin:admin@rabbitmq:5672/
+      - AWS_REGION=ap-southeast-2
+      - AWS_S3_BUCKET_NAME=semantic-chunking-bucket
+    depends_on:
+      - rabbitmq
+    restart: unless-stopped
+    volumes:
+      - ./ai-services/ocr_parser:/app
+    command: ["python", "pdf_worker.py"]
