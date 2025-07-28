@@ -9,10 +9,7 @@ def test_rag_api():
     
     test_queries = [
         "What is VPBank?",
-        "How to apply for a personal loan?",
-        "What is the interest rate for savings account?",
-        "What documents do I need to open an account?",
-        "Tell me about VPBank's mobile banking features"
+        "What is method for law searching",
     ]
     
     for query in test_queries:

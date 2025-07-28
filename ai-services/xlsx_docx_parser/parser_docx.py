@@ -7,6 +7,8 @@ import tempfile
 import urllib.request
 import boto3
 import json
+import pika
+from typing import Dict, Any, Optional
 
 from docx import Document
 from docx.document import Document as DocumentType
@@ -15,6 +17,38 @@ from docling.document_converter import DocumentConverter, WordFormatOption
 from docling.datamodel.base_models import InputFormat
 from docling.pipeline.simple_pipeline import SimplePipeline
 from docling.backend.msword_backend import MsWordDocumentBackend
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
+
+class DocxParserService:
+    def __init__(self, rabbitmq_url: str):
+        self.rabbitmq_url = rabbitmq_url
+        self.connection = None
+        self.channel = None
+        self.s3_client = boto3.client('s3')
+
+    def connect(self):
+        """Establish connection to RabbitMQ."""
+        try:
+            self.connection = pika.BlockingConnection(
+                pika.URLParameters(self.rabbitmq_url)
+            )
+            self.channel = self.connection.channel()
+            
+            # Declare queues
+            self.channel.queue_declare(queue='docx-parser-queue', durable=True)
+            self.channel.queue_declare(queue='chunking-queue', durable=True)
+            
+            logger.info("✅ Connected to RabbitMQ and listening on docx-parser-queue")
+            
+        except Exception as e:
+            logger.error(f"Failed to connect to RabbitMQ: {e}")
+            raise
 
 
 def extract_images_from_docx(docx_path, images_dir, docx_stem):
@@ -154,28 +188,122 @@ def download_file_from_url(url):
     urllib.request.urlretrieve(url, temp_path)
     return temp_path
 
+class DocxParserService:
+    def __init__(self, rabbitmq_url: str):
+        self.rabbitmq_url = rabbitmq_url
+        self.connection = None
+        self.channel = None
+        self.s3_client = boto3.client('s3')
+
+    def connect(self):
+        """Establish connection to RabbitMQ."""
+        try:
+            self.connection = pika.BlockingConnection(
+                pika.URLParameters(self.rabbitmq_url)
+            )
+            self.channel = self.connection.channel()
+            
+            # Declare queues
+            self.channel.queue_declare(queue='docx-parser-queue', durable=True)
+            self.channel.queue_declare(queue='chunking-queue', durable=True)
+            
+            logger.info("✅ Connected to RabbitMQ and listening on docx-parser-queue")
+            
+        except Exception as e:
+            logger.error(f"Failed to connect to RabbitMQ: {e}")
+            raise
+
+    def process_message(self, ch, method, properties, body):
+        s3 = boto3.client('s3')
+        s3.upload_file(str(local_path), bucket, s3_key)
+        logging.info(f"Uploaded {local_path} to s3://{bucket}/{s3_key}")
+
+    def start_consuming(self):
+        self.channel.basic_consume(queue='docx-parser-queue',
+                                  on_message_callback=self.process_message,
+                                  no_ack=True)
+
+    def process_message(self, ch, method, properties, body):
+        """Process incoming message from the queue."""
+        try:
+            payload = json.loads(body)
+            logger.info(f"📩 Received message: {payload}")
+            
+            # Extract necessary information from payload
+            input_path = payload.get('s3Key')
+            filename = payload.get('filename', 'unknown')
+            document_id = payload.get('documentId')
+            s3_bucket = payload.get('s3Bucket') or os.getenv('S3_BUCKET_NAME', 'semantic-chunking-bucket')
+            
+            # Generate output path
+            output_s3_prefix = f"parsed/{document_id}/"
+            
+            logger.info(f"🚀 Processing DOCX file: {filename}")
+            
+            # Call the parser function
+            result = extract_docx_to_markdown(
+                input_path=input_path,
+                output_dir=output_s3_prefix,
+                extract_images=True,
+                s3_bucket=s3_bucket,
+                s3_prefix=output_s3_prefix
+            )
+            
+            # Send result to chunking queue
+            chunking_payload = {
+                's3Bucket': s3_bucket,
+                's3Key': result,
+                'documentId': document_id,
+                'fileType': 'docx'
+            }
+            
+            self.channel.basic_publish(
+                exchange='',
+                routing_key='chunking-queue',
+                body=json.dumps(chunking_payload),
+                properties=pika.BasicProperties(
+                    delivery_mode=2,  # Make message persistent
+                )
+            )
+            
+            logger.info(f"✅ Successfully processed {filename}")
+            ch.basic_ack(delivery_tag=method.delivery_tag)
+            
+        except Exception as e:
+            logger.error(f"❌ Error processing message: {e}", exc_info=True)
+            ch.basic_nack(delivery_tag=method.delivery_tag, requeue=False)
+
+    def start_consuming(self):
+        """Start consuming messages from the queue."""
+        try:
+            self.channel.basic_qos(prefetch_count=1)
+            self.channel.basic_consume(
+                queue='docx-parser-queue',
+                on_message_callback=self.process_message,
+                auto_ack=False
+            )
+            
+            logger.info("🔄 Waiting for messages in docx-parser-queue...")
+            self.channel.start_consuming()
+            
+        except KeyboardInterrupt:
+            logger.info("\n👋 Shutting down DOCX parser...")
+            if self.connection:
+                self.connection.close()
+
+
 def main():
-    parser = argparse.ArgumentParser(description="DOCX to Markdown converter with image support")
-    parser.add_argument("input_file", help="Path to DOCX file or folder or URL")
-    parser.add_argument("-o", "--output", default="Output/Docx", help="Output directory")
-    parser.add_argument("--s3-bucket", required=False, help="S3 bucket to upload results")
-    parser.add_argument("--s3-prefix", required=False, help="S3 prefix (folder) for results")
+    parser = argparse.ArgumentParser(description='Run DOCX parser worker')
+    parser.add_argument('--rabbitmq', type=str, 
+                       default='amqp://admin:admin@52.65.216.159:5672',
+                       help='RabbitMQ connection URL')
+    
     args = parser.parse_args()
-
-    logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
-
-    # Nếu input là URL thì tải file về trước
-    input_arg = args.input_file
-    if input_arg.startswith("http://") or input_arg.startswith("https://"):
-        input_arg = download_file_from_url(input_arg)
-
-    # Use a temp dir for output if S3 is specified
-    import tempfile
-    if args.s3_bucket and args.s3_prefix:
-        with tempfile.TemporaryDirectory() as temp_output:
-            extract_docx_to_markdown(input_arg, temp_output, extract_images=True, s3_bucket=args.s3_bucket, s3_prefix=args.s3_prefix)
-    else:
-        extract_docx_to_markdown(input_arg, args.output, extract_images=True)
+    
+    # Create and start worker
+    worker = DocxParserService(args.rabbitmq)
+    worker.connect()
+    worker.start_consuming()
 
 if __name__ == "__main__":
     main()
