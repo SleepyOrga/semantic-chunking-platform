@@ -51,10 +51,68 @@ class DocumentService {
     }
   }
 
+  async getDocumentDetails(documentId) {
+    try {
+      const response = await axios.get(`${API_URL}/documents/${documentId}`, {
+        headers: {
+          'Authorization': `Bearer ${this.getAuthToken()}`
+        }
+      });
+      
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Failed to fetch document details' };
+    }
+  }
+
+  async getRawFile(documentId) {
+    try {
+      const response = await axios.get(`${API_URL}/documents/${documentId}/raw`, {
+        headers: {
+          'Authorization': `Bearer ${this.getAuthToken()}`
+        },
+        responseType: 'blob'
+      });
+      
+      return response;
+    } catch (error) {
+      throw error.response?.data || { message: 'Failed to fetch raw file' };
+    }
+  }
+
+  async getParsedMarkdown(documentId) {
+    try {
+      const response = await axios.get(`${API_URL}/documents/${documentId}/markdown`, {
+        headers: {
+          'Authorization': `Bearer ${this.getAuthToken()}`
+        }
+      });
+      
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Failed to fetch parsed markdown' };
+    }
+  }
+
+  async getDocumentChunks(documentId) {
+    try {
+      const response = await axios.get(`${API_URL}/documents/${documentId}/chunks`, {
+        headers: {
+          'Authorization': `Bearer ${this.getAuthToken()}`
+        }
+      });
+      
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Failed to fetch document chunks' };
+    }
+  }
+
   getAuthToken() {
-    const user = JSON.parse(localStorage.getItem('user'));
-    return user?.token;
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    return user.token || '';
   }
 }
 
-export default new DocumentService();
+const documentService = new DocumentService();
+export default documentService;

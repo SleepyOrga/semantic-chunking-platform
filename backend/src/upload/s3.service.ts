@@ -64,4 +64,49 @@ export class S3Service implements OnModuleInit {
     // URL expires in 1 hour
     return getSignedUrl(this.s3Client, command, { expiresIn: 3600 });
   }
+
+  async getFileStream(key: string): Promise<NodeJS.ReadableStream> {
+    if (!this.bucket) {
+      throw new Error('AWS S3 bucket not configured');
+    }
+
+    const command = new GetObjectCommand({
+      Bucket: this.bucket,
+      Key: key,
+    });
+
+    const response = await this.s3Client.send(command);
+    
+    if (!response.Body) {
+      throw new Error('No file content found');
+    }
+
+    return response.Body as NodeJS.ReadableStream;
+  }
+
+  async getFileContent(key: string): Promise<string> {
+    if (!this.bucket) {
+      throw new Error('AWS S3 bucket not configured');
+    }
+
+    const command = new GetObjectCommand({
+      Bucket: this.bucket,
+      Key: key,
+    });
+
+    const response = await this.s3Client.send(command);
+    
+    if (!response.Body) {
+      throw new Error('No file content found');
+    }
+
+    const chunks: Buffer[] = [];
+    const stream = response.Body as NodeJS.ReadableStream;
+    
+    return new Promise((resolve, reject) => {
+      stream.on('data', (chunk: Buffer) => chunks.push(chunk));
+      stream.on('error', reject);
+      stream.on('end', () => resolve(Buffer.concat(chunks).toString('utf-8')));
+    });
+  }
 }

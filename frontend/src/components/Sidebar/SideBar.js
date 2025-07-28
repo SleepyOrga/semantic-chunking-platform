@@ -15,7 +15,8 @@ const Sidebar = ({
   isMobile, 
   files, 
   onDeleteFile, 
-  onUploadClick 
+  onUploadClick,
+  onViewFile 
 }) => {
   return (
     <Drawer
@@ -53,7 +54,7 @@ const Sidebar = ({
         <EmptyDocuments onUploadClick={onUploadClick} />
       ) : (
         <>
-          <FileList files={files} onDeleteFile={onDeleteFile} />
+          <FileList files={files} onDeleteFile={onDeleteFile} onViewFile={onViewFile} />
           <Box sx={{ p: 2, borderTop: '1px solid #e0e0e0' }}>
             <Button
               fullWidth

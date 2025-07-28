@@ -1,5 +1,7 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, HttpException, HttpStatus, Inject, forwardRef } from '@nestjs/common';
 import { DocumentRepository } from '../repositories/document.repository';
+import { S3Service } from '../upload/s3.service';
+import { ChunkService } from '../chunk/chunk.service';
 import {
   CreateDocumentDto,
   UpdateDocumentDto,
@@ -9,7 +11,12 @@ import {
 
 @Injectable()
 export class DocumentService {
-  constructor(private readonly documentRepository: DocumentRepository) {}
+  constructor(
+    private readonly documentRepository: DocumentRepository,
+    @Inject(forwardRef(() => S3Service))
+    private readonly s3Service: S3Service,
+    private readonly chunkService: ChunkService,
+  ) {}
 
   async createDocument(data: CreateDocumentDto): Promise<string> {
     try {
@@ -26,18 +33,33 @@ export class DocumentService {
     }
   }
 
-  async getDocumentById(id: string) {
+  async getDocumentById(id: string, userId?: string) {
     try {
       const document = await this.documentRepository.findById(id);
 
       if (!document) {
-        throw new Error(`Document with ID ${id} not found`);
+        throw new HttpException(`Document with ID ${id} not found`, HttpStatus.NOT_FOUND);
       }
+
+      // If userId is provided, verify ownership
+      if (userId && document.user_id !== userId) {
+        throw new HttpException('Access denied', HttpStatus.FORBIDDEN);
+      }
+
+      console.log('[DEBUG] Returning document details:', {
+        id: document.id,
+        filename: document.filename,
+        path: document.path,
+        status: document.status
+      });
 
       return document;
     } catch (error) {
       console.error(`Failed to get document ${id}:`, error);
-      throw error;
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      throw new HttpException('Internal server error', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 
@@ -139,6 +161,74 @@ export class DocumentService {
     } catch (error) {
       console.error('Failed to get document stats:', error);
       throw new Error(`Failed to get document stats: ${error.message}`);
+    }
+  }
+
+  async getRawFile(id: string, userId: string): Promise<{ stream: NodeJS.ReadableStream; filename: string; mimetype: string }> {
+    try {
+      const document = await this.getDocumentById(id, userId);
+      
+      if (!document.path) {
+        throw new HttpException('Raw file not available', HttpStatus.NOT_FOUND);
+      }
+
+      const stream = await this.s3Service.getFileStream(document.path);
+      
+      return {
+        stream,
+        filename: document.filename,
+        mimetype: document.mimetype,
+      };
+    } catch (error) {
+      console.error(`Failed to get raw file for document ${id}:`, error);
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      throw new HttpException('Failed to fetch raw file', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  async getParsedMarkdown(id: string, userId: string): Promise<{ content: string; filename: string }> {
+    try {
+      const document = await this.getDocumentById(id, userId);
+      
+      if (!document.path) {
+        throw new HttpException('Parsed markdown not available', HttpStatus.NOT_FOUND);
+      }
+
+      // Change the path extension to .md
+      const markdownPath = document.path.replace(/\.[^.]+$/, '.md');
+      const content = await this.s3Service.getFileContent(markdownPath);
+
+      return {
+        content,
+        filename: `${document.filename}.md`,
+      };
+    } catch (error) {
+      console.error(`Failed to get parsed markdown for document ${id}:`, error);
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      throw new HttpException('Failed to fetch parsed markdown', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  async getDocumentChunks(id: string, userId: string): Promise<{ chunks: any[]; filename: string }> {
+    try {
+      const document = await this.getDocumentById(id, userId);
+      
+      const chunks = await this.chunkService.getChunksByDocumentId(id);
+      
+      return {
+        chunks,
+        filename: `${document.filename}_chunks.json`,
+      };
+    } catch (error) {
+      console.error(`Failed to get chunks for document ${id}:`, error);
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      throw new HttpException('Failed to fetch document chunks', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 }
