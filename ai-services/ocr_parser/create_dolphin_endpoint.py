@@ -15,30 +15,27 @@ sess = sagemaker.Session(boto_session=boto_sess)
 try:
     role = sagemaker.get_execution_role()
 except ValueError:
-    role = boto3.client("iam").get_role(RoleName="AmazonSageMaker-ExecutionRole-20250712T042674")["Role"]["Arn"]
+    iam = boto3.client('iam')
+    role = iam.get_role(RoleName='sagemaker_execution_role')['Role']['Arn']
 
 # 🔧 2. Helper to pick CPU/GPU TEI image
 def get_image_uri(instance_type):
     key = "huggingface-tei" if instance_type.startswith(("ml.g", "ml.p")) else "huggingface-tei-cpu"
     return get_huggingface_llm_image_uri(key, version="1.2.3")
 
-# 🧠 3. Configure model
-instance_type = "ml.c5.2xlarge"  # swap to "ml.g5.xlarge" for GPU
-image_uri = get_image_uri(instance_type)
-model_id = "intfloat/multilingual-e5-large-instruct"  # or sentence-transformers/paraphrase‑xlm‑r‑multilingual‑v1
 
-env = {"HF_MODEL_ID": model_id, "HF_API_TOKEN": os.environ["HUGGINGFACE_TOKEN"], "HUGGINGFACE_TOKEN": os.environ["HUGGINGFACE_TOKEN"], "POOLING": "mean" }
-
-hf_model = HuggingFaceModel(
-    role=role,
-    image_uri=image_uri,
-    env=env,
+huggingface_model = HuggingFaceModel(
+   model_data="s3://sagemaker-us-east-1-905418115981/custom_inference_6/Dolphin/model.tar.gz",       # path to your model and script
+   role=role,                    # iam role with permissions to create an Endpoint
+   transformers_version="4.48.0",  # transformers version used
+   pytorch_version="2.3.0",        # pytorch version used
+   py_version='py311',            # python version used
 )
 
-# 🚀 4. Deploy Endpoint
-predictor = hf_model.deploy(
+# deploy the endpoint endpoint
+predictor = huggingface_model.deploy(
     endpoint_name="dolphin-endpoint",
     initial_instance_count=1,
-    instance_type=instance_type
+    instance_type="ml.g4dn.xlarge"
 )
 print("✅ Endpoint available at:", predictor.endpoint_name)
