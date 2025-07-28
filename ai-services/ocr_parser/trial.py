@@ -11,7 +11,7 @@ import cv2
 from utils.utils import *
 
 class DOLPHINClient:
-    def __init__(self, endpoint_name, region_name=None):
+    def __init__(self, endpoint_name="dolphin-endpoint", region_name="us-east-1"):
         self.endpoint = endpoint_name
         self.client = boto3.client('sagemaker-runtime', region_name=region_name)
 
