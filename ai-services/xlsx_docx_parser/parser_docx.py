@@ -84,6 +84,28 @@ def extract_images_from_docx(docx_path, images_dir, docx_stem):
         logging.warning(f"python-docx error: {e}")
     return image_mapping
 
+def download_file_from_url(url: str) -> str:
+    """
+    Download a file from a URL to a temporary location.
+    
+    Args:
+        url: The URL of the file to download
+        
+    Returns:
+        str: Path to the downloaded temporary file
+    """
+    temp_fd, temp_path = tempfile.mkstemp(suffix=os.path.splitext(url)[1])
+    os.close(temp_fd)  # Close the file descriptor
+    logger.info(f"Downloading file from URL: {url}")
+    try:
+        urllib.request.urlretrieve(url, temp_path)
+        logger.info(f"Successfully downloaded file to temporary location: {temp_path}")
+        return temp_path
+    except Exception as e:
+        logger.error(f"Failed to download file from {url}: {e}")
+        if os.path.exists(temp_path):
+            os.unlink(temp_path)
+        raise
 
 def process_markdown_with_images(markdown_content, image_mapping):
     if not image_mapping:

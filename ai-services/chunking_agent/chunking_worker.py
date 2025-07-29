@@ -70,7 +70,7 @@ def process_chunking_job(job):
     s3_key = job['s3Key']
     document_id = job['documentId']
     file_type = job.get('fileType', 'docx')
-
+    print(job)
     # Download markdown from S3
     try:
         with tempfile.NamedTemporaryFile(suffix='.md', delete=False) as tmp_md:
@@ -206,7 +206,7 @@ def callback(ch, method, properties, body):
     except Exception as e:
         print(f"[ERROR] Error processing job: {e}")
         traceback.print_exc()
-        ch.basic_nack(delivery_tag=method.delivery_tag, requeue=True)
+        ch.basic_nack(delivery_tag=method.delivery_tag, requeue=False)
 
 def main():
     print(f"[DEBUG] Connecting to RabbitMQ at {RABBITMQ_URL}")

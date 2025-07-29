@@ -20,31 +20,64 @@ from utils.markdown_utils import MarkdownConverter
 
 
 def save_figure_to_local(pil_crop, save_dir, image_name, reading_order):
-    """Save cropped figure to local file system
+    """Save cropped figure to S3 bucket
 
     Args:
         pil_crop: PIL Image object of the cropped figure
-        save_dir: Base directory to save results
+        save_dir: Base directory path (used for local fallback if S3 fails)
         image_name: Name of the source image/document
         reading_order: Reading order of the figure in the document
 
     Returns:
-        str: Filename of the saved figure
+        str: S3 key or relative path of the saved figure
     """
     try:
-        # Create figures directory if it doesn't exist
-        figures_dir = os.path.join(save_dir, "markdown", "figures")
-        # os.makedirs(figures_dir, exist_ok=True)
-
+        import boto3
+        from botocore.exceptions import NoCredentialsError
+        import os
+        from io import BytesIO
+        
+        # Get S3 configuration from environment variables
+        s3_bucket = os.getenv('S3_BUCKET_NAME')
+        s3_prefix = os.getenv('S3_PREFIX', 'figures/')
+        
         # Generate figure filename
         figure_filename = f"{image_name}_figure_{reading_order:03d}.png"
+        
+        if s3_bucket:
+            try:
+                # Initialize S3 client
+                s3_client = boto3.client('s3')
+                
+                # Convert PIL image to bytes
+                img_byte_arr = BytesIO()
+                pil_crop.save(img_byte_arr, format='PNG')
+                img_byte_arr = img_byte_arr.getvalue()
+                
+                # Upload to S3
+                s3_key = f"{s3_prefix}{figure_filename}"
+                s3_client.put_object(
+                    Bucket=s3_bucket,
+                    Key=s3_key,
+                    Body=img_byte_arr,
+                    ContentType='image/png'
+                )
+                
+                print(f"Uploaded figure to S3: s3://{s3_bucket}/{s3_key}")
+                return s3_key  # Return S3 key for reference
+                
+            except NoCredentialsError:
+                print("AWS credentials not found, falling back to local storage")
+            except Exception as e:
+                print(f"Error uploading to S3: {str(e)}, falling back to local storage")
+        
+        # Fallback to local storage if S3 is not configured or fails
+        figures_dir = os.path.join(save_dir, "markdown", "figures")
+        os.makedirs(figures_dir, exist_ok=True)
         figure_path = os.path.join(figures_dir, figure_filename)
-
-        # Save the figure
         pil_crop.save(figure_path, format="PNG", quality=95)
-
-        # print(f"Saved figure: {figure_filename}")
-        return figure_filename
+        print(f"Saved figure locally: {figure_path}")
+        return f"figures/{figure_filename}"  # Return relative path for markdown
 
     except Exception as e:
         print(f"Error saving figure: {str(e)}")
