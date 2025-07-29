@@ -367,10 +367,16 @@ class OCRParserService:
             if not s3_key or not s3_bucket:
                 raise ValueError("Missing required parameters (s3Key/file_url and s3Bucket)")
             
-            # Generate output path
-            output_s3_prefix = f"parsed/{document_id}/"
+            # Generate markdown S3 key using same pattern as DOCX/XLSX
+            # Replace .pdf extension with .md, maintain same path structure
+            if s3_key.endswith('.pdf'):
+                markdown_s3_key = s3_key.replace('.pdf', '.md')
+            else:
+                # If no .pdf extension, just append .md
+                markdown_s3_key = f"{s3_key}.md"
             
             logger.info(f"🚀 Processing PDF file: {filename}")
+            logger.info(f"📝 Will generate markdown at: {markdown_s3_key}")
             file_type = message.get('fileType', 'pdf')
     
             # Determine file extension
@@ -398,12 +404,11 @@ class OCRParserService:
             result = self.process_document_with_ocr(    
                 file_url=file_path,
                 s3_bucket=s3_bucket,
-                s3_prefix=output_s3_prefix
+                s3_key=markdown_s3_key
             )
             print(result['s3_keys'])
             # Verify that we have a valid markdown key
-            markdown_s3_key = result['s3_keys']['markdown'].replace(f's3://{s3_bucket}/', '')
-            if not markdown_s3_key:
+            if 'markdown' not in result['s3_keys']:
                 raise ValueError("No markdown file was generated during processing")
                 
             # Prepare result for chunking queue
@@ -415,7 +420,6 @@ class OCRParserService:
             }
             
             logger.info(f"Sending to chunking queue: {chunking_payload}")
-            # self._ensure_connection()
             # Send to chunking queue
             self.channel.basic_publish(
                 exchange='',
@@ -442,7 +446,7 @@ class OCRParserService:
             logger.error(f"❌ Error processing message: {e}", exc_info=True)
             ch.basic_nack(delivery_tag=method.delivery_tag, requeue=False)
 
-    def process_document_with_ocr(self, file_url: str, s3_bucket: str, s3_prefix: str) -> Dict[str, Any]:
+    def process_document_with_ocr(self, file_url: str, s3_bucket: str, s3_key: str) -> Dict[str, Any]:
         """Process a document with the DOLPHIN OCR model and upload results to S3."""
         temp_file = None
         
@@ -465,7 +469,7 @@ class OCRParserService:
                 # Upload results to S3
                 s3_keys = {}
                 
-                # Upload markdown file
+                # Upload markdown file directly to the specified S3 key
                 md_path = json_path.replace('.json', '.md').replace('recognition_json', 'markdown')
                 if not os.path.exists(md_path):
                     logger.error(f"Markdown file not found at expected path: {md_path}")
@@ -478,27 +482,28 @@ class OCRParserService:
                             break
                 
                 if os.path.exists(md_path):
-                    md_key = f"{s3_prefix}{os.path.basename(md_path)}"
-                    logger.info(f"Uploading markdown to s3://{s3_bucket}/{md_key}")
-                    self.upload_to_s3(md_path, s3_bucket, md_key)
-                    s3_keys['markdown'] = f"s3://{s3_bucket}/{md_key}"
+                    logger.info(f"Uploading markdown to s3://{s3_bucket}/{s3_key}")
+                    self.upload_to_s3(md_path, s3_bucket, s3_key)
+                    s3_keys['markdown'] = f"s3://{s3_bucket}/{s3_key}"
                 else:
                     logger.error(f"Could not find markdown file after processing. Checked: {md_path}")
                     # Create a minimal markdown file with error message
                     md_content = "# Error\n\nFailed to generate markdown content during processing."
                     with open(md_path, 'w') as f:
                         f.write(md_content)
-                    md_key = f"{s3_prefix}{os.path.basename(md_path)}"
-                    self.upload_to_s3(md_path, s3_bucket, md_key)
-                    s3_keys['markdown'] = f"s3://{s3_bucket}/{md_key}"
+                    logger.info(f"Uploading error markdown to s3://{s3_bucket}/{s3_key}")
+                    self.upload_to_s3(md_path, s3_bucket, s3_key)
+                    s3_keys['markdown'] = f"s3://{s3_bucket}/{s3_key}"
                 
                 # Upload any generated figures
                 figures_dir = os.path.join(temp_dir, 'markdown', 'figures')
                 if os.path.exists(figures_dir):
                     s3_keys['figures'] = []
+                    # Generate figures path based on the s3_key directory
+                    s3_key_dir = os.path.dirname(s3_key)
                     for fig_file in os.listdir(figures_dir):
                         fig_path = os.path.join(figures_dir, fig_file)
-                        fig_key = f"{s3_prefix}figures/{fig_file}"
+                        fig_key = f"{s3_key_dir}/figures/{fig_file}" if s3_key_dir else f"figures/{fig_file}"
                         self.upload_to_s3(fig_path, s3_bucket, fig_key)
                         s3_keys['figures'].append(f"s3://{s3_bucket}/{fig_key}")
                 
