@@ -297,8 +297,10 @@ class OCRParserService:
     def connect(self):
         """Establish connection to RabbitMQ."""
         try:
+            if self.connection and not self.connection.is_closed:
+                self.connection.close()
             params = pika.URLParameters(self.rabbitmq_url)
-            params.heartbeat = 30  # Keep alive every 30s
+            params.heartbeat = 100  # Keep alive every 30s
             params.frame_max = 131072
             params.blocked_connection_timeout = 300
             params.connection_attempts = 5
@@ -344,7 +346,12 @@ class OCRParserService:
         except Exception as e:
             logger.error(f"Failed to upload to S3: {e}")
             raise
-
+    def _ensure_connection(self):
+        if self.connection is None or self.connection.is_closed:
+            self.connect()
+        if self.channel is None or self.channel.is_closed:
+            self.channel = self.connection.channel()
+            self.channel.queue_declare(queue=self.queue_name, durable=True)
     def process_message(self, ch, method, properties, body):
         """Process incoming message from the queue."""
         try:
@@ -408,7 +415,7 @@ class OCRParserService:
             }
             
             logger.info(f"Sending to chunking queue: {chunking_payload}")
-            
+            # self._ensure_connection()
             # Send to chunking queue
             self.channel.basic_publish(
                 exchange='',
