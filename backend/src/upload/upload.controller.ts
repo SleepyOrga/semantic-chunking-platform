@@ -68,6 +68,7 @@ export class AppController {
     }
 
     const key = await this.s3Service.uploadFile(file, username || 'anonymous');
+    const inputUrl = await this.s3Service.getSignedUrl(key)                                
 
     const documentId = await this.documentService.createDocument({
       user_id: userId,
@@ -84,6 +85,7 @@ export class AppController {
       s3Key: key,
       uploadedAt: new Date().toISOString(),
       fileType: this.mapMimeToType(file.mimetype),
+      s3Bucket: this.s3Service.bucket,
       documentId, // Add documentId to the payload
     });
 

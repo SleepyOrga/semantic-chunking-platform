@@ -6,7 +6,7 @@ import { ConfigService } from '@nestjs/config';
 @Injectable()
 export class S3Service implements OnModuleInit {
   private s3Client: S3Client;
-  private bucket: string;
+  public bucket: string;
 
   constructor(private configService: ConfigService) {}
 
