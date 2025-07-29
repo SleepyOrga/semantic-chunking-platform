@@ -300,7 +300,7 @@ class OCRParserService:
             if self.connection and not self.connection.is_closed:
                 self.connection.close()
             params = pika.URLParameters(self.rabbitmq_url)
-            params.heartbeat = 100  # Keep alive every 30s
+            params.heartbeat = 200  # Keep alive every 30s
             params.frame_max = 131072
             params.blocked_connection_timeout = 300
             params.connection_attempts = 5
