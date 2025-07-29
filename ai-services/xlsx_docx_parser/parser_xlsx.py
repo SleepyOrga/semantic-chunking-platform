@@ -47,83 +47,6 @@ class XlsxParserService:
             logger.error(f"Failed to connect to RabbitMQ: {e}")
             raise
 
-def download_file_from_url(url):
-    try:
-        logging.info(f"Downloading from URL: {url}")
-        response = requests.get(url)
-        response.raise_for_status()
-        temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".xlsx")
-        with open(temp_file.name, 'wb') as f:
-            f.write(response.content)
-        logging.info(f"Downloaded to: {temp_file.name}")
-        return temp_file.name
-    except Exception as e:
-        logging.info(f"Failed to download file: {e}")
-        return None
-
-def upload_to_s3(local_path, bucket, s3_key):
-    s3 = boto3.client('s3')
-    s3.upload_file(str(local_path), bucket, s3_key)
-    logging.info(f"Uploaded {local_path} to s3://{bucket}/{s3_key}")
-
-def extract_xlsx_to_markdown(input_path, output_dir, s3_bucket=None, s3_prefix=None):
-    try:
-        os.makedirs(output_dir, exist_ok=True)
-        images_dir = os.path.join(output_dir, "images")
-        os.makedirs(images_dir, exist_ok=True)
-        
-        # Initialize the document converter
-        converter = DocumentConverter(
-            format_options={
-                InputFormat.XLSX: ExcelFormatOption(
-                    pipeline_cls=SimplePipeline,
-                    backend=MsExcelDocumentBackend
-                )
-            }
-        )
-        
-        # Handle input path (could be a file path or URL)
-        local_path = input_path
-        if isinstance(input_path, str) and (input_path.startswith("http://") or input_path.startswith("https://")):
-            local_path = download_file_from_url(input_path)
-            if not local_path:
-                raise Exception("Failed to download file from URL")
-        
-        input_path = Path(local_path)
-        if not input_path.exists():
-            raise FileNotFoundError(f"Input file not found: {input_path}")
-            
-        # Process the file
-        logging.info(f"Processing {input_path.name}")
-        result = converter.convert(input_path)
-        output_name = input_path.stem + ".md"
-        output_path = os.path.join(output_dir, output_name)
-        markdown_content = result.document.export_to_markdown()
-        
-        # Save markdown locally
-        with open(output_path, "w", encoding="utf-8") as f:
-            f.write(markdown_content)
-        logging.info(f"✅ Saved markdown: {output_path}")
-        
-        # Upload to S3 if configured
-        s3_key = None
-        if s3_bucket and s3_prefix:
-            s3_key = f"{s3_prefix}{Path(output_path).name}"
-            upload_to_s3(output_path, s3_bucket, s3_key)
-            
-            # Upload images if any
-            if os.path.isdir(images_dir):
-                for img_file in os.listdir(images_dir):
-                    img_path = os.path.join(images_dir, img_file)
-                    if os.path.isfile(img_path):
-                        upload_to_s3(img_path, s3_bucket, f"{s3_prefix}images/{img_file}")
-        
-        return s3_key or output_path
-        
-    except Exception as e:
-        logging.error(f"Error processing XLSX file: {e}")
-        raise
-
     def process_message(self, ch, method, properties, body):
         """Process incoming message from the queue."""
         try:
@@ -190,6 +113,120 @@ def extract_xlsx_to_markdown(input_path, output_dir, s3_bucket=None, s3_prefix=N
             logger.info("\n👋 Shutting down XLSX parser...")
             if self.connection:
                 self.connection.close()
+
+
+def download_file_from_url(url):
+    try:
+        logging.info(f"Downloading from URL: {url}")
+        response = requests.get(url)
+        response.raise_for_status()
+        temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".xlsx")
+        with open(temp_file.name, 'wb') as f:
+            f.write(response.content)
+        logging.info(f"Downloaded to: {temp_file.name}")
+        return temp_file.name
+    except Exception as e:
+        logging.info(f"Failed to download file: {e}")
+        return None
+
+def upload_to_s3(local_path, bucket, s3_key):
+    s3 = boto3.client('s3')
+    s3.upload_file(str(local_path), bucket, s3_key)
+    logging.info(f"Uploaded {local_path} to s3://{bucket}/{s3_key}")
+
+def download_from_s3(s3_bucket, s3_key, local_path):
+    """Download file from S3 to local path"""
+    try:
+        s3 = boto3.client('s3')
+        s3.download_file(s3_bucket, s3_key, local_path)
+        logging.info(f"Downloaded s3://{s3_bucket}/{s3_key} to {local_path}")
+        return local_path
+    except Exception as e:
+        logging.error(f"Failed to download from S3: {e}")
+        raise
+
+def extract_xlsx_to_markdown(input_path, output_dir, s3_bucket=None, s3_prefix=None):
+    try:
+        os.makedirs(output_dir, exist_ok=True)
+        images_dir = os.path.join(output_dir, "images")
+        os.makedirs(images_dir, exist_ok=True)
+        
+        # Initialize the document converter
+        converter = DocumentConverter(
+            format_options={
+                InputFormat.XLSX: ExcelFormatOption(
+                    pipeline_cls=SimplePipeline,
+                    backend=MsExcelDocumentBackend
+                )
+            }
+        )
+        
+        # Handle input path (could be a file path, URL, or S3 key)
+        local_path = input_path
+        temp_file = None
+        
+        if isinstance(input_path, str):
+            if input_path.startswith("http://") or input_path.startswith("https://"):
+                # Handle HTTP/HTTPS URLs
+                local_path = download_file_from_url(input_path)
+                if not local_path:
+                    raise Exception("Failed to download file from URL")
+            elif s3_bucket and not os.path.exists(input_path):
+                # Handle S3 keys - download to temporary file
+                import tempfile
+                temp_file = tempfile.NamedTemporaryFile(delete=False, suffix='.xlsx')
+                temp_file.close()
+                local_path = download_from_s3(s3_bucket, input_path, temp_file.name)
+        
+        input_path = Path(local_path)
+        if not input_path.exists():
+            raise FileNotFoundError(f"Input file not found: {input_path}")
+            
+        # Process the file
+        logging.info(f"Processing {input_path.name}")
+        result = converter.convert(input_path)
+        output_name = input_path.stem + ".md"
+        output_path = os.path.join(output_dir, output_name)
+        markdown_content = result.document.export_to_markdown()
+        
+        # Save markdown locally
+        with open(output_path, "w", encoding="utf-8") as f:
+            f.write(markdown_content)
+        logging.info(f"✅ Saved markdown: {output_path}")
+        
+        # Upload to S3 if configured
+        s3_key = None
+        if s3_bucket and s3_prefix:
+            s3_key = f"{s3_prefix}{Path(output_path).name}"
+            upload_to_s3(output_path, s3_bucket, s3_key)
+            
+            # Upload images if any
+            if os.path.isdir(images_dir):
+                for img_file in os.listdir(images_dir):
+                    img_path = os.path.join(images_dir, img_file)
+                    if os.path.isfile(img_path):
+                        upload_to_s3(img_path, s3_bucket, f"{s3_prefix}images/{img_file}")
+        
+        # Clean up temporary file if it was created
+        if temp_file and os.path.exists(temp_file.name):
+            try:
+                os.unlink(temp_file.name)
+                logging.info(f"Cleaned up temporary file: {temp_file.name}")
+            except Exception as e:
+                logging.warning(f"Failed to delete temporary file {temp_file.name}: {e}")
+        
+        return s3_key or output_path
+        
+    except Exception as e:
+        # Clean up temporary file in case of error
+        if 'temp_file' in locals() and temp_file and os.path.exists(temp_file.name):
+            try:
+                os.unlink(temp_file.name)
+                logging.info(f"Cleaned up temporary file after error: {temp_file.name}")
+            except Exception as cleanup_error:
+                logging.warning(f"Failed to cleanup temporary file: {cleanup_error}")
+        logging.error(f"Error processing XLSX file: {e}")
+        raise
 
 
 def main():
