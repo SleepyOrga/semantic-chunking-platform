@@ -9,6 +9,7 @@ import { UploadModule } from './upload/upload.module';
 import { TagsModule } from './tags/tag.module';
 import { ChunkComponentModule } from './chunk-component/chunk-component.module';
 import { ParserGatewayModule } from './parser-gateway/parser-gateway.module';
+import { HealthModule } from './health/health.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { ParserGatewayModule } from './parser-gateway/parser-gateway.module';
     TagsModule,
     ChunkComponentModule,
     ParserGatewayModule,
+    HealthModule,
   ],
   controllers: [], // Moved AppController to UploadModule where it belongs
   providers: [],
