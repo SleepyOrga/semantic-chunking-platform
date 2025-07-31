@@ -4,6 +4,7 @@ import json
 import boto3
 from typing import List, Dict, Any, Optional, Tuple
 import logging
+import os
 
 # Configure logging
 logging.basicConfig(
@@ -68,6 +69,14 @@ class EnhancedMarkdownSemanticChunker:
             r'(?i)conclusion|summary|results': 'Conclusion',
             r'(?i)appendix|reference|bibliography|glossary': 'Reference'
         }
+
+        self.COMMON_FORM_PATTERNS = [
+            r'\.{2,}',          # nhiều dấu chấm
+            r'_+',              # nhiều gạch dưới
+            r'\.{2,}/\.{2,}/\.{2,}',  # dạng ngày tháng bị ẩn
+            r'\(ký.*?\)',       # "(ký tên...)", "(ký tên và đóng dấu)"
+            r'(ghi chú:.*?)$',  # dòng ghi chú
+        ]
         
         # Initialize Bedrock client if needed
         print(f"Initializing EnhancedMarkdownSemanticChunker with use_llm={use_llm}, aws_region={aws_region}")
@@ -80,6 +89,194 @@ class EnhancedMarkdownSemanticChunker:
                 logger.info("Falling back to non-LLM processing")
                 self.use_llm = False
     
+    def clean_financial_artifacts(self, text: str) -> str:
+        # Xóa các dấu ... hoặc chuỗi dấu chấm từ 3 trở lên
+        text = text.replace('…', '...')
+        text = re.sub(r'\.{3,}', '', text)
+
+        # Xóa các dấu ___ hoặc chuỗi gạch dưới từ 3 trở lên
+        text = re.sub(r'_+', '', text)
+
+        # Xóa khoảng trắng dư ra do vừa xóa các ký hiệu trên
+        text = re.sub(r'[ \t]{2,}', ' ', text)
+
+        # Loại bỏ dòng trống dư
+        text = re.sub(r'\n{3,}', '\n\n', text)
+
+        # Tùy chọn: loại bỏ dòng chỉ chứa "ký tên", "ghi chú", v.v.
+        text = re.sub(r'(?im)^\s*(ký tên|ghi chú|ngày|sign|date)[\s:]*\n?', '', text)
+
+        return text.strip()
+
+    def fix_broken_lines(self, text: str) -> str:
+        lines = text.splitlines()
+        fixed = []
+        for i in range(len(lines)):
+            current_line = lines[i].strip()
+            if not current_line:
+                continue  # bỏ qua dòng rỗng
+
+            if (
+                i > 0 and
+                not lines[i - 1].strip().endswith(('.', ':', '?', '!', '”')) and
+                current_line and current_line[0].islower()
+            ):
+                fixed[-1] += ' ' + current_line
+            else:
+                fixed.append(current_line)
+        return '\n'.join(fixed)
+
+
+    def remove_form_artifacts(self, text: str) -> str:
+        for pattern in self.COMMON_FORM_PATTERNS:
+            text = re.sub(pattern, '', text, flags=re.IGNORECASE | re.MULTILINE)
+        return text.strip()
+
+    def is_table_separator(self, line: str) -> bool:
+        """Kiểm tra xem dòng có phải separator của bảng markdown không"""
+        return bool(re.match(r'^\s*\|?[-:\s|]+\|?\s*$', line)) and '|' in line
+
+    def remove_visual_separators(self, text: str) -> str:
+        """Loại bỏ các dòng separator thừa như --- ___ ... nhưng giữ lại dòng bảng như |---|---|"""
+        cleaned_lines = []
+        max_separator_length = 200  # Ngưỡng cho separator dài
+
+        for line in text.splitlines():
+            stripped = line.strip()
+
+            # Giữ lại dòng bảng Markdown kiểu |---| hoặc | :--- | :---: |
+            if re.match(r'^\s*\|?[-:\s|]+\|?\s*$', stripped):
+                cleaned_lines.append(line)
+                continue
+
+            # Bỏ nếu là dòng toàn ký tự đặc biệt (không có chữ) và dài quá ngưỡng
+            if len(stripped) > max_separator_length and not re.search(r'\w', stripped):
+                continue
+
+            # Bỏ nếu là dòng chỉ có ký tự phân cách, không chứa chữ số hay chữ cái
+            if (
+                len(stripped) > 30 and
+                not re.search(r'[A-Za-z0-9]', stripped) and
+                re.fullmatch(r'[|:.\-_=~` ]+', stripped)
+            ):
+                continue
+
+            # Bỏ nếu là dòng toàn dấu phân cách lặp lại, như --- hoặc ___ (ngắn cũng bỏ)
+            if re.fullmatch(r'[-_.~`=]{3,}', stripped):
+                continue
+
+            cleaned_lines.append(line)
+
+        return '\n'.join(cleaned_lines)
+
+    def remove_repeated_segments(self, text: str) -> str:
+        """
+        Loại bỏ các đoạn bị lặp lại nhiều lần, cả trong dòng có | (bảng) và dòng văn bản thường.
+        """
+        import re
+        from collections import Counter
+        from difflib import SequenceMatcher
+
+        def remove_duplicates_in_line(line: str) -> str:
+            """
+            Tìm và loại bỏ các cụm văn bản dài lặp lại trong 1 dòng, kể cả không có |
+            """
+            min_chunk_len = 20  # Chỉ tìm các đoạn dài tối thiểu này
+            max_repeats = 3     # Nếu 1 cụm lặp ≥ 3 lần thì xem là rác
+
+            words = line.split()
+            n = len(words)
+
+            for chunk_size in range(min(30, n // 2), 2, -1):  # từ dài tới ngắn
+                for start in range(n - chunk_size * 2):
+                    chunk = words[start:start + chunk_size]
+                    chunk_str = ' '.join(chunk)
+
+                    count = 0
+                    for j in range(start, n - chunk_size + 1):
+                        test_chunk = ' '.join(words[j:j + chunk_size])
+                        ratio = SequenceMatcher(None, chunk_str, test_chunk).ratio()
+                        if ratio > 0.95:
+                            count += 1
+
+                    if count >= max_repeats:
+                        # Giữ lại 1 lần duy nhất
+                        result = []
+                        seen_once = False
+                        i = 0
+                        while i < n:
+                            segment = ' '.join(words[i:i + chunk_size])
+                            ratio = SequenceMatcher(None, chunk_str, segment).ratio()
+                            if ratio > 0.95:
+                                if not seen_once:
+                                    result.extend(words[i:i + chunk_size])
+                                    seen_once = True
+                                i += chunk_size
+                            else:
+                                result.append(words[i])
+                                i += 1
+                        return ' '.join(result)
+
+            return line
+
+        lines = text.splitlines()
+        cleaned_lines = []
+
+        for line in lines:
+            stripped = line.strip()
+            if not stripped:
+                cleaned_lines.append(line)
+                continue
+
+            if '|' in line:
+                # Dòng bảng có dấu |
+                segments = [seg.strip() for seg in line.split('|') if seg.strip()]
+                segment_counts = Counter(segments)
+
+                if any(count > 3 for count in segment_counts.values()):
+                    unique_segments = []
+                    seen = set()
+                    for seg in segments:
+                        if seg not in seen:
+                            unique_segments.append(seg)
+                            seen.add(seg)
+                    cleaned_line = ' | '.join(unique_segments)
+                    cleaned_lines.append(cleaned_line)
+                else:
+                    cleaned_lines.append(line)
+            else:
+                # Dòng bình thường, xử lý lặp dài
+                cleaned_line = remove_duplicates_in_line(line)
+                cleaned_lines.append(cleaned_line)
+
+        return '\n'.join(cleaned_lines)
+
+
+    def preprocess_financial_document(self, content: str) -> str:
+        content = self.clean_financial_artifacts(content)
+        content = self.remove_repeated_segments(content)
+        content = self.remove_visual_separators(content)
+        content = self.fix_broken_lines(content)
+        content = self.remove_form_artifacts(content)
+        content = self.preprocess_pseudo_headers(content)
+        return content
+
+    
+    def preprocess_pseudo_headers(self, content: str) -> str:
+        """
+        Thêm '#' vào các dòng được coi là pseudo-header để có thể xử lý như Markdown headers.
+        """
+        import re
+
+        # Regex cho các dòng toàn chữ in hoa, hoặc bắt đầu bằng A./I./1.
+        header_pattern = re.compile(r'^(?:[A-ZĐ]+\.\s+)?[A-ZĐ ]{5,}$', re.MULTILINE)
+
+        def mark_header(match):
+            line = match.group(0).strip()
+            return f"# {line}"
+
+        return header_pattern.sub(mark_header, content)
+
     def extract_chunks(self, file_path: str) -> List[Dict[str, Any]]:
         """
         Extract semantic chunks from a Markdown file.
@@ -99,17 +296,26 @@ class EnhancedMarkdownSemanticChunker:
         except Exception as e:
             logger.error(f"Error reading file: {e}")
             return []
-        
+        # Output content to file
+        with open("content.md", 'w', encoding='utf-8') as pf:
+            pf.write(content)
+        logger.info("Content saved to content.md")
+
         # Step 1: Analyze document structure (fast)
-        has_clear_structure = self._analyze_document_structure(content)
+        preprocessed = self.preprocess_financial_document(content)
+        # Print preprocessed content
+        with open("preprocessed_content.md", 'w', encoding='utf-8') as pf:
+            pf.write(preprocessed)
+        logger.info("Preprocessed content saved to preprocessed_content.md")
+        has_clear_structure = self._analyze_document_structure(preprocessed)
         logger.info(f"Document has clear structure: {has_clear_structure}")
         
         # Step 2: Initial structural chunking (fast)
         if has_clear_structure:
-            chunks = self._chunk_by_headers(content)
+            chunks = self._chunk_by_headers(preprocessed)
             logger.info(f"Created {len(chunks)} header-based chunks")
         else:
-            chunks = self._chunk_by_paragraphs(content)
+            chunks = self._chunk_by_paragraphs(preprocessed)
             logger.info(f"Created {len(chunks)} paragraph-based chunks")
         
         # Step 3: Add basic tags (fast)
@@ -163,94 +369,93 @@ class EnhancedMarkdownSemanticChunker:
     def _chunk_by_headers(self, content: str) -> List[Dict[str, Any]]:
         """
         Chunk document by Markdown headers.
-        
-        Args:
-            content: Markdown content
-            
+
         Returns:
-            List of chunks based on header sections
+            List of chunks with title, content, header level, etc.
         """
+        import logging
+        import re
+        import json
+
+        logger = logging.getLogger("MarkdownSemanticChunker")
+        logger.setLevel(logging.DEBUG)
+        if not logger.handlers:
+            handler = logging.StreamHandler()
+            handler.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
+            logger.addHandler(handler)
+
         chunks = []
-        
-        # Find all headers and corresponding content
-        # Complex regex to capture headers and their content until the next header
-        header_pattern = r'(?:^|\n)(#{1,6} .+?)(?=\n#{1,6} |\Z)'
-        
-        # Fall back to simpler pattern if the complex one doesn't match
-        if not re.search(header_pattern, content, re.DOTALL):
-            header_pattern = r'(?:^|\n)(#{1,6} .+)(?:\n|$)'
-        
-        matches = re.finditer(header_pattern, content, re.DOTALL)
-        
-        current_position = 0
-        for match in matches:
-            header_with_content = match.group(1)
-            
-            # Split header and content
-            header_match = re.match(r'(#{1,6} .+)(?:\n|$)', header_with_content)
-            
-            if header_match:
-                header = header_match.group(1).strip()
-                # Content starts after header
-                content_start = header_with_content.find('\n', len(header)) + 1
-                section_content = header_with_content[content_start:].strip() if content_start > 0 else ""
-                
-                # Determine header level
-                header_level = len(re.match(r'(#+)', header).group(1))
-                header_text = header[header_level:].strip()
-                
-                # Store position in original document for potential reorganization
-                start_pos = match.start()
-                end_pos = match.end()
-                
-                # Check chunk size
-                if len(section_content) > self.max_chunk_size:
-                    # Split large content into smaller chunks
-                    sub_chunks = self._split_large_content(section_content)
-                    for i, sub_content in enumerate(sub_chunks):
-                        chunks.append({
-                            'title': f"{header_text} (part {i+1}/{len(sub_chunks)})",
-                            'content': sub_content,
-                            'header_level': header_level,
-                            'original_title': header_text,
-                            'start_pos': start_pos,
-                            'end_pos': end_pos,
-                            'is_subchunk': True,
-                            'subchunk_index': i,
-                            'total_subchunks': len(sub_chunks),
-                            'token_count': self._estimate_tokens(sub_content)
-                        })
-                else:
-                    chunks.append({
-                        'title': header_text,
-                        'content': section_content,
-                        'header_level': header_level,
-                        'original_title': header_text,
-                        'start_pos': start_pos,
-                        'end_pos': end_pos,
-                        'is_subchunk': False,
-                        'token_count': self._estimate_tokens(section_content)
-                    })
-            
-            current_position = match.end()
-        
-        # Process remaining content if any
-        if current_position < len(content):
-            remaining = content[current_position:].strip()
-            if remaining:
+
+        # Save full original content for debugging
+        with open("chunking_agent_content.json", 'w', encoding='utf-8') as pf:
+            json.dump(content, pf, indent=2, ensure_ascii=False)
+        logger.debug("Saved original content to chunking_agent_content.json")
+
+        # Find headers
+        header_regex = re.compile(r'^(#{1,6})\s+(.*)', re.MULTILINE)
+        matches = list(header_regex.finditer(content))
+        logger.debug(f"Total headers matched: {len(matches)}")
+
+        # Preamble: content before first header
+        if matches and matches[0].start() > 0:
+            preamble = content[:matches[0].start()].strip()
+            if preamble:
+                logger.debug("Found preamble content before first header")
                 chunks.append({
                     'title': 'Untitled Section',
-                    'content': remaining,
+                    'content': preamble,
                     'header_level': 0,
                     'original_title': None,
-                    'start_pos': current_position,
-                    'end_pos': len(content),
+                    'start_pos': 0,
+                    'end_pos': matches[0].start(),
                     'is_subchunk': False,
-                    'token_count': self._estimate_tokens(remaining)
+                    'token_count': self._estimate_tokens(preamble)
                 })
-        
+
+        # Process each header section
+        for i, match in enumerate(matches):
+            header_level = len(match.group(1))
+            header_text = match.group(2).strip()
+            section_start = match.end()
+
+            if i + 1 < len(matches):
+                section_end = matches[i + 1].start()
+            else:
+                section_end = len(content)
+
+            section_content = content[section_start:section_end].strip()
+            logger.debug(f"Header: {header_text} (level {header_level}), section length: {len(section_content)}")
+
+            if len(section_content) > self.max_chunk_size:
+                sub_chunks = self._split_large_content(section_content)
+                for j, sub_content in enumerate(sub_chunks):
+                    chunks.append({
+                        'title': f"{header_text} (part {j + 1}/{len(sub_chunks)})",
+                        'content': sub_content,
+                        'header_level': header_level,
+                        'original_title': header_text,
+                        'start_pos': section_start,
+                        'end_pos': section_end,
+                        'is_subchunk': True,
+                        'subchunk_index': j,
+                        'total_subchunks': len(sub_chunks),
+                        'token_count': self._estimate_tokens(sub_content)
+                    })
+            else:
+                chunks.append({
+                    'title': header_text,
+                    'content': section_content,
+                    'header_level': header_level,
+                    'original_title': header_text,
+                    'start_pos': section_start,
+                    'end_pos': section_end,
+                    'is_subchunk': False,
+                    'token_count': self._estimate_tokens(section_content)
+                })
+
+        logger.debug(f"Total chunks generated: {len(chunks)}")
         return chunks
-    
+
     def _chunk_by_paragraphs(self, content: str) -> List[Dict[str, Any]]:
         """
         Chunk document by paragraphs when no clear header structure exists.
@@ -1158,6 +1363,8 @@ def process_markdown_file( file_path: str, output_file: Optional[str] = None, us
   Returns:
       List of semantic chunks
   """
+  if not os.path.exists(file_path):
+    raise FileNotFoundError(f"File not found: {file_path}")
   chunker = EnhancedMarkdownSemanticChunker(
       max_chunk_size=1500,
       min_chunk_size=200,

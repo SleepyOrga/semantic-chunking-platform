@@ -93,6 +93,7 @@ def process_chunking_job(job):
         ], check=True, capture_output=True, text=True)
         print(f"[DEBUG] Chunking agent stdout:\n{result.stdout}")
         print(f"[DEBUG] Chunking agent stderr:\n{result.stderr}")
+
     except subprocess.CalledProcessError as e:
         print(f"[ERROR] Chunking agent failed: {e}")
         print(f"[ERROR] stdout:\n{e.stdout}")
