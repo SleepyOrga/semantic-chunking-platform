@@ -1,44 +1,44 @@
 // src/pages/HomePage.js
-import React, { useState, useRef, useEffect } from 'react';
-import { Box, useMediaQuery } from '@mui/material';
-import Header from '../components/Header/Header';
-import Sidebar from '../components/Sidebar/SideBar';
-import MessageList from '../components/Chat/MessageList';
-import ChatInput from '../components/Chat/ChatInput';
-import ErrorAlert from '../components/Common/ErrorAlert';
-import DocumentViewer from '../components/Document/DocumentViewer';
-import DocumentService from '../services/DocumentService';
-import SearchService from '../services/SearchService';
-import AuthService from '../services/AuthService';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useRef, useEffect } from "react";
+import { Box, useMediaQuery } from "@mui/material";
+import Header from "../components/Header/Header";
+import Sidebar from "../components/Sidebar/SideBar";
+import MessageList from "../components/Chat/MessageList";
+import ChatInput from "../components/Chat/ChatInput";
+import ErrorAlert from "../components/Common/ErrorAlert";
+import DocumentViewer from "../components/Document/DocumentViewer";
+import DocumentService from "../services/DocumentService";
+import SearchService from "../services/SearchService";
+import AuthService from "../services/AuthService";
+import { useNavigate } from "react-router-dom";
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 
 const HomePage = () => {
   const [messages, setMessages] = useState([]);
-  const [input, setInput] = useState('');
+  const [input, setInput] = useState("");
   const [file, setFile] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [uploadedFiles, setUploadedFiles] = useState([]);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [documentViewerOpen, setDocumentViewerOpen] = useState(false);
   const [selectedDocument, setSelectedDocument] = useState(null);
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
-  const isMobile = useMediaQuery('(max-width:768px)');
+  const isMobile = useMediaQuery("(max-width:768px)");
   const navigate = useNavigate();
-  
+
   // Check if user is authenticated
   useEffect(() => {
     if (!AuthService.isAuthenticated()) {
-      navigate('/auth');
+      navigate("/auth");
     } else {
       // Load user's documents
       loadUserDocuments();
     }
   }, [navigate]);
-  
+
   // Load user documents
   const loadUserDocuments = async () => {
     try {
@@ -47,7 +47,7 @@ const HomePage = () => {
       console.log("Loaded documents:", data);
       setUploadedFiles(data.documents || []);
     } catch (err) {
-      setError('Failed to load documents. Please refresh the page.');
+      setError("Failed to load documents. Please refresh the page.");
     } finally {
       setIsLoading(false);
     }
@@ -64,7 +64,7 @@ const HomePage = () => {
 
   // Scroll to bottom whenever messages change
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
   // Handle input change
@@ -72,25 +72,46 @@ const HomePage = () => {
     setInput(e.target.value);
   };
 
+  useEffect(() => {
+    const checkRetrievalService = async () => {
+      try {
+        await SearchService.checkRetrievalServiceHealth();
+        console.log("Retrieval service is available");
+      } catch (err) {
+        console.error("Retrieval service unavailable:", err);
+        setError(
+          "Search service is currently unavailable. Some features may be limited."
+        );
+      }
+    };
+
+    checkRetrievalService();
+  }, []);
+
   // Handle file selection
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
     if (!selectedFile) return;
 
     if (selectedFile.size > MAX_FILE_SIZE) {
-      setError(`File size exceeds the limit (10MB). Selected file is ${(selectedFile.size / (1024 * 1024)).toFixed(2)}MB`);
+      setError(
+        `File size exceeds the limit (10MB). Selected file is ${(
+          selectedFile.size /
+          (1024 * 1024)
+        ).toFixed(2)}MB`
+      );
       return;
     }
 
     setFile(selectedFile);
-    setError('');
+    setError("");
   };
 
   // Clear selected file
   const clearFile = () => {
     setFile(null);
     if (fileInputRef.current) {
-      fileInputRef.current.value = '';
+      fileInputRef.current.value = "";
     }
   };
 
@@ -99,53 +120,64 @@ const HomePage = () => {
     if (!file) return;
 
     setIsLoading(true);
-    setError('');
+    setError("");
 
     try {
       // Add a user message showing the file upload
-      setMessages(prev => [...prev, {
-        type: 'user',
-        content: `Uploading file: ${file.name}`,
-        isFile: true,
-        file: file
-      }]);
+      setMessages((prev) => [
+        ...prev,
+        {
+          type: "user",
+          content: `Uploading file: ${file.name}`,
+          isFile: true,
+          file: file,
+        },
+      ]);
 
       const user = AuthService.getCurrentUser();
       const response = await DocumentService.uploadDocument(file, user.id);
 
       // Add uploaded file to list
-      setUploadedFiles(prev => [
+      setUploadedFiles((prev) => [
         ...prev,
         {
           id: response.document_id,
           filename: file.name,
           mimetype: file.type,
-          uploadedAt: new Date().toISOString()
-        }
+          uploadedAt: new Date().toISOString(),
+        },
       ]);
 
       // Add assistant response
-      setMessages(prev => [...prev, {
-        type: 'assistant',
-        content: `I've processed your file "${file.name}". You can now ask questions about its content.`,
-        isFile: false
-      }]);
+      setMessages((prev) => [
+        ...prev,
+        {
+          type: "assistant",
+          content: `I've processed your file "${file.name}". You can now ask questions about its content.`,
+          isFile: false,
+        },
+      ]);
 
       // Open sidebar to show the newly uploaded file (especially on mobile)
       if (isMobile) setSidebarOpen(true);
 
       clearFile();
     } catch (err) {
-      console.error('Upload error:', err);
-      setError(err.message || 'Error uploading file. Please try again.');
-      
+      console.error("Upload error:", err);
+      setError(err.message || "Error uploading file. Please try again.");
+
       // Add error message
-      setMessages(prev => [...prev, {
-        type: 'assistant',
-        content: `I couldn't process your file. ${err.message || 'Please try again.'}`,
-        isFile: false,
-        error: true
-      }]);
+      setMessages((prev) => [
+        ...prev,
+        {
+          type: "assistant",
+          content: `I couldn't process your file. ${
+            err.message || "Please try again."
+          }`,
+          isFile: false,
+          error: true,
+        },
+      ]);
     } finally {
       setIsLoading(false);
     }
@@ -155,19 +187,22 @@ const HomePage = () => {
   const handleDeleteFile = async (fileId) => {
     try {
       await DocumentService.deleteDocument(fileId);
-      
+
       // Remove from local state
-      setUploadedFiles(prev => prev.filter(f => f.id !== fileId));
-      
+      setUploadedFiles((prev) => prev.filter((f) => f.id !== fileId));
+
       // Add system message
-      setMessages(prev => [...prev, {
-        type: 'assistant',
-        content: 'The document has been removed.',
-        isFile: false
-      }]);
+      setMessages((prev) => [
+        ...prev,
+        {
+          type: "assistant",
+          content: "The document has been removed.",
+          isFile: false,
+        },
+      ]);
     } catch (err) {
-      console.error('Delete error:', err);
-      setError('Failed to delete the file. Please try again.');
+      console.error("Delete error:", err);
+      setError("Failed to delete the file. Please try again.");
     }
   };
 
@@ -184,9 +219,10 @@ const HomePage = () => {
   };
 
   // Handle sending a message/query
+  // Update the handleSendMessage method in HomePage.js
   const handleSendMessage = async (e) => {
     e.preventDefault();
-    
+
     if (!input.trim() && !file) return;
 
     // If there's a file, upload it first
@@ -196,34 +232,49 @@ const HomePage = () => {
     }
 
     const query = input.trim();
-    setInput('');
+    setInput("");
     setIsLoading(true);
 
     // Add user message
-    setMessages(prev => [...prev, {
-      type: 'user',
-      content: query,
-      isFile: false
-    }]);
+    setMessages((prev) => [
+      ...prev,
+      {
+        type: "user",
+        content: query,
+        isFile: false,
+      },
+    ]);
 
     try {
-      // Call semantic search API
-      const response = await SearchService.searchDocuments(query);
+      // Call retrieval service API
+      const response = await SearchService.searchDocuments(query, {
+        topK: 20,
+        finalN: 5,
+        expandQuery: true,
+        useHybrid: true,
+      });
 
-      // Add assistant response
-      setMessages(prev => [...prev, {
-        type: 'assistant',
-        content: response.result || 'I found no relevant information for your query.',
-        isFile: false
-      }]);
+      // Add assistant response with the formatted result
+      setMessages((prev) => [
+        ...prev,
+        {
+          type: "assistant",
+          content: response.result,
+          isFile: false,
+          chunks: response.rawChunks, // Store raw chunks for future use if needed
+        },
+      ]);
     } catch (err) {
-      console.error('Search error:', err);
-      setMessages(prev => [...prev, {
-        type: 'assistant',
-        content: 'I encountered an error while searching. Please try again.',
-        isFile: false,
-        error: true
-      }]);
+      console.error("Search error:", err);
+      setMessages((prev) => [
+        ...prev,
+        {
+          type: "assistant",
+          content: "I encountered an error while searching. Please try again.",
+          isFile: false,
+          error: true,
+        },
+      ]);
     } finally {
       setIsLoading(false);
     }
@@ -233,17 +284,19 @@ const HomePage = () => {
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
   };
-  
+
   const handleFileButtonClick = () => {
     fileInputRef.current.click();
   };
 
   return (
-    <Box sx={{ 
-      height: '100vh', 
-      display: 'flex',
-      overflow: 'hidden'
-    }}>
+    <Box
+      sx={{
+        height: "100vh",
+        display: "flex",
+        overflow: "hidden",
+      }}
+    >
       {/* Sidebar Component */}
       <Sidebar
         open={sidebarOpen}
@@ -254,15 +307,17 @@ const HomePage = () => {
         onUploadClick={handleFileButtonClick}
         onViewFile={handleViewDocument}
       />
-      
+
       {/* Main content */}
-      <Box sx={{ 
-        flexGrow: 1, 
-        display: 'flex', 
-        flexDirection: 'column',
-        height: '100%',
-        bgcolor: '#f5f7fb'
-      }}>
+      <Box
+        sx={{
+          flexGrow: 1,
+          display: "flex",
+          flexDirection: "column",
+          height: "100%",
+          bgcolor: "#f5f7fb",
+        }}
+      >
         {/* Header Component */}
         <Header
           sidebarOpen={sidebarOpen}
@@ -279,10 +334,7 @@ const HomePage = () => {
         />
 
         {/* Error Alert Component */}
-        <ErrorAlert
-          error={error}
-          onClose={() => setError('')}
-        />
+        <ErrorAlert error={error} onClose={() => setError("")} />
 
         {/* ChatInput Component */}
         <ChatInput
