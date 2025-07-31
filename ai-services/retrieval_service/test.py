@@ -2,14 +2,13 @@ import requests
 import json
 
 # API endpoint
-BASE_URL = "http://localhost:8000"
+BASE_URL = "http://localhost:4000"
 
 def test_rag_api():
     """Test the RAG API with sample queries"""
     
     test_queries = [
-        "What is VPBank?",
-        "What is method for law searching",
+        "THÔNG TIN FATCA",
     ]
     
     for query in test_queries:

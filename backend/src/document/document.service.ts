@@ -191,18 +191,21 @@ export class DocumentService {
   async getParsedMarkdown(id: string, userId: string): Promise<{ content: string; filename: string }> {
     try {
       const document = await this.getDocumentById(id, userId);
-      
       if (!document.path) {
         throw new HttpException('Parsed markdown not available', HttpStatus.NOT_FOUND);
       }
 
-      // Change the path extension to .md
-      const markdownPath = document.path.replace(/\.[^.]+$/, '.md');
-      const content = await this.s3Service.getFileContent(markdownPath);
-
+      // List objects in the parsed/{document.id}/ folder to find the .md file
+      const prefix = `parsed/${document.id}/`;
+      const files = await this.s3Service.listFiles(prefix);
+      const mdFile = files.find((f: string) => f.endsWith('.md'));
+      if (!mdFile) {
+        throw new HttpException('Parsed markdown not found in S3', HttpStatus.NOT_FOUND);
+      }
+      const content = await this.s3Service.getFileContent(mdFile);
       return {
         content,
-        filename: `${document.filename}.md`,
+        filename: mdFile.split('/').pop() || `${document.filename}.md`,
       };
     } catch (error) {
       console.error(`Failed to get parsed markdown for document ${id}:`, error);

@@ -1,5 +1,5 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
-import { S3Client, PutObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
+import { S3Client, PutObjectCommand, GetObjectCommand, ListObjectsV2Command } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { ConfigService } from '@nestjs/config';
 
@@ -108,5 +108,20 @@ export class S3Service implements OnModuleInit {
       stream.on('error', reject);
       stream.on('end', () => resolve(Buffer.concat(chunks).toString('utf-8')));
     });
+  }
+
+  async listFiles(prefix: string): Promise<string[]> {
+    if (!this.bucket) {
+      throw new Error('AWS S3 bucket not configured');
+    }
+    const command = new ListObjectsV2Command({
+      Bucket: this.bucket,
+      Prefix: prefix,
+    });
+    const response = await this.s3Client.send(command);
+    if (!response.Contents) {
+      return [];
+    }
+    return response.Contents.map(obj => obj.Key!).filter(Boolean);
   }
 }
