@@ -203,7 +203,7 @@ def process_elements(layout_results, padded_image, dims, model, max_batch_size, 
                     figure_results.append(
                         {
                             "label": label,
-                            "text": f"![Figure](figures/{figure_filename})",
+                            "text": f"![Figure]({figure_filename})",
                             "figure_path": f"figures/{figure_filename}",
                             "bbox": [orig_x1, orig_y1, orig_x2, orig_y2],
                             "reading_order": reading_order,
@@ -367,13 +367,9 @@ class OCRParserService:
             if not s3_key or not s3_bucket:
                 raise ValueError("Missing required parameters (s3Key/file_url and s3Bucket)")
             
-            # Generate markdown S3 key using same pattern as DOCX/XLSX
-            # Replace .pdf extension with .md, maintain same path structure
-            if s3_key.endswith('.pdf'):
-                markdown_s3_key = s3_key.replace('.pdf', '.md')
-            else:
-                # If no .pdf extension, just append .md
-                markdown_s3_key = f"{s3_key}.md"
+            # Use same S3 path structure as DOCX parser: parsed/{document_id}/
+            base_filename = os.path.splitext(filename)[0]
+            markdown_s3_key = f"parsed/{document_id}/{base_filename}.md"
             
             logger.info(f"🚀 Processing PDF file: {filename}")
             logger.info(f"📝 Will generate markdown at: {markdown_s3_key}")
@@ -404,7 +400,8 @@ class OCRParserService:
             result = self.process_document_with_ocr(    
                 file_url=file_path,
                 s3_bucket=s3_bucket,
-                s3_key=markdown_s3_key
+                s3_key=markdown_s3_key,
+                document_id=document_id
             )
             print(result['s3_keys'])
             # Verify that we have a valid markdown key
@@ -446,7 +443,7 @@ class OCRParserService:
             logger.error(f"❌ Error processing message: {e}", exc_info=True)
             ch.basic_nack(delivery_tag=method.delivery_tag, requeue=False)
 
-    def process_document_with_ocr(self, file_url: str, s3_bucket: str, s3_key: str) -> Dict[str, Any]:
+    def process_document_with_ocr(self, file_url: str, s3_bucket: str, s3_key: str, document_id: str) -> Dict[str, Any]:
         """Process a document with the DOLPHIN OCR model and upload results to S3."""
         temp_file = None
         
@@ -499,11 +496,10 @@ class OCRParserService:
                 figures_dir = os.path.join(temp_dir, 'markdown', 'figures')
                 if os.path.exists(figures_dir):
                     s3_keys['figures'] = []
-                    # Generate figures path based on the s3_key directory
-                    s3_key_dir = os.path.dirname(s3_key)
+                    # Use same structure as DOCX: parsed/{document_id}/figures/
                     for fig_file in os.listdir(figures_dir):
                         fig_path = os.path.join(figures_dir, fig_file)
-                        fig_key = f"{s3_key_dir}/figures/{fig_file}" if s3_key_dir else f"figures/{fig_file}"
+                        fig_key = f"parsed/{document_id}/figures/{fig_file}"
                         self.upload_to_s3(fig_path, s3_bucket, fig_key)
                         s3_keys['figures'].append(f"s3://{s3_bucket}/{fig_key}")
                 
