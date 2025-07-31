@@ -6,3 +6,4 @@
  docling
 boto3
 rapidocr_onnxruntime
+sagemaker
