@@ -50,7 +50,6 @@ class DocxParserService:
             logger.error(f"Failed to connect to RabbitMQ: {e}")
             raise
 
-
 def extract_images_from_docx(docx_path, images_dir, docx_stem):
     image_mapping = {}
     image_count = 0
@@ -83,6 +82,59 @@ def extract_images_from_docx(docx_path, images_dir, docx_stem):
     except Exception as e:
         logging.warning(f"python-docx error: {e}")
     return image_mapping
+
+#Upload images to S3 and return mapping of local filenames to S3 URLs
+def upload_images_to_s3_and_get_urls(images_dir, s3_bucket, s3_prefix, image_mapping):
+    """Upload images to S3 and return mapping of local filenames to S3 URLs - uses existing upload_to_s3"""
+    s3_urls = {}
+    if not os.path.isdir(images_dir):
+        return s3_urls
+    
+    for rel_id, image_filename in image_mapping.items():
+        local_image_path = os.path.join(images_dir, image_filename)
+        if os.path.isfile(local_image_path):
+            try:
+                # Use existing upload_to_s3 function
+                s3_image_key = f"{s3_prefix}images/{image_filename}"
+                upload_to_s3(local_image_path, s3_bucket, s3_image_key)
+                
+                # Generate S3 URL
+                s3_url = f"https://{s3_bucket}.s3.amazonaws.com/{s3_image_key}"
+                s3_urls[image_filename] = s3_url
+                
+            except Exception as e:
+                logging.error(f"Failed to upload image {image_filename}: {e}")
+    
+    return s3_urls
+# Embedd S3 URLs in markdown image tag 
+def process_markdown_with_s3_images(markdown_content, image_mapping, s3_image_urls):
+    """Process markdown content with S3 URLs - leverages existing process_markdown_with_images logic"""
+    if not s3_image_urls:
+        # Fall back to existing function
+        return process_markdown_with_images(markdown_content, image_mapping)
+
+    # Use same logic as existing function but with S3 URLs
+    modified_content = markdown_content
+    
+    # Replace placeholders with S3 URLs instead of local paths
+    for rel_id, image_filename in image_mapping.items():
+        if image_filename in s3_image_urls:
+            s3_url = s3_image_urls[image_filename]
+            image_ref = f"![{image_filename}]({s3_url})"
+            modified_content = modified_content.replace("<!-- image -->", image_ref, 1)
+    
+    # Remove remaining placeholders (same as existing function)
+    modified_content = modified_content.replace("<!-- image -->", "")
+    
+    # Add remaining images (same logic as existing function but with S3 URLs)
+    remaining_images = [img for img in s3_image_urls.keys() if f"![{img}]" not in modified_content]
+    if remaining_images:
+        modified_content += "\n\n## Additional Extracted Images\n\n"
+        for img_filename in remaining_images:
+            s3_url = s3_image_urls[img_filename]
+            modified_content += f"![{img_filename}]({s3_url})\n\n"
+
+    return modified_content
 
 def download_file_from_url(url: str) -> str:
     """
@@ -173,34 +225,42 @@ def extract_docx_to_markdown(input_path, output_dir, extract_images=True, s3_buc
             markdown_content = result.document.export_to_markdown()
 
             image_mapping = {}
-            if extract_images:
-                image_mapping = extract_images_from_docx(docx_file, images_dir, docx_file.stem)
 
-            final_markdown = process_markdown_with_images(markdown_content, image_mapping)
+            if extract_images:
+                logging.info(f"Extracting images from {docx_file.name}...")
+                image_mapping = extract_images_from_docx(docx_file, images_dir, docx_file.stem)                
+                # If S3 bucket is provided, upload images and get S3 URLs
+                if s3_bucket and s3_prefix and image_mapping:
+                    logging.info(f"📤 Uploading {len(image_mapping)} images to S3...")
+                    s3_image_urls = upload_images_to_s3_and_get_urls(
+                        images_dir, s3_bucket, s3_prefix, image_mapping
+                    )
+                    # Use S3 URLs in markdown
+                    final_markdown = process_markdown_with_s3_images(
+                        markdown_content, image_mapping, s3_image_urls
+                    )
+                else:
+                    # Use local image references
+                    final_markdown = process_markdown_with_images(markdown_content, image_mapping)
+            else:
+                final_markdown = markdown_content
 
             with open(output_path, "w", encoding="utf-8") as f:
                 f.write(final_markdown)
-
             logging.info(f"Saved markdown: {output_path}")
 
             # --- S3 upload logic ---
             if s3_bucket and s3_prefix:
-                # Upload markdown
+                # Upload final embedded markdown
                 md_s3_key = f"{s3_prefix}{Path(output_path).name}"
                 upload_to_s3(output_path, s3_bucket, md_s3_key)
-
                 # Print JSON so NestJS can capture it
                 print(json.dumps({"md_s3_key": md_s3_key}))
-                # Upload images
-                if extract_images and os.path.isdir(images_dir):
-                    for img_file in os.listdir(images_dir):
-                        img_path = os.path.join(images_dir, img_file)
-                        if os.path.isfile(img_path):
-                            upload_to_s3(img_path, s3_bucket, f"{s3_prefix}images/{img_file}")
         except Exception as e:
             logging.error(f"Error processing {docx_file.name}: {e}")
 
     logging.info(f"Completed in {time.time() - start:.2f} seconds")
+    return md_s3_key
 
 def download_file_from_url(url):
     # Tạo file tạm

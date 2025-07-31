@@ -44,36 +44,46 @@ def process_docx_message(message):
         # Create a temporary directory for output
         with tempfile.TemporaryDirectory() as temp_output_dir:
             # Use the extract_docx_to_markdown function
-            extract_docx_to_markdown(tmp_docx_path, temp_output_dir, extract_images=False)
+            s3_prefix = f"parsed/{document_id}/"
+            # extract_docx_to_markdown(tmp_docx_path, temp_output_dir, extract_images=True)
             
-            # Find the generated markdown file
-            docx_stem = os.path.splitext(os.path.basename(tmp_docx_path))[0]
-            markdown_file = os.path.join(temp_output_dir, f"{docx_stem}.md")
+            # # Find the generated markdown file
+            # docx_stem = os.path.splitext(os.path.basename(tmp_docx_path))[0]
+            # markdown_file = os.path.join(temp_output_dir, f"{docx_stem}.md")
+
+            markdown_s3_key = extract_docx_to_markdown(
+                input_path=tmp_docx_path,
+                output_dir=temp_output_dir,
+                extract_images=True,
+                s3_bucket=S3_BUCKET,       
+                s3_prefix=s3_prefix        
+            )
             
-            if os.path.exists(markdown_file):
-                with open(markdown_file, 'r', encoding='utf-8') as f:
-                    markdown_content = f.read()
-            else:
-                raise Exception(f"Markdown file not found at {markdown_file}")
+            print(f"[DEBUG] Markdown uploaded to S3: {markdown_s3_key}")
+        #     if os.path.exists(markdown_file):
+        #         with open(markdown_file, 'r', encoding='utf-8') as f:
+        #             markdown_content = f.read()
+        #     else:
+        #         raise Exception(f"Markdown file not found at {markdown_file}")
         
-        # Save markdown to temp file for upload
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.md', delete=False, encoding='utf-8') as tmp_md:
-            tmp_md.write(markdown_content)
-            tmp_md_path = tmp_md.name
+        # # Save markdown to temp file for upload
+        # with tempfile.NamedTemporaryFile(mode='w', suffix='.md', delete=False, encoding='utf-8') as tmp_md:
+        #     tmp_md.write(markdown_content)
+        #     tmp_md_path = tmp_md.name
             
     except Exception as e:
         print(f"[ERROR] Failed to convert DOCX to Markdown: {e}")
         raise
     
-    # Upload Markdown to S3
-    try:
-        markdown_s3_key = s3_key.replace('.docx', '.md')
-        print(f"[DEBUG] Uploading markdown to s3://{S3_BUCKET}/{markdown_s3_key}")
-        s3.upload_file(tmp_md_path, S3_BUCKET, markdown_s3_key)
-        print(f"[DEBUG] Markdown uploaded successfully")
-    except Exception as e:
-        print(f"[ERROR] Failed to upload markdown to S3: {e}")
-        raise
+    # # Upload Markdown to S3
+    # try:
+    #     markdown_s3_key = s3_key.replace('.docx', '.md')
+    #     print(f"[DEBUG] Uploading markdown to s3://{S3_BUCKET}/{markdown_s3_key}")
+    #     s3.upload_file(tmp_md_path, S3_BUCKET, markdown_s3_key)
+    #     print(f"[DEBUG] Markdown uploaded successfully")
+    # except Exception as e:
+    #     print(f"[ERROR] Failed to upload markdown to S3: {e}")
+    #     raise
     
     # Send to chunking queue
     try:
@@ -94,7 +104,7 @@ def process_docx_message(message):
         # Cleanup temp files
         try:
             os.remove(tmp_docx_path)
-            os.remove(tmp_md_path)
+            #os.remove(tmp_md_path)
         except Exception as cleanup_error:
             print(f"[WARN] Failed to cleanup temp files: {cleanup_error}")
 
