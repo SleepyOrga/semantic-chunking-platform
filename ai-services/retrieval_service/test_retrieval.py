@@ -87,10 +87,10 @@ def run_smoke_test():
     
     for query in queries:
         # Test with tag filtering
-        # print("\n" + "-"*60)
-        # print("WITH TAG FILTERING")
-        # print("-"*60)
-        # test_retrieval(query, use_tag_filtering=True)
+        print("\n" + "-"*60)
+        print("WITH TAG FILTERING")
+        print("-"*60)
+        test_retrieval(query, use_tag_filtering=True)
         
         # Test without tag filtering
         print("\n" + "-"*60)

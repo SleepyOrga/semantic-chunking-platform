@@ -20,7 +20,8 @@ EMBED_ENDPOINT = os.getenv("EMBED_ENDPOINT", "embedding-endpoint")
 AWS_REGION = os.getenv("AWS_REGION", "us-east-1")
 BEDROCK_MODEL_ID = os.getenv("BEDROCK_MODEL_ID", "us.anthropic.claude-3-7-sonnet-20250219-v1:0")
 BEDROCK_MODEL_ID_2 = os.getenv("BEDROCK_MODEL_ID", "us.anthropic.claude-3-sonnet-20240229-v1:0")
-BEDROCK_MODEL_ID_3 = os.getenv("BEDROCK_MODEL_ID", "us.anthropic.claude-3-5-sonnet-20240620-v1:0")
+BEDROCK_MODEL_ID_3 = os.getenv("BEDROCK_MODEL_ID", "us.anthropic.claude-3-5-haiku-20241022-v1:0")
+BEDROCK_MODEL_ID_4 = os.getenv("BEDROCK_MODEL_ID", "us.anthropic.claude-sonnet-4-20250514-v1:0")
 
 # Initialize Bedrock client
 bedrock_client = boto3.client('bedrock-runtime', region_name=AWS_REGION)
@@ -437,7 +438,7 @@ Based on these passages, please answer the following:
 
         # Create streaming request to Bedrock
         stream = bedrock_client.invoke_model_with_response_stream(
-            modelId=BEDROCK_MODEL_ID,
+            modelId=BEDROCK_MODEL_ID_4,
             body=json.dumps({
                 "anthropic_version": "bedrock-2023-05-31",
                 "max_tokens": max_tokens,
