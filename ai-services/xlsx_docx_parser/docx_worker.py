@@ -75,15 +75,6 @@ def process_docx_message(message):
         print(f"[ERROR] Failed to convert DOCX to Markdown: {e}")
         raise
     
-    # # Upload Markdown to S3
-    # try:
-    #     markdown_s3_key = s3_key.replace('.docx', '.md')
-    #     print(f"[DEBUG] Uploading markdown to s3://{S3_BUCKET}/{markdown_s3_key}")
-    #     s3.upload_file(tmp_md_path, S3_BUCKET, markdown_s3_key)
-    #     print(f"[DEBUG] Markdown uploaded successfully")
-    # except Exception as e:
-    #     print(f"[ERROR] Failed to upload markdown to S3: {e}")
-    #     raise
     
     # Send to chunking queue
     try:

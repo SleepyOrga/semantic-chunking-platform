@@ -44,39 +44,21 @@ def process_xlsx_message(message):
     try:
         print(f"[DEBUG] Converting XLSX to Markdown: {tmp_xlsx_path}")
         
-        # Use a simple temporary directory approach like DOCX worker
+        # Create a temporary directory for output
         with tempfile.TemporaryDirectory() as temp_output_dir:
-            # Call extract_xlsx_to_markdown - simplified version
-            extract_xlsx_to_markdown(tmp_xlsx_path, temp_output_dir)
+            # Use extract_xlsx_to_markdown with S3 params like DOCX worker
+            s3_prefix = f"parsed/{document_id}/"
+            markdown_s3_key = extract_xlsx_to_markdown(
+                input_path=tmp_xlsx_path,
+                output_dir=temp_output_dir,
+                s3_bucket=s3_bucket,
+                s3_prefix=s3_prefix
+            )
             
-            # Find the generated markdown file
-            xlsx_stem = os.path.splitext(os.path.basename(tmp_xlsx_path))[0]
-            markdown_file = os.path.join(temp_output_dir, f"{xlsx_stem}.md")
-            
-            if os.path.exists(markdown_file):
-                with open(markdown_file, 'r', encoding='utf-8') as f:
-                    markdown_content = f.read()
-            else:
-                raise Exception(f"Markdown file not found at {markdown_file}")
-        
-        # Save markdown to temp file for upload
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.md', delete=False, encoding='utf-8') as tmp_md:
-            tmp_md.write(markdown_content)
-            tmp_md_path = tmp_md.name
+            print(f"[DEBUG] Markdown uploaded to S3: {markdown_s3_key}")
             
     except Exception as e:
         print(f"[ERROR] Failed to convert XLSX to Markdown: {e}")
-        raise
-    
-    # Upload Markdown to S3 (same approach as DOCX worker)
-    try:
-        # Generate markdown S3 key by replacing extension like DOCX worker does
-        markdown_s3_key = s3_key.replace('.xlsx', '.md')
-        print(f"[DEBUG] Uploading markdown to s3://{s3_bucket}/{markdown_s3_key}")
-        s3.upload_file(tmp_md_path, s3_bucket, markdown_s3_key)
-        print(f"[DEBUG] Markdown uploaded successfully")
-    except Exception as e:
-        print(f"[ERROR] Failed to upload markdown to S3: {e}")
         raise
     
     # Prepare chunking message
@@ -99,8 +81,6 @@ def process_xlsx_message(message):
         try:
             if tmp_xlsx_path:
                 os.unlink(tmp_xlsx_path)
-            if 'tmp_md_path' in locals():
-                os.unlink(tmp_md_path)
         except Exception as cleanup_error:
             print(f"[WARN] Failed to cleanup temp files: {cleanup_error}")
 

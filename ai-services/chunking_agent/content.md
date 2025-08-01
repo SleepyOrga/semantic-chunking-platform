@@ -1,96 +1,45 @@
-| NAB Workplace adjustment guidance notes     |
-|---------------------------------------------|
-|                                             |
+| Company: TechCorp Solutions                         |
+|-----------------------------------------------------|
+| Reporting Period: July 1, 2024 - September 30, 2024 |
+| Prepared by: Sales Analytics Team                   |
+| Date: October 15, 2024                              |
 
-<!-- image -->
+| Executive Summary:                                                                          |
+|---------------------------------------------------------------------------------------------|
+| Q3 2024 showed strong performance with total revenue of $2.4M, representing 18% growth YoY. |
+| Key highlights include expansion into European markets and successful launch of Product X.  |
+| Sales team exceeded targets by 12% across all regions.                                      |
 
-## Contents
+| Key Metrics:                    |
+|---------------------------------|
+| Total Revenue: $2,400,000       |
+| Units Sold: 15,600              |
+| Average Deal Size: $12,500      |
+| Customer Acquisition Cost: $850 |
+| Customer Retention Rate: 94%    |
 
-[Purpose and Scope	2](.)
+| Region        | Revenue    |   Units Sold | Growth %   | Top Product   |
+|---------------|------------|--------------|------------|---------------|
+| North America | $1,200,000 |         7800 | 15%        | Product A     |
+| Europe        | $720,000   |         4680 | 25%        | Product B     |
+| Asia Pacific  | $480,000   |         3120 | 12%        | Product A     |
 
-[What is a workplace adjustment?	2](.)
+| Regional Analysis:                                                              |
+|---------------------------------------------------------------------------------|
+| North America remains our strongest market with consistent growth.              |
+| Europe shows excellent potential with 25% growth driven by Product B adoption.  |
+| Asia Pacific market is developing steadily with focus on Product A penetration. |
 
-[Legal Requirements	3](.)
+| Product   | Revenue   |   Units | Margin %   | Market Share   |
+|-----------|-----------|---------|------------|----------------|
+| Product A | $960,000  |    6000 | 35%        | 40%            |
+| Product B | $840,000  |    5600 | 42%        | 35%            |
+| Product C | $360,000  |    2400 | 28%        | 15%            |
+| Product X | $240,000  |    1600 | 45%        | 10%            |
 
-[Exceptions	3](.)
-
-[Review of a decision	3](.)
-
-[Privacy and confidentiality	4](.)
-
-[Communication of the Guidance Notes	4](.)
-
-[Review of the Guidance Notes	4](.)
-
-[Further information	4](.)
-
-[Related documents	4](.)
-
-### Purpose and Scope
-
-The Guidance Notes outline how NAB will implement effective workplace adjustments and provide adjustments for job applicants. These Guidance Notes apply to NAB recruitment processes and to all NAB employees. This includes but is not limited to employees in positions that are permanent full-time, part-time, short-term contracts and agency staff.
-
-The Guidance Notes and Workplace Adjustment Standard Operating Procedures (SOP) will provide information and resources that enable employees and People Leaders to implement effective workplace adjustments in a timely way, with mechanisms in place to follow up and review to ensure these adjustments are improving the productivity and access of NAB’s people.
-
-The Guidance Notes are to be read in conjunction with the Request for Workplace Adjustment form and Guidelines for People Leaders to understand our commitment and process and to effectively implement requests for workplace adjustments. These guidance notes sit within the Health, Safety &amp; Wellbeing Policy.
-
-### What is a workplace adjustment?
-
-A workplace adjustment is a change to a work process, practice, procedure or environment that enables an employee with disability, including mental illness and medical conditions, to perform their job in a way that minimises the impact of their disability.
-
-Workplace adjustments allow a person to:
-
-- perform the inherent or essential requirements of their job safely in the workplace
-- have equitable opportunity in recruitment processes, promotion and ongoing development
-- experience equitable terms and conditions of employment
-- maximise productivity
-
-NAB recognises that the provision of workplace adjustments will be unique for each employee because the impact of disability is different for each person. We understand our responsibility to have collaborative solution focussed conversations with employees that focus on the tasks and responsibilities of the job role and the work environment, to determine the adjustments that will assist the employee to perform their role.
-
-Each applicant that applies to NAB and all employees must have the right to participate in equitable recruitment, employment, professional development, and provision of goods and services, that provides them with an opportunity to perform at their best.
-
-It is imperative at NAB that we foster an environment and culture where employees and applicants can confidently share information about disability when requesting adjustments. These conversations should be strengths-based and collaborative, built on trust and effective and timely action. For examples of how to establish this strengths-based and collaborative communication, please refer to the Guidelines for People Leaders.
-
-### Legal Requirements
-
-NAB has a legal obligation to provide workplace adjustments under the [*Disability Discrimination Act 1992 (Cth)*](https:\www.legislation.gov.au\details\c2016c00763) , (DDA), which states that it is against the law to discriminate against a person due to his or her disability in relation to employment. Employers must make reasonable adjustments to the workplace so that an employee with disability can do their job effectively and failure to do so may amount to discrimination. NAB is also required to provide an accessible and inclusive work environment for people with disability, illness or injury under the [*Work Health and Safety Act 2011*](https:\www.legislation.gov.au\Details\C2018C00293) (Cth).
-
-*Conventions and state legislation*
-
-Article 27 of the [United Nations Convention on the Rights of Persons with Disabilities](file:\aur.national.com.au\User_Data\AU-VIC-DOCKLANDS-3DOCK-09\UserData\P762292\United%20Nations%20Convention%20on%20the%20Rights%20of%20Person%20with%20Disabilities) (ratified by Australia in 2008) states that employers must ensure that reasonable accommodation is provided to persons with disabilities in the workplace. Similarly, state legislation requires that employers make reasonable adjustments for persons with disabilities.
-
-### Exceptions
-
-When workplace adjustments are requested, and it is found that it cannot be met without incurring unjustifiable hardship, NAB will undertake to investigate and implement alternate solutions that would still accommodate the person’s requirements in an effective manner.
-
-### Review of a decision
-
-An employee has the right to request a review of a decision to refuse the provision of a workplace adjustment. The employee can request a review of this decision which will be carried out in a case review forum including the General Manager - Inclusion / Diversity, Associate Director Accessibility and a representative from the Leadership Team of Health, Safety &amp; Wellbeing. This request should be submitted in writing and a response will be provided within 28 days (from receipt of the request).
-
-### Privacy and confidentiality
-
-NAB complies with the [*Privacy Act 1988 (Cth)*](https:\www.legislation.gov.au\Details\C2020C00168) and applicable state and territory privacy legislation. NAB has an employee privacy policy which outlines how the NAB Group collects and handles the personal information of people who work for us and with us (such as employees, contractors, and people who work for our suppliers).
-
-When assessing a workplace adjustment application, NAB may be required to collect sensitive information, including health information of an employee. Where NAB needs to collect health information or sensitive information from employees it will only collect this with an employee’s consent or as permitted by law.
-
-### Communication of the Guidance Notes
-
-The Workplace Adjustment Guidance Notes, SOP, Guidelines for People Leaders, and Request for Workplace Adjustment form will be posted across both the NAB website and internal intranet. This will ensure that all NAB employees and potential applicants have access to the relevant documents. Employees and People Leaders will be encouraged to read these documents together, as they are intended to be read and responded to as a collective.
-
-Information will also be included with induction material and as part of regular employee updates. Twice a year, all employees will be reminded of the Workplace Adjustment Guidance Notes and SOP by email or other suitable communication methods used at NAB such as the Intranet or Workplace.
-
-### Review of the Guidance Notes
-
-NAB will review these Guidance Notes annually. NAB will review feedback obtained from stakeholders throughout the year. NAB may invite various stakeholders, including but not limited to People Leaders, Talent Acquisition staff, and employees with disability to participate in the review process.
-
-### Further information
-
-Enquiries about the Workplace Adjustment Guidance Notes should be addressed to the Health, Safety &amp; Wellbeing Team at [Health.Management@nab.com.au](mailto:Health.Management@nab.com.au) or Jenny Watts-Sampson (Associate Director, Accessibility) at [jenny.wattssampson@nab.com.au](mailto:jenny.wattssampson@nab.com.au) .
-
-### Related documents
-
-- Request for Workplace Adjustment form
-- Workplace Adjustment Standard Operating Procedures
-- [‘Better Together. Accessibility Action Plan 2019 – 2020’](https:\www.nab.com.au\content\dam\nabrwd\documents\reports\corporate\nab-accessibility-action-plan-2019-2020.pdf)
-- Guidelines for People Leaders (includes FAQs)
-- [Flexible working arrangements](https:\intranet.nab.com.au\PP\hronline\Pages\WA%20101.aspx)
+| Product Insights:                                                   |
+|---------------------------------------------------------------------|
+| Product A maintains market leadership with strong adoption in APAC. |
+| Product B shows highest margins and growing European presence.      |
+| Product X (new launch) exceeded expectations with 45% margin.       |
+| Product C requires strategic review due to declining market share.  |
