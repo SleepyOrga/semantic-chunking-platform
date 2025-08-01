@@ -18,7 +18,9 @@ load_dotenv()
 # Configuration
 EMBED_ENDPOINT = os.getenv("EMBED_ENDPOINT", "embedding-endpoint")
 AWS_REGION = os.getenv("AWS_REGION", "us-east-1")
-BEDROCK_MODEL_ID = os.getenv("BEDROCK_MODEL_ID", "us.anthropic.claude-3-5-sonnet-20241022-v2:0")
+BEDROCK_MODEL_ID = os.getenv("BEDROCK_MODEL_ID", "us.anthropic.claude-3-7-sonnet-20250219-v1:0")
+BEDROCK_MODEL_ID_2 = os.getenv("BEDROCK_MODEL_ID", "us.anthropic.claude-3-sonnet-20240229-v1:0")
+BEDROCK_MODEL_ID_3 = os.getenv("BEDROCK_MODEL_ID", "us.anthropic.claude-3-5-sonnet-20240620-v1:0")
 
 # Initialize Bedrock client
 bedrock_client = boto3.client('bedrock-runtime', region_name=AWS_REGION)
@@ -133,7 +135,7 @@ async def generate_related_tags(query: str, existing_tags: List[str]) -> List[st
         
         # Call AWS Bedrock
         response = bedrock_client.invoke_model(
-            modelId=BEDROCK_MODEL_ID,
+            modelId=BEDROCK_MODEL_ID_2,
             body=json.dumps({
                 "anthropic_version": "bedrock-2023-05-31",
                 "max_tokens": 200,
@@ -253,7 +255,7 @@ async def expand_query_with_llm(query: str, max_queries: int = 3) -> List[str]:
         
         # Call AWS Bedrock
         response = bedrock_client.invoke_model(
-            modelId=BEDROCK_MODEL_ID,
+            modelId=BEDROCK_MODEL_ID_3,
             body=json.dumps({
                 "anthropic_version": "bedrock-2023-05-31",
                 "max_tokens": 200,
