@@ -7,6 +7,7 @@ import os
 import sys
 import traceback
 import requests
+import logging
 from dotenv import load_dotenv
 
 load_dotenv()  # Load environment variables from .env file
@@ -93,6 +94,7 @@ def process_chunking_job(job):
         ], check=True, capture_output=True, text=True)
         print(f"[DEBUG] Chunking agent stdout:\n{result.stdout}")
         print(f"[DEBUG] Chunking agent stderr:\n{result.stderr}")
+
     except subprocess.CalledProcessError as e:
         print(f"[ERROR] Chunking agent failed: {e}")
         print(f"[ERROR] stdout:\n{e.stdout}")
@@ -114,7 +116,7 @@ def process_chunking_job(job):
     try:
         with open(output_json, 'r', encoding='utf-8') as f:
             chunks = json.load(f)
-        print(chunks)
+        logging.info(f"[DEBUG] Chunks: {chunks}")
         chunk_ids = insert_chunks_to_postgres(document_id, chunks)
          # --- Send each chunk to embedding-input-queue ---
         try:
