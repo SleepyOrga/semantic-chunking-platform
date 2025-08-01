@@ -145,7 +145,7 @@ async streamChatResponse(userPrompt, chunks, onChunkReceived, onError) {
 
     const uniqueDocIds = new Set(chunks.map((chunk) => chunk.document_id));
 
-    return `Found ${chunks.length} relevant passages from ${uniqueDocIds.size} document(s). Generating response...`;
+    return `Found ${chunks.length} relevant passages from ${uniqueDocIds.size} document(s).`;
   }
 
   // Health check for retrieval service

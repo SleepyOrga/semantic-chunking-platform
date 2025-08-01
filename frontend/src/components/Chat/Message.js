@@ -21,13 +21,16 @@ const Message = ({ message }) => {
     // Hide streaming loader when streaming is complete
     if (message.isStreaming === false) {
       setShowStreamingLoader(false);
+      setShowInterimLoader(false);
+      return;
     }
 
     // Optional: You could add a timeout to auto-hide loaders after a period
+
     if (message.isInterim) {
       const timer = setTimeout(() => {
         setShowInterimLoader(false);
-      }, 30000); // Hide after 30 seconds if forgotten
+      }, 10000); // Hide after 10 seconds if forgotten
 
       return () => clearTimeout(timer);
     }
