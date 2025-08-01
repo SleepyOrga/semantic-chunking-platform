@@ -258,6 +258,7 @@ def extract_xlsx_to_markdown(input_path, output_dir=None, s3_bucket=None, s3_pre
     if output_dir and not s3_bucket:
         sheet_data = read_xlsx_and_convert(input_path)
         os.makedirs(output_dir, exist_ok=True)
+        input_path = Path(input_path)
         output_name = input_path.stem + ".md"
         output_path = os.path.join(output_dir, output_name)
         save_to_text_files(sheet_data, output_path)

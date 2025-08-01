@@ -70,7 +70,7 @@ image_uri = get_image_uri(instance_type)
 # Changed to a model that produces 1536 dimensions to match database schema
 model_id = "sentence-transformers/all-mpnet-base-v2"  # This produces 768 dimensions - need different model
 # Let's use a model that produces 1536 dimensions
-model_id = "intfloat/e5-large-v2"  # This produces 1024 dimensions
+model_id = "intfloat/multilingual-e5-large-instruct"  # This produces 1024 dimensions
 # We need to find a model that produces 1536 dimensions or change the database
 
 print(f"🤖 Using model: {model_id}")
