@@ -5,10 +5,12 @@ import subprocess
 import json
 import os
 import sys
+import time
 import traceback
 import requests
 import logging
 from dotenv import load_dotenv
+from batch_chunker import BatchChunker
 
 load_dotenv()  # Load environment variables from .env file
 
@@ -16,7 +18,7 @@ load_dotenv()  # Load environment variables from .env file
 RABBITMQ_URL = os.environ.get("RABBITMQ_URL", "amqp://admin:admin@52.65.216.159:5672/")
 QUEUE_NAME = "chunking-queue"
 CHUNKER_SCRIPT = os.environ.get("CHUNKER_SCRIPT", "chunking_agent.py")
-AWS_REGION = os.environ.get("AWS_REGION", "ap-southeast-2")
+AWS_REGION = "us-east-1"  # Always use us-east-1 for model inference as Claude models are only available there
 
 # Backend API URL
 BACKEND_URL = os.environ.get("BACKEND_URL", "http://localhost:4000")
@@ -29,6 +31,74 @@ PG_PASSWORD = os.environ.get("PG_PASSWORD", "secret123")
 PG_DB = os.environ.get("PG_DB", "app_db")
 
 s3 = boto3.client("s3", region_name=AWS_REGION)
+
+def send_chunks_to_queues(document_id: str, chunks: list):
+    """Helper function to send chunks to embedding and tagging queues"""
+    try:
+        # First insert chunks to get their IDs
+        chunk_ids = insert_chunks_to_postgres(document_id, chunks)
+        
+        # Send to embedding queue
+        try:
+            embedding_conn = pika.BlockingConnection(pika.URLParameters(RABBITMQ_URL))
+            embedding_channel = embedding_conn.channel()
+            embedding_channel.queue_declare(queue='embedding-input-queue', durable=True)
+            
+            for idx, (chunk, chunk_id) in enumerate(zip(chunks, chunk_ids)):
+                message = {
+                    'id': chunk_id,
+                    'title': chunk.get('title', f'Chunk {idx}'),
+                    'content': chunk.get('content', ''),
+                    'chunk_index': idx,
+                    'documentId': document_id,
+                    "type": "chunk"
+                }
+                embedding_channel.basic_publish(
+                    exchange='',
+                    routing_key='embedding-input-queue',
+                    body=json.dumps(message).encode('utf-8'),
+                    properties=pika.BasicProperties(
+                        content_type='application/json',
+                        delivery_mode=2
+                    )
+                )
+            embedding_conn.close()
+            print(f"[DEBUG] All chunks sent to embedding queue for document {document_id}")
+        except Exception as e:
+            print(f"[ERROR] Failed to send chunks to embedding queue: {e}")
+            traceback.print_exc()
+            
+        # Send to tagging queue
+        try:
+            tag_conn = pika.BlockingConnection(pika.URLParameters(RABBITMQ_URL))
+            tag_channel = tag_conn.channel()
+            tag_channel.queue_declare(queue='tagging-input-queue', durable=True)
+            
+            for idx, (chunk, chunk_id) in enumerate(zip(chunks, chunk_ids)):
+                message = {
+                    'id': chunk_id,
+                    'title': chunk.get('title', f'Chunk {idx}'),
+                    'content': chunk.get('content', ''),
+                    'chunk_index': idx,
+                    'documentId': document_id
+                }
+                tag_channel.basic_publish(
+                    exchange='',
+                    routing_key='tagging-input-queue',
+                    body=json.dumps(message).encode('utf-8'),
+                    properties=pika.BasicProperties(
+                        content_type='application/json',
+                        delivery_mode=2
+                    )
+                )
+            tag_conn.close()
+            print(f"[DEBUG] All chunks sent to tagging queue for document {document_id}")
+        except Exception as e:
+            print(f"[ERROR] Failed to send chunks to tagging queue: {e}")
+            traceback.print_exc()
+    except Exception as e:
+        print(f"[ERROR] Failed to process chunks for queues: {e}")
+        traceback.print_exc()
 
 def insert_chunks_to_postgres(document_id, chunks):
     print(f"[DEBUG] Inserting {len(chunks)} chunks via API for document {document_id}")
@@ -86,11 +156,12 @@ def process_chunking_job(job):
     # Run chunking agent
     output_json = f"{tmp_md_path}.chunks.json"
     try:
-        print(f"[DEBUG] Running chunking agent: {CHUNKER_SCRIPT} {tmp_md_path} --output_file {output_json}")
+        print(f"[DEBUG] Running chunking agent: {CHUNKER_SCRIPT} {tmp_md_path} --output_file {output_json} --aws_region {AWS_REGION}")
         result = subprocess.run([
             sys.executable, CHUNKER_SCRIPT,
             tmp_md_path,
-            "--output_file", output_json
+            "--output_file", output_json,
+            "--aws_region", AWS_REGION
         ], check=True, capture_output=True, text=True)
         print(f"[DEBUG] Chunking agent stdout:\n{result.stdout}")
         print(f"[DEBUG] Chunking agent stderr:\n{result.stderr}")
@@ -200,15 +271,91 @@ def callback(ch, method, properties, body):
     print(" [x] Callback triggered!")
     print(" [x] Raw body:", body)
     try:
-        job = json.loads(body)
-        print(f"[DEBUG] Parsed job: {job}")
-        process_chunking_job(job)
+        # Check if the message is a batch or single job
+        message = json.loads(body)
+        if isinstance(message, list):
+            # Process batch
+            batch_chunker = BatchChunker(max_workers=6)
+            results = batch_chunker.process_batch(message)
+            
+            # Process results - send to embedding and tagging queues
+            for result in results:
+                if result['status'] == 'success':
+                    send_chunks_to_queues(result['document_id'], result['chunks'])
+
+        else:
+            # Process single job for backward compatibility
+            process_chunking_job(message)
+            
         ch.basic_ack(delivery_tag=method.delivery_tag)
-        print("[DEBUG] Job processed and acknowledged.")
+        print("[DEBUG] Job(s) processed and acknowledged.")
     except Exception as e:
         print(f"[ERROR] Error processing job: {e}")
         traceback.print_exc()
         ch.basic_nack(delivery_tag=method.delivery_tag, requeue=False)
+
+class BatchMessageConsumer:
+    def __init__(self, batch_size=6, batch_timeout=10):
+        self.batch_size = batch_size  # Maximum number of messages to process in a batch
+        self.batch_timeout = batch_timeout  # Maximum time to wait for batch completion (seconds)
+        self.current_batch = []
+        self.last_message_time = None
+        self.channel = None
+        self.delivery_tags = []
+
+    def add_to_batch(self, ch, method, properties, body):
+        """Add a message to the current batch"""
+        try:
+            job = json.loads(body)
+            self.current_batch.append(job)
+            self.delivery_tags.append(method.delivery_tag)
+            self.last_message_time = time.time()
+            self.channel = ch
+
+            # Process batch if it's full or if it's timed out
+            if len(self.current_batch) >= self.batch_size:
+                self.process_batch()
+
+        except Exception as e:
+            print(f"[ERROR] Error processing message: {e}")
+            ch.basic_nack(delivery_tag=method.delivery_tag, requeue=False)
+
+    def is_batch_timeout(self):
+        """Check if the current batch has timed out"""
+        if not self.last_message_time or not self.current_batch:
+            return False
+        return time.time() - self.last_message_time >= self.batch_timeout
+
+    def process_batch(self):
+        """Process the current batch of messages"""
+        if not self.current_batch:
+            return
+
+        try:
+            print(f"[DEBUG] Processing batch of {len(self.current_batch)} messages")
+            batch_chunker = BatchChunker(max_workers=6)
+            results = batch_chunker.process_batch(self.current_batch)
+
+            # Process results and send to queues
+            for result in results:
+                if result['status'] == 'success':
+                    send_chunks_to_queues(result['document_id'], result['chunks'])
+
+            # Acknowledge all messages in the batch
+            for tag in self.delivery_tags:
+                self.channel.basic_ack(delivery_tag=tag)
+
+        except Exception as e:
+            print(f"[ERROR] Batch processing failed: {e}")
+            # Nack all messages in the batch
+            for tag in self.delivery_tags:
+                self.channel.basic_nack(delivery_tag=tag, requeue=True)
+
+        finally:
+            # Clear the batch
+            self.current_batch = []
+            self.delivery_tags = []
+            self.last_message_time = None
 
 def main():
     print(f"[DEBUG] Connecting to RabbitMQ at {RABBITMQ_URL}")
@@ -224,13 +371,32 @@ def main():
     print(f"[DEBUG] Declaring queue: {QUEUE_NAME}")
     channel.queue_declare(queue=QUEUE_NAME, durable=True)
 
-    # Prefetch để xử lý từng job một
-    channel.basic_qos(prefetch_count=1)
+    # Create batch consumer
+    batch_consumer = BatchMessageConsumer(batch_size=6, batch_timeout=10)
+
+    # Set up prefetch to allow batch processing
+    channel.basic_qos(prefetch_count=batch_consumer.batch_size)
+
+    def batch_callback(ch, method, properties, body):
+        batch_consumer.add_to_batch(ch, method, properties, body)
 
     print(f"[DEBUG] Starting to consume from queue: {QUEUE_NAME}")
-    channel.basic_consume(queue=QUEUE_NAME, on_message_callback=callback)
+    channel.basic_consume(queue=QUEUE_NAME, on_message_callback=batch_callback)
 
     print(" [*] Waiting for chunking jobs. To exit press CTRL+C")
+    
+    def check_batch_timeout():
+        """Check if current batch needs to be processed due to timeout"""
+        while True:
+            time.sleep(1)  # Check every second
+            if batch_consumer.is_batch_timeout():
+                batch_consumer.process_batch()
+
+    # Start timeout checker in a separate thread
+    import threading
+    timeout_thread = threading.Thread(target=check_batch_timeout, daemon=True)
+    timeout_thread.start()
+
     try:
         channel.start_consuming()
     except KeyboardInterrupt:

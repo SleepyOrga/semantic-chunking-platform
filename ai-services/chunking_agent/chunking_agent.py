@@ -5,6 +5,7 @@ import boto3
 from typing import List, Dict, Any, Optional, Tuple
 import logging
 import os
+from model_manager import ModelManager
 
 # Configure logging
 logging.basicConfig(
@@ -13,17 +14,20 @@ logging.basicConfig(
 )
 logger = logging.getLogger("MarkdownSemanticChunker")
 
+# Ensure model_manager.py is in the same directory
+MODEL_MANAGER_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'model_manager.py')
+if not os.path.exists(MODEL_MANAGER_PATH):
+    raise ImportError(f"model_manager.py not found at {MODEL_MANAGER_PATH}")
+
 class EnhancedMarkdownSemanticChunker:
     def __init__(
         self, 
         max_chunk_size: int = 1500,
         min_chunk_size: int = 200,
         chunk_overlap: int = 100,
-        max_processing_time: int = 180,  # Increased from 30 to 180 seconds
-        use_llm: bool = True,
-        # bedrock_model_id: str = "anthropic.claude-3-sonnet-20240229-v1:0",
+        max_processing_time: int = 180,
         bedrock_model_id: str = "anthropic.claude-3-5-sonnet-20241022-v2:0",
-        llm_timeout: int = 60,  # Reduced from 120 to 60 seconds
+        llm_timeout: int = 60, 
         max_llm_tokens: int = 100000,  # Maximum tokens for LLM call
         max_embedding_chunk_size: int = 512,  # Maximum size for RAG/embedding
         aws_region: Optional[str] = None
@@ -47,11 +51,11 @@ class EnhancedMarkdownSemanticChunker:
         self.min_chunk_size = min_chunk_size
         self.chunk_overlap = chunk_overlap
         self.max_processing_time = max_processing_time
-        self.use_llm = use_llm
         self.bedrock_model_id = bedrock_model_id
         self.llm_timeout = llm_timeout
         self.max_llm_tokens = max_llm_tokens
         self.max_embedding_chunk_size = max_embedding_chunk_size
+        self.use_llm = True  # Always use LLM
         
         # Constants for token estimation
         self.chars_per_token = 4  # Rough estimate for token calculation
@@ -78,17 +82,34 @@ class EnhancedMarkdownSemanticChunker:
             r'(ghi chú:.*?)$',  # dòng ghi chú
         ]
         
-        # Initialize Bedrock client if needed
-        print(f"Initializing EnhancedMarkdownSemanticChunker with use_llm={use_llm}, aws_region={aws_region}")
-        if use_llm:
+        # Initialize Bedrock client and ModelManager
+        print(f"Initializing EnhancedMarkdownSemanticChunker with aws_region={aws_region}")
+        max_retries = 3
+        retry_delay = 2  # seconds
+        
+        # Initialize the model manager
+        self.model_manager = ModelManager()
+
+        # Always use us-east-1 for model inference as Claude models are only available there
+        model_region = "us-east-1"
+        print(f"Using {model_region} region for model inference")
+
+        for attempt in range(max_retries):
             try:
-                self.bedrock_client = boto3.client('bedrock-runtime', region_name=aws_region)
-                logger.info("Successfully connected to Amazon Bedrock")
+                # Always use us-east-1 for model inference
+                self.bedrock_client = boto3.client('bedrock-runtime', region_name=model_region)
+                logger.info(f"Successfully connected to Amazon Bedrock in {model_region}")
+                self.use_llm = True  # Ensure LLM is enabled
+                break
             except Exception as e:
-                logger.error(f"Could not connect to Amazon Bedrock: {e}")
-                logger.error("LLM processing requested but Bedrock connection failed. Please check your AWS credentials and region.")
-                # Don't automatically disable LLM - let the user decide
-                # self.use_llm = False  # Removed this line
+                logger.warning(f"Attempt {attempt + 1}/{max_retries} to connect to Bedrock failed: {e}")
+                if attempt < max_retries - 1:
+                    wait_time = retry_delay * (2 ** attempt)  # Exponential backoff
+                    logger.info(f"Retrying in {wait_time} seconds...")
+                    time.sleep(wait_time)
+                else:
+                    logger.error("All attempts to connect to Bedrock failed. Please check your AWS credentials and region.")
+                    raise RuntimeError("Cannot initialize without Bedrock connection. LLM is required for processing.")
     
     def clean_financial_artifacts(self, text: str) -> str:
         # Xóa các dấu ... hoặc chuỗi dấu chấm từ 3 trở lên
@@ -174,7 +195,6 @@ class EnhancedMarkdownSemanticChunker:
         """
         Loại bỏ các đoạn bị lặp lại nhiều lần, cả trong dòng có | (bảng) và dòng văn bản thường.
         """
-        import re
         from collections import Counter
         from difflib import SequenceMatcher
 
@@ -267,8 +287,6 @@ class EnhancedMarkdownSemanticChunker:
         """
         Thêm '#' vào các dòng được coi là pseudo-header để có thể xử lý như Markdown headers.
         """
-        import re
-
         # Regex cho các dòng toàn chữ in hoa, hoặc bắt đầu bằng A./I./1.
         header_pattern = re.compile(r'^(?:[A-ZĐ]+\.\s+)?[A-ZĐ ]{5,}$', re.MULTILINE)
 
@@ -338,7 +356,8 @@ class EnhancedMarkdownSemanticChunker:
         # Step 5: Use LLM to enhance and reorganize chunks if time permits
         print(f"Time remaining for LLM enhancement: {time_remaining:.2f}s")
         print(f"LLM timeout set to: {self.llm_timeout}s")
-        if self.use_llm and time_remaining >= 10:  # Changed from time_remaining > self.llm_timeout to time_remaining >= 10
+        print(f"Use LLM: {self.use_llm}")
+        if self.use_llm and time_remaining >= 10:  
             logger.info(f"Starting LLM enhancement with {time_remaining:.2f}s remaining")
             chunks = self._enhance_and_reorganize_chunks(chunks, time_remaining)
         elif self.use_llm:
@@ -374,13 +393,8 @@ class EnhancedMarkdownSemanticChunker:
     def _chunk_by_headers(self, content: str) -> List[Dict[str, Any]]:
         """
         Chunk document by Markdown headers.
-
-        Returns:
-            List of chunks with title, content, header level, etc.
+        Always returns at least one chunk even if no headers are found.
         """
-        import logging
-        import re
-        import json
 
         logger = logging.getLogger("MarkdownSemanticChunker")
         logger.setLevel(logging.DEBUG)
@@ -401,8 +415,25 @@ class EnhancedMarkdownSemanticChunker:
         matches = list(header_regex.finditer(content))
         logger.debug(f"Total headers matched: {len(matches)}")
 
+        # Nếu không có header nào → chunk toàn bộ nội dung
+        if not matches:
+            stripped_content = content.strip()
+            if stripped_content:
+                logger.debug("No headers found — chunking full content as one section")
+                chunks.append({
+                    'title': 'Untitled Section',
+                    'content': stripped_content,
+                    'header_level': 0,
+                    'original_title': None,
+                    'start_pos': 0,
+                    'end_pos': len(content),
+                    'is_subchunk': False,
+                    'token_count': self._estimate_tokens(stripped_content)
+                })
+            return chunks
+
         # Preamble: content before first header
-        if matches and matches[0].start() > 0:
+        if matches[0].start() > 0:
             preamble = content[:matches[0].start()].strip()
             if preamble:
                 logger.debug("Found preamble content before first header")
@@ -572,6 +603,7 @@ class EnhancedMarkdownSemanticChunker:
         """
         if not text:
             return 0
+        print(f"Estimating tokens for text of length {len(text)}")
         # Simple estimation: ~4 characters per token for English text
         return len(text) // self.chars_per_token
     
@@ -773,16 +805,22 @@ class EnhancedMarkdownSemanticChunker:
         Returns:
             Enhanced and reorganized chunks
         """
+        import re
         start_time = time.time()
         
         # Check if Bedrock client is available
         if not hasattr(self, 'bedrock_client') or self.bedrock_client is None:
             logger.error("LLM processing requested but Bedrock client is not available. Please check your AWS credentials and region.")
             return chunks
+          
+        with open("enhance_chunks_input.json", 'w', encoding='utf-8') as pf:
+            json.dump(chunks, pf, indent=2, ensure_ascii=False)
         
         try:
             # Dynamically determine how many chunks we can process
-            max_batch_size = self._calculate_max_batch_size(chunks)
+            # max_batch_size = self._calculate_max_batch_size(chunks)
+            max_batch_size = 10
+      
             logger.info(f"Calculated maximum batch size: {max_batch_size} chunks")
             
             # Prioritize chunks if there are too many
@@ -793,28 +831,46 @@ class EnhancedMarkdownSemanticChunker:
                 chunks_to_process = chunks
                 logger.info(f"Processing all {len(chunks)} chunks with LLM")
             
+            # logger.info(f"Chunks to process: {chunks_to_process}")
+            
             # Create a batch prompt for all chunks including context
             prompt = self._create_reorganization_prompt(chunks_to_process)
             
-            # Call LLM with batch prompt
-            response = self.bedrock_client.invoke_model(
-                modelId=self.bedrock_model_id,
-                body=json.dumps({
-                    "anthropic_version": "bedrock-2023-05-31",
-                    "max_tokens": 4000,
-                    "messages": [
-                        {
-                            "role": "user",
-                            "content": prompt
-                        }
-                    ],
-                    "temperature": 0
-                })
-            )
-            
-            # Process response
-            response_body = json.loads(response['body'].read().decode('utf-8'))
-            llm_response = response_body['content'][0]['text']
+            # Get available model from model manager based on content
+            sample_content = "\n".join(chunk["content"] for chunk in chunks[:3])  # Use first 3 chunks as sample
+            model_id = self.model_manager.get_available_model(content=sample_content)
+            if not model_id:
+                logger.error("No models available for processing")
+                return chunks
+            logger.info(f"Using model {model_id} for LLM processing")
+
+            try:
+                # Call LLM with batch prompt using the selected model
+                response = self.bedrock_client.invoke_model(
+                    modelId=model_id,
+                    body=json.dumps({
+                        "anthropic_version": "bedrock-2023-05-31",
+                        "max_tokens": 4000,
+                        "messages": [
+                            {
+                                "role": "user",
+                                "content": prompt
+                            }
+                        ],
+                        "temperature": 0
+                    })
+                )
+                
+                # Process response
+                response_body = json.loads(response['body'].read().decode('utf-8'))
+                llm_response = response_body['content'][0]['text']
+                
+                # Release the model back to the pool
+                self.model_manager.release_model(model_id)
+            except Exception as e:
+                logger.error(f"Error with model {model_id}: {str(e)}")
+                self.model_manager.release_model(model_id)
+                return chunks
             
             # Parse batch response and reorganize chunks
             enhanced_chunks = self._parse_and_apply_reorganization(chunks, chunks_to_process, llm_response)
@@ -1380,7 +1436,7 @@ def process_markdown_file( file_path: str, output_file: Optional[str] = None, us
       min_chunk_size=200,
       chunk_overlap=100,
       max_processing_time=max_processing_time,
-      use_llm=use_llm,
+      # use_llm=use_llm,
       bedrock_model_id=bedrock_model_id,
       aws_region=aws_region
   )
