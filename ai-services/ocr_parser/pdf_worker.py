@@ -8,64 +8,16 @@ import sys
 import traceback
 from dotenv import load_dotenv
 
-# Import OCR processing functions directly from main.py
-from main import DOLPHINClient, process_document
-
 load_dotenv()
 
 # Configuration
 RABBITMQ_URL = os.environ.get("RABBITMQ_URL", "amqp://admin:admin@52.65.216.159:5672/")
-PDF_PARSER_QUEUE = "pdf-parser-queue"
+PDF_PARSER_QUEUE = "pdf-other-parser-queue"
 CHUNKING_QUEUE = "chunking-queue"
 AWS_REGION = os.environ.get("AWS_REGION", "ap-southeast-2")
 S3_BUCKET = os.environ.get("AWS_S3_BUCKET_NAME", "semantic-chunking-bucket")
 
-# RabbitMQ connection parameters with longer heartbeat for long-running operations
-HEARTBEAT_TIMEOUT = 300  # 5 minutes
-BLOCKED_CONNECTION_TIMEOUT = 300  # 5 minutes
-
 s3 = boto3.client("s3", region_name=AWS_REGION)
-
-# Global publisher connection for sending results
-publisher_connection = None
-publisher_channel = None
-
-def get_publisher_connection():
-    """Get or create a dedicated publisher connection"""
-    global publisher_connection, publisher_channel
-    
-    try:
-        # Check if connection exists and is open
-        if publisher_connection and not publisher_connection.is_closed:
-            return publisher_connection, publisher_channel
-    except:
-        pass
-    
-    # Create new connection
-    try:
-        params = pika.URLParameters(RABBITMQ_URL)
-        params.heartbeat = HEARTBEAT_TIMEOUT
-        params.blocked_connection_timeout = BLOCKED_CONNECTION_TIMEOUT
-        
-        publisher_connection = pika.BlockingConnection(params)
-        publisher_channel = publisher_connection.channel()
-        publisher_channel.queue_declare(queue=CHUNKING_QUEUE, durable=True)
-        
-        print("[DEBUG] Created new publisher connection")
-        return publisher_connection, publisher_channel
-    except Exception as e:
-        print(f"[ERROR] Failed to create publisher connection: {e}")
-        raise
-
-def close_publisher_connection():
-    """Close the publisher connection"""
-    global publisher_connection
-    if publisher_connection and not publisher_connection.is_closed:
-        try:
-            publisher_connection.close()
-            print("[DEBUG] Closed publisher connection")
-        except:
-            pass
 
 def process_pdf_message(message):
     """Process PDF/Image file from message"""
@@ -102,40 +54,48 @@ def process_pdf_message(message):
         
         # Create a temporary output directory
         with tempfile.TemporaryDirectory() as temp_output_dir:
-            # Initialize the DOLPHIN model
-            model = DOLPHINClient()
+            # Use the main.py from ocr_parser
+            script_dir = os.path.dirname(os.path.abspath(__file__))
+            ocr_script = os.path.join(script_dir, 'main_old.py')
             
-            # Process the document directly using the imported function
-            print(f"[DEBUG] Processing document with OCR using direct function call")
-            json_path, results = process_document(tmp_file_path, model, temp_output_dir)
+            # Run OCR processing with correct arguments
+            result = subprocess.run([
+                sys.executable, ocr_script,
+                tmp_file_path,
+                '-o', temp_output_dir
+            ], check=True, capture_output=True, text=True)
             
-            # The process_document function should have created a markdown file
-            # Look for the markdown file in the expected location
+            print(f"[DEBUG] OCR processing stdout: {result.stdout}")
+            if result.stderr:
+                print(f"[DEBUG] OCR processing stderr: {result.stderr}")
+            
+            # Find the generated markdown file
+            # The OCR parser saves as {doc_filename}.md
             file_stem = os.path.splitext(os.path.basename(tmp_file_path))[0]
-            markdown_path = os.path.join(temp_output_dir, "markdown", f"{file_stem}.md")
+            markdown_path = os.path.join(temp_output_dir, f"{file_stem}.md")
             
             if os.path.exists(markdown_path):
                 with open(markdown_path, 'r', encoding='utf-8') as f:
                     markdown_content = f.read()
                 print(f"[DEBUG] Successfully read markdown from: {markdown_path}")
             else:
-                # Fallback: look for any .md file in the markdown directory
-                markdown_dir = os.path.join(temp_output_dir, "markdown")
-                if os.path.exists(markdown_dir):
-                    md_files = [f for f in os.listdir(markdown_dir) if f.endswith('.md')]
-                    if md_files:
-                        markdown_path = os.path.join(markdown_dir, md_files[0])
-                        with open(markdown_path, 'r', encoding='utf-8') as f:
-                            markdown_content = f.read()
-                        print(f"[DEBUG] Found and read markdown from: {markdown_path}")
-                    else:
-                        raise Exception("No markdown file generated by OCR processor")
+                # Fallback: look for any .md file in the output directory
+                md_files = [f for f in os.listdir(temp_output_dir) if f.endswith('.md')]
+                if md_files:
+                    markdown_path = os.path.join(temp_output_dir, md_files[0])
+                    with open(markdown_path, 'r', encoding='utf-8') as f:
+                        markdown_content = f.read()
+                    print(f"[DEBUG] Found and read markdown from: {markdown_path}")
                 else:
-                    raise Exception("No markdown directory created by OCR processor")
+                    raise Exception("No markdown file generated by OCR processor")
             
+    except subprocess.CalledProcessError as e:
+        print(f"[ERROR] OCR processing failed: {e}")
+        print(f"[ERROR] stdout: {e.stdout}")
+        print(f"[ERROR] stderr: {e.stderr}")
+        raise
     except Exception as e:
         print(f"[ERROR] Failed to process file with OCR: {e}")
-        print(f"[ERROR] Traceback: {traceback.format_exc()}")
         raise
     
     # Save markdown content to temp file
@@ -186,45 +146,25 @@ def process_pdf_message(message):
         except Exception as cleanup_error:
             print(f"[WARN] Failed to cleanup temp files: {cleanup_error}")
 
-def send_to_chunking_queue(message):
-    """Send processed document to chunking queue using dedicated publisher connection"""
-    max_retries = 3
-    retry_count = 0
-    
-    while retry_count < max_retries:
-        try:
-            # Get dedicated publisher connection
-            _, pub_channel = get_publisher_connection()
-            
-            pub_channel.basic_publish(
-                exchange='',
-                routing_key=CHUNKING_QUEUE,
-                body=json.dumps(message),
-                properties=pika.BasicProperties(
-                    content_type='application/json',
-                    delivery_mode=2  # persistent
-                )
+def send_to_chunking_queue(channel, message):
+    """Send processed document to chunking queue"""
+    try:
+        channel.queue_declare(queue=CHUNKING_QUEUE, durable=True)
+        channel.basic_publish(
+            exchange='',
+            routing_key=CHUNKING_QUEUE,
+            body=json.dumps(message),
+            properties=pika.BasicProperties(
+                content_type='application/json',
+                delivery_mode=2  # persistent
             )
-            
-            print(f"[DEBUG] Sent document {message['documentId']} to chunking queue")
-            return  # Success, exit function
-            
-        except Exception as e:
-            retry_count += 1
-            print(f"[ERROR] Failed to send to chunking queue (attempt {retry_count}/{max_retries}): {e}")
-            
-            if retry_count < max_retries:
-                print("[DEBUG] Retrying with new publisher connection...")
-                # Force recreation of publisher connection on next attempt
-                global publisher_connection
-                if publisher_connection:
-                    try:
-                        publisher_connection.close()
-                    except:
-                        pass
-                    publisher_connection = None
-            else:
-                raise
+        )
+        
+        print(f"[DEBUG] Sent document {message['documentId']} to chunking queue")
+        
+    except Exception as e:
+        print(f"[ERROR] Failed to send to chunking queue: {e}")
+        raise
 
 def callback(ch, method, properties, body):
     print(f"[DEBUG] PDF/OCR Parser received message")
@@ -233,7 +173,7 @@ def callback(ch, method, properties, body):
         print(f"[DEBUG] Parsed message: {message}")
         
         chunking_message = process_pdf_message(message)
-        send_to_chunking_queue(chunking_message)  # No longer need to pass channel
+        send_to_chunking_queue(ch, chunking_message)
         
         ch.basic_ack(delivery_tag=method.delivery_tag)
         print(f"[DEBUG] PDF/OCR processing completed and acknowledged")
@@ -247,11 +187,7 @@ def main():
     print(f"[DEBUG] PDF/OCR Parser connecting to RabbitMQ at {RABBITMQ_URL}")
     try:
         params = pika.URLParameters(RABBITMQ_URL)
-        params.heartbeat = HEARTBEAT_TIMEOUT
-        params.blocked_connection_timeout = BLOCKED_CONNECTION_TIMEOUT
-        
         connection = pika.BlockingConnection(params)
-        print(f"[DEBUG] Connected with heartbeat timeout: {HEARTBEAT_TIMEOUT}s")
     except Exception as conn_err:
         print(f"[FATAL] Could not connect to RabbitMQ: {conn_err}")
         return
@@ -260,7 +196,7 @@ def main():
     print(f"[DEBUG] Declaring queue: {PDF_PARSER_QUEUE}")
     channel.queue_declare(queue=PDF_PARSER_QUEUE, durable=True)
 
-    # Prefetch one message at a time to avoid overwhelming the worker during long processing
+    # Prefetch one message at a time
     channel.basic_qos(prefetch_count=1)
 
     print(f"[DEBUG] Starting to consume from queue: {PDF_PARSER_QUEUE}")
@@ -273,12 +209,7 @@ def main():
         print(" [x] KeyboardInterrupt: Stopping PDF/OCR parser...")
         channel.stop_consuming()
     finally:
-        # Cleanup connections
-        print("[DEBUG] Cleaning up connections...")
-        close_publisher_connection()
-        if connection and not connection.is_closed:
-            connection.close()
-        print("[DEBUG] Shutdown complete")
+        connection.close()
 
 if __name__ == "__main__":
     main()

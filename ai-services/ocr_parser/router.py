@@ -24,50 +24,29 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 AWS_REGION = os.environ.get("AWS_REGION", "ap-southeast-2")
+import fitz  # PyMuPDF
+from langdetect import detect
+import sys
+
+def extract_text_from_pdf(pdf_path: str) -> str:
+    doc = fitz.open(pdf_path)
+    text = ""
+    for page in doc:
+        text += page.get_text()
+    return text
+
+def detect_language_from_pdf(pdf_path: str):
+    try:
+        text = extract_text_from_pdf(pdf_path)
+        if not text.strip():
+            return "Empty or unreadable content"
+        lang = detect(text)
+        return lang
+    except Exception as e:
+        return f"Error: {str(e)}"
 
 s3 = boto3.client("s3", region_name=AWS_REGION)
-
-class DOLPHINClient:
-    def __init__(self, endpoint_name="dolphin-endpoint", region_name="us-east-1"):
-        self.endpoint = endpoint_name
-        self.client = boto3.client('sagemaker-runtime', region_name=region_name)
-
-    def chat(self, prompt, image):
-        """Invoke the SageMaker endpoint with prompt and image (single or batch)."""
-
-        # Normalize batch
-        is_batch = isinstance(image, list)
-        images = image if is_batch else [image]
-        prompts = prompt if isinstance(prompt, list) else [prompt] * len(images)
-
-        encoded_images = []
-        for img in images:
-            # Convert PIL image to base64
-            buffer = io.BytesIO()
-            img.save(buffer, format="JPEG")
-            img_b64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
-            encoded_images.append(img_b64)
-
-        # For batch, bundle into list
-        body = json.dumps({
-            "image": encoded_images,
-            "prompt": prompts
-        })
-
-        response = self.client.invoke_endpoint(
-            EndpointName=self.endpoint,
-            ContentType="application/json",
-            Body=body
-        )
-
-        result_str = response['Body'].read().decode('utf-8')
-        data = json.loads(result_str)
-        outputs = data.get("output", [])
-        if not is_batch and isinstance(outputs, list) and len(outputs) == 1:
-            return outputs[0]
-        elif is_batch and not isinstance(outputs, list):
-            return [outputs]
-        return outputs
+bedrock_client = boto3.client('bedrock-runtime', region_name=AWS_REGION)
 
 
 def download_file_from_url(url: str) -> str:
@@ -94,205 +73,12 @@ def download_file_from_url(url: str) -> str:
         raise
 
 
-def process_document(document_path, model, save_dir, max_batch_size=None):
-    """Parse documents with two stages - Handles both images and PDFs"""
-    file_ext = os.path.splitext(document_path)[1].lower()
-    
-    if file_ext == '.pdf':
-        # Process PDF file
-        # Convert PDF to images
-        images = convert_pdf_to_images(document_path)
-        if not images:
-            raise Exception(f"Failed to convert PDF {document_path} to images")
-        
-        all_results = []
-        
-        # Process each page
-        for page_idx, pil_image in enumerate(images):
-            print(f"Processing page {page_idx + 1}/{len(images)}")
-            
-            # Generate output name for this page
-            base_name = os.path.splitext(os.path.basename(document_path))[0]
-            page_name = f"{base_name}_page_{page_idx + 1:03d}"
-            
-            # Process this page (don't save individual page results)
-            json_path, recognition_results = process_single_image(
-                pil_image, model, save_dir, page_name, max_batch_size, save_individual=False
-            )
-            
-            # Add page information to results
-            page_results = {
-                "page_number": page_idx + 1,
-                "elements": recognition_results
-            }
-            all_results.append(page_results)
-        
-        # Save combined results for multi-page PDF
-        combined_json_path = save_combined_pdf_results(all_results, document_path, save_dir)
-        
-        return combined_json_path, all_results
-    
-    else:
-        # Process regular image file
-        pil_image = Image.open(document_path).convert("RGB")
-        base_name = os.path.splitext(os.path.basename(document_path))[0]
-        return process_single_image(pil_image, model, save_dir, base_name, max_batch_size)
-
-
-def process_single_image(image, model, save_dir, image_name, max_batch_size=None, save_individual=True):
-    """Process a single image (either from file or converted from PDF page)
-    
-    Args:
-        image: PIL Image object
-        model: DOLPHIN model instance
-        save_dir: Directory to save results
-        image_name: Name for the output file
-        max_batch_size: Maximum batch size for processing
-        save_individual: Whether to save individual results (False for PDF pages)
-        
-    Returns:
-        Tuple of (json_path, recognition_results)
-    """
-    # Stage 1: Page-level layout and reading order parsing
-    layout_output = model.chat("Parse the reading order of this document.", image)
-
-    # Stage 2: Element-level content parsing
-    padded_image, dims = prepare_image(image)
-    recognition_results = process_elements(layout_output, padded_image, dims, model, max_batch_size, save_dir, image_name)
-
-    # Save outputs only if requested (skip for PDF pages)
-    json_path = None
-    if save_individual:
-        # Ensure output directories exist
-        setup_output_dirs(save_dir)
-        # Create a dummy image path for save_outputs function
-        dummy_image_path = f"{image_name}.jpg"  # Extension doesn't matter, only basename is used
-        json_path = save_outputs(recognition_results, dummy_image_path, save_dir)
-
-    return json_path, recognition_results
-
-
-def process_elements(layout_results, padded_image, dims, model, max_batch_size, save_dir=None, image_name=None):
-    """Parse all document elements with parallel decoding"""
-    layout_results = parse_layout_string(layout_results)
-
-    # Store text and table elements separately
-    text_elements = []  # Text elements
-    table_elements = []  # Table elements
-    figure_results = []  # Image elements (no processing needed)
-    previous_box = None
-    reading_order = 0
-
-    # Collect elements to process and group by type
-    for bbox, label in layout_results:
-        try:
-            # Adjust coordinates
-            x1, y1, x2, y2, orig_x1, orig_y1, orig_x2, orig_y2, previous_box = process_coordinates(
-                bbox, padded_image, dims, previous_box
-            )
-
-            # Crop and parse element
-            cropped = padded_image[y1:y2, x1:x2]
-            if cropped.size > 0 and cropped.shape[0] > 3 and cropped.shape[1] > 3:
-                if label == "fig":
-                    pil_crop = Image.fromarray(cv2.cvtColor(cropped, cv2.COLOR_BGR2RGB))
-                    
-                    figure_filename = save_figure_to_local(pil_crop, save_dir, image_name, reading_order)
-                    
-                    # For figure regions, store relative path instead of base64
-                    figure_results.append(
-                        {
-                            "label": label,
-                            "text": f"![Figure]({figure_filename})",
-                            "figure_path": f"figures/{figure_filename}",
-                            "bbox": [orig_x1, orig_y1, orig_x2, orig_y2],
-                            "reading_order": reading_order,
-                        }
-                    )
-                else:
-                    # Prepare element for parsing
-                    pil_crop = Image.fromarray(cv2.cvtColor(cropped, cv2.COLOR_BGR2RGB))
-                    element_info = {
-                        "crop": pil_crop,
-                        "label": label,
-                        "bbox": [orig_x1, orig_y1, orig_x2, orig_y2],
-                        "reading_order": reading_order,
-                    }
-                    
-                    # Group by type
-                    if label == "tab":
-                        table_elements.append(element_info)
-                    else:  # Text elements
-                        text_elements.append(element_info)
-
-            reading_order += 1
-
-        except Exception as e:
-            print(f"Error processing bbox with label {label}: {str(e)}")
-            continue
-
-    # Initialize results list
-    recognition_results = figure_results.copy()
-    
-    # Process text elements (in batches)
-    if text_elements:
-        text_results = process_element_batch(text_elements, model, "Read text in the image.", max_batch_size)
-        recognition_results.extend(text_results)
-    
-    # Process table elements (in batches)
-    if table_elements:
-        table_results = process_element_batch(table_elements, model, "Parse the table in the image.", max_batch_size)
-        recognition_results.extend(table_results)
-
-    # Sort elements by reading order
-    recognition_results.sort(key=lambda x: x.get("reading_order", 0))
-
-    return recognition_results
-
-
-def process_element_batch(elements, model, prompt, max_batch_size=None):
-    """Process elements of the same type in batches"""
-    results = []
-    
-    # Determine batch size
-    batch_size = len(elements)
-    if max_batch_size is not None and max_batch_size > 0:
-        batch_size = min(batch_size, max_batch_size)
-    
-    # Process in batches
-    for i in range(0, len(elements), batch_size):
-        batch_elements = elements[i:i+batch_size]
-        crops_list = [elem["crop"] for elem in batch_elements]
-        
-        # Use the same prompt for all elements in the batch
-        prompts_list = [prompt] * len(crops_list)
-        
-        # Batch inference
-        batch_results = model.chat(prompts_list, crops_list)
-        # Add results
-        for j, result in enumerate(batch_results):
-            elem = batch_elements[j]
-            results.append({
-                "label": elem["label"],
-                "bbox": elem["bbox"],
-                "text": result.strip(),
-                "reading_order": elem["reading_order"],
-            })
-    
-    return results
-
 class OCRParserService:
     def __init__(self, rabbitmq_url: str):
         self.rabbitmq_url = rabbitmq_url
         self.connection = None
         self.channel = None
         self.s3_client = boto3.client('s3')
-        
-        # Initialize DOLPHIN client
-        self.model = DOLPHINClient(
-            endpoint_name=os.getenv('DOLPHIN_ENDPOINT', 'dolphin-endpoint'),
-            region_name=os.getenv('AWS_REGION', 'us-east-1')
-        )
 
     def connect(self):
         """Establish connection to RabbitMQ."""
@@ -310,10 +96,11 @@ class OCRParserService:
             self.channel = self.connection.channel()
             
             # Declare queues
+            self.channel.queue_declare(queue='pdf-parser-queue', durable=True)
             self.channel.queue_declare(queue='pdf-english-parser-queue', durable=True)
-            self.channel.queue_declare(queue='chunking-queue', durable=True)
+            self.channel.queue_declare(queue='pdf-other-parser-queue', durable=True)
             
-            logger.info("✅ Connected to RabbitMQ and listening on pdf-english-parser-queue")
+            logger.info("✅ Connected to RabbitMQ and listening on pdf-parser-queue")
             
         except Exception as e:
             logger.error(f"Failed to connect to RabbitMQ: {e}")
@@ -384,44 +171,34 @@ class OCRParserService:
                     ext = '.jpg'  # default
             else:
                 ext = '.pdf'
-            # Download the file if it's a URL
-            if s3_key.startswith(('http://', 'https://')):
-                temp_file = self.download_file_from_url(s3_key)
-                if not temp_file:
-                    raise Exception("Failed to download file from URL")
-                file_path = temp_file
-            else:
-                with tempfile.NamedTemporaryFile(suffix=ext, delete=False) as tmp_file:
-                    print(f"[DEBUG] Downloading {s3_key} from S3 to {tmp_file.name}")
-                    s3.download_fileobj(s3_bucket, s3_key, tmp_file)
-                    tmp_file_path = tmp_file.name
-                file_path = tmp_file_path
-            # Process the document
-            result = self.process_document_with_ocr(    
-                file_url=file_path,
-                s3_bucket=s3_bucket,
-                s3_key=markdown_s3_key,
-                document_id=document_id
-            )
-            print(result['s3_keys'])
-            # Verify that we have a valid markdown key
-            if 'markdown' not in result['s3_keys']:
-                raise ValueError("No markdown file was generated during processing")
-                
-            # Prepare result for chunking queue
-            chunking_payload = {
-                's3Bucket': s3_bucket,
-                's3Key': markdown_s3_key,
-                'documentId': document_id,
-                'fileType': 'pdf'
-            }
+                # Download the file if it's a URL
+                if s3_key.startswith(('http://', 'https://')):
+                    temp_file = self.download_file_from_url(s3_key)
+                    if not temp_file:
+                        raise Exception("Failed to download file from URL")
+                    file_path = temp_file
+                else:
+                    with tempfile.NamedTemporaryFile(suffix=ext, delete=False) as tmp_file:
+                        print(f"[DEBUG] Downloading {s3_key} from S3 to {tmp_file.name}")
+                        s3.download_fileobj(s3_bucket, s3_key, tmp_file)
+                        tmp_file_path = tmp_file.name
+                    file_path = tmp_file_path
+                # Process the document
             
-            logger.info(f"Sending to chunking queue: {chunking_payload}")
+            if ext == '.pdf':
+                language = detect_language_from_pdf(file_path)
+                if language == "en":
+                    queue_name = 'pdf-english-parser-queue'
+                else:
+                    queue_name = 'pdf-other-parser-queue'
+            else:
+                queue_name = 'pdf-english-parser-queue'
+            
             # Send to chunking queue
             self.channel.basic_publish(
                 exchange='',
-                routing_key='chunking-queue',
-                body=json.dumps(chunking_payload),
+                routing_key=queue_name,
+                body=body,
                 properties=pika.BasicProperties(
                     delivery_mode=2,  # Make message persistent
                 )
@@ -539,20 +316,20 @@ def main():
     service.connect()
     
     # Declare queues
-    service.channel.queue_declare(queue='pdf-english-parser-queue', durable=True)
+    service.channel.queue_declare(queue='pdf-parser-queue', durable=True)
     service.channel.queue_declare(queue='chunking-queue', durable=True)
     
     # Set up consumer
     service.channel.basic_qos(prefetch_count=1)
     service.channel.basic_consume(
-        queue='pdf-english-parser-queue',
+        queue='pdf-parser-queue',
         on_message_callback=service.process_message,
         auto_ack=False
     )
     
     try:
         logger.info("🚀 Starting DOLPHIN OCR worker...")
-        logger.info("🔄 Waiting for messages in pdf-english-parser-queue...")
+        logger.info("🔄 Waiting for messages in pdf-parser-queue...")
         service.channel.start_consuming()
     except KeyboardInterrupt:
         logger.info("\n👋 Shutting down worker...")

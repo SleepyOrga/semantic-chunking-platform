@@ -19,11 +19,11 @@ class EnhancedMarkdownSemanticChunker:
         max_chunk_size: int = 1500,
         min_chunk_size: int = 200,
         chunk_overlap: int = 100,
-        max_processing_time: int = 30,
+        max_processing_time: int = 180,  # Increased from 30 to 180 seconds
         use_llm: bool = True,
         # bedrock_model_id: str = "anthropic.claude-3-sonnet-20240229-v1:0",
         bedrock_model_id: str = "anthropic.claude-3-5-sonnet-20241022-v2:0",
-        llm_timeout: int = 60,
+        llm_timeout: int = 60,  # Reduced from 120 to 60 seconds
         max_llm_tokens: int = 100000,  # Maximum tokens for LLM call
         max_embedding_chunk_size: int = 512,  # Maximum size for RAG/embedding
         aws_region: Optional[str] = None
@@ -85,9 +85,10 @@ class EnhancedMarkdownSemanticChunker:
                 self.bedrock_client = boto3.client('bedrock-runtime', region_name=aws_region)
                 logger.info("Successfully connected to Amazon Bedrock")
             except Exception as e:
-                logger.warning(f"Could not connect to Amazon Bedrock: {e}")
-                logger.info("Falling back to non-LLM processing")
-                self.use_llm = False
+                logger.error(f"Could not connect to Amazon Bedrock: {e}")
+                logger.error("LLM processing requested but Bedrock connection failed. Please check your AWS credentials and region.")
+                # Don't automatically disable LLM - let the user decide
+                # self.use_llm = False  # Removed this line
     
     def clean_financial_artifacts(self, text: str) -> str:
         # Xóa các dấu ... hoặc chuỗi dấu chấm từ 3 trở lên
@@ -337,9 +338,13 @@ class EnhancedMarkdownSemanticChunker:
         # Step 5: Use LLM to enhance and reorganize chunks if time permits
         print(f"Time remaining for LLM enhancement: {time_remaining:.2f}s")
         print(f"LLM timeout set to: {self.llm_timeout}s")
-        if self.use_llm and time_remaining > self.llm_timeout:
+        if self.use_llm and time_remaining >= 10:  # Changed from time_remaining > self.llm_timeout to time_remaining >= 10
             logger.info(f"Starting LLM enhancement with {time_remaining:.2f}s remaining")
             chunks = self._enhance_and_reorganize_chunks(chunks, time_remaining)
+        elif self.use_llm:
+            logger.warning(f"LLM processing requested but insufficient time remaining ({time_remaining:.2f}s < 10s). Skipping LLM enhancement.")
+        else:
+            logger.info("LLM processing disabled. Using basic chunking only.")
         
         # Step 6: Ensure all chunks are appropriate for embedding/RAG
         chunks = self._finalize_chunks_for_embedding(chunks)
@@ -769,6 +774,11 @@ class EnhancedMarkdownSemanticChunker:
             Enhanced and reorganized chunks
         """
         start_time = time.time()
+        
+        # Check if Bedrock client is available
+        if not hasattr(self, 'bedrock_client') or self.bedrock_client is None:
+            logger.error("LLM processing requested but Bedrock client is not available. Please check your AWS credentials and region.")
+            return chunks
         
         try:
             # Dynamically determine how many chunks we can process
@@ -1350,7 +1360,7 @@ class EnhancedMarkdownSemanticChunker:
         except Exception as e:
             logger.error(f"Error saving chunks to file: {e}")
             
-def process_markdown_file( file_path: str, output_file: Optional[str] = None, use_llm: bool = True, max_processing_time: int = 30, bedrock_model_id: str = "anthropic.claude-3-sonnet-20240229-v1:0", aws_region: Optional[str] = None ) -> List[Dict[str, Any]]: 
+def process_markdown_file( file_path: str, output_file: Optional[str] = None, use_llm: bool = True, max_processing_time: int = 180, bedrock_model_id: str = "anthropic.claude-3-5-sonnet-20241022-v2:0", aws_region: Optional[str] = None ) -> List[Dict[str, Any]]: 
   """ Process a Markdown file to extract semantic chunks.
   Args:
       file_path: Path to Markdown file
@@ -1389,8 +1399,8 @@ if __name__ == "__main__":
   parser.add_argument("file_path", type=str, help="Path to the Markdown file")
   parser.add_argument("--output_file", type=str, default="markdown_chunks.json", help="Output JSON file path")
   parser.add_argument("--use_llm", action='store_true', help="Use LLM for chunk enhancement")
-  parser.add_argument("--max_processing_time", type=int, default=30, help="Maximum processing time in seconds")
-  parser.add_argument("--bedrock_model_id", type=str, default="anthropic.claude-3-sonnet-20240229-v1:0", help="Amazon Bedrock model ID")
+  parser.add_argument("--max_processing_time", type=int, default=180, help="Maximum processing time in seconds")
+  parser.add_argument("--bedrock_model_id", type=str, default="anthropic.claude-3-5-sonnet-20241022-v2:0", help="Amazon Bedrock model ID")
   parser.add_argument("--aws_region", type=str, default=None, help="AWS region for Bedrock")
   start_time = time.time()
   args = parser.parse_args()
