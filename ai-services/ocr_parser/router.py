@@ -192,7 +192,7 @@ class OCRParserService:
                 else:
                     queue_name = 'pdf-other-parser-queue'
             else:
-                queue_name = 'pdf-other-parser-queue'
+                queue_name = 'pdf-english-parser-queue'
             
             # Send to chunking queue
             self.channel.basic_publish(
