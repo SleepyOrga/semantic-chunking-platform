@@ -408,15 +408,18 @@ async def vector_search(embedding: List[float], top_k: int, tags: Optional[List[
         print(f"Error in vector search: {e}")
         return []
 
-async def stream_bedrock_response(prompt: str, chunks: List[ChunkOut], system_prompt: Optional[str] = None, max_tokens: int = 2000, temperature: float = 0.7) -> AsyncGenerator[str, None]:
-    """Stream response from Bedrock using chunks as context"""
+async def stream_bedrock_response(
+    prompt: str,
+    chunks: List[ChunkOut],
+    system_prompt: Optional[str] = None,
+    max_tokens: int = 2000,
+    temperature: float = 0.7
+) -> AsyncGenerator[str, None]:
     try:
-        # Format chunks for context
         context = ""
         for i, chunk in enumerate(chunks):
             context += f"\n\nPASSAGE {i+1}:\n{chunk.content}"
-        
-        # Default system prompt if none provided
+
         if not system_prompt:
             system_prompt = """You are a helpful AI assistant that answers questions based on the provided document passages.
             When answering:
@@ -424,10 +427,8 @@ async def stream_bedrock_response(prompt: str, chunks: List[ChunkOut], system_pr
             - If the passages don't contain relevant information, say so politely
             - Do not make up information that isn't supported by the passages
             - Format your responses with markdown for readability
-            - Cite specific passages when possible by referring to PASSAGE X
-            """
-        
-        # Format user prompt with context
+            - Cite specific passages when possible by referring to PASSAGE X"""
+
         user_prompt = f"""Here are some relevant passages from documents:
 
 {context}
@@ -436,8 +437,8 @@ Based on these passages, please answer the following:
 
 {prompt}"""
 
-        # Create streaming request to Bedrock
-        stream = bedrock_client.invoke_model_with_response_stream(
+        # Gọi Bedrock với response stream
+        response = bedrock_client.invoke_model_with_response_stream(
             modelId=BEDROCK_MODEL_ID_4,
             body=json.dumps({
                 "anthropic_version": "bedrock-2023-05-31",
@@ -452,21 +453,69 @@ Based on these passages, please answer the following:
                 ]
             })
         )
-        
-        # Process the streaming response
-        async for event in stream.get_response_stream():
-            if 'chunk' in event:
-                chunk_data = json.loads(event['chunk']['bytes'])
-                if 'content' in chunk_data and len(chunk_data['content']) > 0:
-                    content_text = chunk_data['content'][0]['text']
-                    yield content_text
-                    
-        # Send an empty string to signal the end of the stream
-        yield ""
-            
+
+        # Lấy EventStream object
+        event_stream = response["body"]
+
+        # Đọc stream từng event
+        for event in event_stream:
+            print(f"Received event: {event}")
+            event_type = event.get("type", None)
+            if "chunk" in event:
+                chunk_bytes = event["chunk"].get("bytes")
+                if chunk_bytes:
+                    try:
+                        payload = json.loads(chunk_bytes.decode("utf-8"))
+                        if payload.get("type") == "content_block_delta":
+                            delta = payload.get("delta", {})
+                            if delta.get("type") == "text_delta":
+                                text = delta.get("text", "")
+                                if text:
+                                    print(f"Yielding text delta: {text!r}")
+                                    yield text
+                            
+                        # Handle classic content structure (if it exists)
+                        elif "content" in payload:
+                            for part in payload.get("content", []):
+                                text = part.get("text")
+                                if text:
+                                    yield text
+                                
+                    except Exception as json_err:
+                        print(f"Error decoding JSON chunk: {json_err}")
+                        continue
+            elif event_type == "error":
+                error_msg = event.get("error", {}).get("message", "Unknown error")
+                raise RuntimeError(f"Model streaming error: {error_msg}")
+
+        yield ""  # Kết thúc stream
+
     except Exception as e:
         print(f"Error in streaming Bedrock response: {e}")
         yield f"\n\nI encountered an error while generating a response: {str(e)}"
+
+# Add this helper function to format the stream as SSE
+async def format_as_sse(generator):
+    """Format the generator output as Server-Sent Events with explicit flushing"""
+    try:
+        count = 0
+        async for chunk in generator:
+            if chunk:
+                count += 1
+                # Log the exact chunk being sent to frontend
+                print(f"Sending chunk {count} to frontend: {chunk!r}")
+                # Format as SSE event with data prefix
+                yield f"data: {chunk}\n\n"
+                # Force flush buffer after each chunk
+                await asyncio.sleep(0)  # Yield control to event loop to flush
+        
+        print(f"Stream complete. Sent {count} chunks.")
+        # End the stream with a final event
+        yield f"data: [DONE]\n\n"
+    except Exception as e:
+        print(f"Error in SSE formatting: {e}")
+        yield f"data: error:{str(e)}\n\n"
+
 
 # API Endpoints
 @app.get("/health", response_model=HealthResponse)
@@ -613,21 +662,42 @@ async def stream_chat(chat_req: ChatRequest):
         if not chat_req.chunks:
             raise HTTPException(status_code=400, detail="No context chunks provided")
         
-        # Create a streaming response
+        # Create a streaming response with CORS headers and no buffering
         return StreamingResponse(
-            stream_bedrock_response(
+            format_as_sse(stream_bedrock_response(
                 chat_req.prompt, 
                 chat_req.chunks,
                 chat_req.system_prompt,
                 chat_req.max_tokens,
                 chat_req.temperature
-            ),
-            media_type="text/event-stream"
+            )),
+            media_type="text/event-stream",
+            headers={
+                "Cache-Control": "no-cache, no-transform",
+                "Connection": "keep-alive",
+                "Content-Type": "text/event-stream",
+                "Access-Control-Allow-Origin": "*",
+                "X-Accel-Buffering": "no"  # Disable Nginx buffering if you use Nginx
+            }
         )
-        
     except Exception as e:
         print(f"Error in chat stream endpoint: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
+
+# In main.py
+@app.get("/test-stream")
+async def test_stream():
+    """Simple test endpoint for streaming"""
+    async def generate_test():
+        for i in range(1, 6):
+            print(f"Generating test chunk {i}")
+            yield f"This is test chunk {i}"
+            await asyncio.sleep(1)  # Wait between chunks
+    
+    return StreamingResponse(
+        format_as_sse(generate_test()),
+        media_type="text/event-stream"
+    )
 
 if __name__ == "__main__":
     import uvicorn

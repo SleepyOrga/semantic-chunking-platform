@@ -11,6 +11,7 @@ import DocumentService from "../services/DocumentService";
 import SearchService from "../services/SearchService";
 import AuthService from "../services/AuthService";
 import { useNavigate } from "react-router-dom";
+import { flushSync } from "react-dom";
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 
@@ -283,7 +284,6 @@ const HomePage = () => {
       ]);
 
       // Step 2: Start streaming the response
-      let streamedResponse = "";
 
       // Add a placeholder message for the streaming content
       setMessages((prev) => [
@@ -296,30 +296,45 @@ const HomePage = () => {
       ]);
 
       try {
+        let streamedResponse = "";
+        let lastUpdateTime = Date.now();
+        const UPDATE_THROTTLE_MS = 50;
+
         // Stream the response with error handling
         await SearchService.streamChatResponse(
           query,
           chunks,
           // On chunk received callback
           (textChunk) => {
+            // Don't log the entire response each time
+            console.log("Received chunk:", textChunk.substring(0, 20) + "...");
+
+            // Append the new chunk
             streamedResponse += textChunk;
 
-            // Update the streaming message
-            setMessages((prev) => {
-              const newMessages = [...prev];
-              const streamingMsgIndex = newMessages.findIndex(
-                (m) => m.isStreaming
-              );
+            const now = Date.now();
+            if (now - lastUpdateTime > UPDATE_THROTTLE_MS) {
+              lastUpdateTime = now;
 
-              if (streamingMsgIndex !== -1) {
-                newMessages[streamingMsgIndex] = {
-                  ...newMessages[streamingMsgIndex],
-                  content: streamedResponse,
-                };
-              }
+              // Update the streaming message WITHOUT flushSync
+              setMessages((prev) => {
+                console.log("Updating messages state, throttled");
+                const newMessages = [...prev];
+                const streamingMsgIndex = newMessages.findIndex(
+                  (m) => m.isStreaming
+                );
 
-              return newMessages;
-            });
+                if (streamingMsgIndex !== -1) {
+                  // Create a new object for React to detect the change
+                  newMessages[streamingMsgIndex] = {
+                    ...newMessages[streamingMsgIndex],
+                    content: streamedResponse,
+                  };
+                }
+
+                return newMessages;
+              });
+            } // Fixed: Properly close both flushSync and setMessages
           },
           // On error callback
           (errorMessage) => {

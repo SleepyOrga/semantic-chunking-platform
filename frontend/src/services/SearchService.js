@@ -60,67 +60,82 @@ class SearchService {
   // Step 2: Stream chat response using retrieved chunks
   // Add this to your streamChatResponse method
 
-  async streamChatResponse(userPrompt, chunks, onChunkReceived, onError) {
-    try {
-      console.log("Starting streaming chat with chunks:", chunks.length);
-
-      const response = await fetch(`${RETRIEVAL_API_URL}/chat/stream`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          prompt: userPrompt,
-          chunks: chunks,
-          temperature: 0.7,
-          max_tokens: 2000,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
-
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
-
-      // Read the stream
-      try {
-        while (true) {
-          const { value, done } = await reader.read();
-          if (done) break;
-
-          // Decode the chunk and pass to callback
-          const text = decoder.decode(value);
-
-          // Check if the text contains an error message
-          if (
-            text.includes("ThrottlingException") ||
-            text.includes("error") ||
-            text.includes("Exception")
-          ) {
-            // Extract error message
-            const errorMatch =
-              text.match(/error occurred \((.*?)\)/i) ||
-              text.match(/error: (.*)/i);
-            const errorMessage = errorMatch ? errorMatch[1] : text;
-            throw new Error(errorMessage);
-          }
-
-          onChunkReceived(text);
-        }
-      } catch (streamError) {
-        // Handle streaming-specific errors
-        console.error("Streaming error:", streamError);
-        if (onError) onError(streamError.message);
-        throw streamError;
-      }
-    } catch (error) {
-      console.error("Error in streaming chat response:", error);
-      if (onError) onError(error.message);
-      throw error;
+async streamChatResponse(userPrompt, chunks, onChunkReceived, onError) {
+  try {
+    console.log('Starting streaming chat with chunks:', chunks.length);
+    
+    const response = await fetch(`${RETRIEVAL_API_URL}/chat/stream`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        prompt: userPrompt,
+        chunks: chunks,
+        temperature: 0.7,
+        max_tokens: 2000
+      })
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
     }
+    
+    console.log('Streaming response started');
+    console.log('Stream response status:', response.status);
+    
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+    
+    // Read the stream
+    try {
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) {
+          console.log('Stream reading completed');
+          break;
+        }
+        
+        // Decode the chunk and add to buffer
+        const chunk = decoder.decode(value);
+        buffer += chunk;
+        
+        // Process complete SSE messages from buffer
+        const messages = buffer.split('\n\n');
+        // Last part might be incomplete, keep it in buffer
+        buffer = messages.pop() || '';
+        
+        for (const message of messages) {
+          if (!message.trim()) continue;
+          
+          // Parse the SSE format
+          if (message.startsWith('data: ')) {
+            // Extract content after "data: "
+            const content = message.substring(6);
+            
+            // Skip the [DONE] marker
+            if (content === '[DONE]') {
+              console.log('Stream complete marker received');
+              continue;
+            }
+            
+            // Pass the actual content (not the raw SSE message) to the callback
+            console.log('Received chunk in search service:', content);
+            onChunkReceived(content);
+          }
+        }
+      }
+    } catch (streamError) {
+      console.error('Stream reading error:', streamError);
+      if (onError) onError(streamError.message);
+    }
+  } catch (error) {
+    console.error('Error in streaming chat response:', error);
+    if (onError) onError(error.message);
+    throw error;
   }
+}
 
   // Format chunks summary for display
   formatChunksSummary(chunks) {
