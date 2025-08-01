@@ -23,7 +23,7 @@ class EnhancedMarkdownSemanticChunker:
         use_llm: bool = True,
         # bedrock_model_id: str = "anthropic.claude-3-sonnet-20240229-v1:0",
         bedrock_model_id: str = "anthropic.claude-3-5-sonnet-20241022-v2:0",
-        llm_timeout: int = 15,
+        llm_timeout: int = 60,
         max_llm_tokens: int = 100000,  # Maximum tokens for LLM call
         max_embedding_chunk_size: int = 512,  # Maximum size for RAG/embedding
         aws_region: Optional[str] = None
