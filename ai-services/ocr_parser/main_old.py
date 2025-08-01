@@ -61,10 +61,10 @@ class OcrParserService:
             self.channel = self.connection.channel()
             
             # Declare queues
-            self.channel.queue_declare(queue='pdf-parser-queue', durable=True)
+            self.channel.queue_declare(queue='pdf-other-parser-queue', durable=True)
             self.channel.queue_declare(queue='chunking-queue', durable=True)
             
-            logger.info("✅ Connected to RabbitMQ and listening on pdf-parser-queue")
+            logger.info("✅ Connected to RabbitMQ and listening on pdf-other-parser-queue")
             
         except Exception as e:
             logger.error(f"Failed to connect to RabbitMQ: {e}")

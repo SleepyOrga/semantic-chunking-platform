@@ -15,7 +15,7 @@ load_dotenv()
 
 # Configuration
 RABBITMQ_URL = os.environ.get("RABBITMQ_URL", "amqp://admin:admin@52.65.216.159:5672/")
-PDF_PARSER_QUEUE = "pdf-parser-queue"
+PDF_PARSER_QUEUE = "pdf-other-parser-queue"
 CHUNKING_QUEUE = "chunking-queue"
 AWS_REGION = os.environ.get("AWS_REGION", "ap-southeast-2")
 S3_BUCKET = os.environ.get("AWS_S3_BUCKET_NAME", "semantic-chunking-bucket")
