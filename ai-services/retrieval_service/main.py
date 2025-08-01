@@ -1,6 +1,8 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, BackgroundTasks
+from fastapi.responses import StreamingResponse
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from typing import List, Dict, Any, Optional, Set, Union
+from typing import List, Dict, Any, Optional, Set, Union, AsyncGenerator
 import boto3
 import json
 import psycopg2
@@ -53,6 +55,14 @@ cursor = conn.cursor()
 
 app = FastAPI()
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],  # Hoặc ["*"] nếu muốn mở toàn bộ
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 # Models
 class QueryRequest(BaseModel):
     query: str
@@ -74,6 +84,13 @@ class HealthResponse(BaseModel):
     message: str
     chunks_count: int = 0
     documents_count: int = 0
+
+class ChatRequest(BaseModel):
+    prompt: str
+    chunks: List[ChunkOut]
+    system_prompt: Optional[str] = None
+    max_tokens: int = 2000
+    temperature: float = 0.7
 
 # Helper functions
 def get_embedding(text: str) -> List[float]:
@@ -388,6 +405,66 @@ async def vector_search(embedding: List[float], top_k: int, tags: Optional[List[
         print(f"Error in vector search: {e}")
         return []
 
+async def stream_bedrock_response(prompt: str, chunks: List[ChunkOut], system_prompt: Optional[str] = None, max_tokens: int = 2000, temperature: float = 0.7) -> AsyncGenerator[str, None]:
+    """Stream response from Bedrock using chunks as context"""
+    try:
+        # Format chunks for context
+        context = ""
+        for i, chunk in enumerate(chunks):
+            context += f"\n\nPASSAGE {i+1}:\n{chunk.content}"
+        
+        # Default system prompt if none provided
+        if not system_prompt:
+            system_prompt = """You are a helpful AI assistant that answers questions based on the provided document passages.
+            When answering:
+            - Rely primarily on the information in the provided passages
+            - If the passages don't contain relevant information, say so politely
+            - Do not make up information that isn't supported by the passages
+            - Format your responses with markdown for readability
+            - Cite specific passages when possible by referring to PASSAGE X
+            """
+        
+        # Format user prompt with context
+        user_prompt = f"""Here are some relevant passages from documents:
+
+{context}
+
+Based on these passages, please answer the following:
+
+{prompt}"""
+
+        # Create streaming request to Bedrock
+        stream = bedrock_client.invoke_model_with_response_stream(
+            modelId=BEDROCK_MODEL_ID,
+            body=json.dumps({
+                "anthropic_version": "bedrock-2023-05-31",
+                "max_tokens": max_tokens,
+                "temperature": temperature,
+                "system": system_prompt,
+                "messages": [
+                    {
+                        "role": "user",
+                        "content": user_prompt
+                    }
+                ]
+            })
+        )
+        
+        # Process the streaming response
+        async for event in stream.get_response_stream():
+            if 'chunk' in event:
+                chunk_data = json.loads(event['chunk']['bytes'])
+                if 'content' in chunk_data and len(chunk_data['content']) > 0:
+                    content_text = chunk_data['content'][0]['text']
+                    yield content_text
+                    
+        # Send an empty string to signal the end of the stream
+        yield ""
+            
+    except Exception as e:
+        print(f"Error in streaming Bedrock response: {e}")
+        yield f"\n\nI encountered an error while generating a response: {str(e)}"
+
 # API Endpoints
 @app.get("/health", response_model=HealthResponse)
 def health_check():
@@ -418,15 +495,19 @@ async def rag(query_req: QueryRequest):
     try:
         original_query = query_req.query
         queries = [original_query]
+        print(f"[RAG] Processing query: '{original_query}'")
+        print(f"[RAG] Settings: top_k={query_req.top_k_chunks}, final_n={query_req.final_n}, expand_query={query_req.expand_query}, use_hybrid={query_req.use_hybrid}, use_tag_filtering={query_req.use_tag_filtering}")
         
         # Query expansion - make async call
         if query_req.expand_query:
+            print(f"[RAG] Expanding query: '{original_query}'")
             expanded_queries = await expand_query_with_llm(original_query)
             queries.extend(q for q in expanded_queries if q != original_query)
         
         all_results = []
         
         # Get all available tags for tag generation
+        print("[RAG] Fetching existing tags for tag filtering")
         cursor.execute("""
             SELECT DISTINCT unnest(tags) as tag 
             FROM chunks 
@@ -435,11 +516,13 @@ async def rag(query_req: QueryRequest):
         existing_tags = [row[0] for row in cursor.fetchall()] if cursor.rowcount > 0 else []
         
         # Generate related tags from the query - make async call
+        print(f"[RAG] Generating related tags for query: '{original_query}'")
         related_tags = []
         if query_req.use_tag_filtering and existing_tags:
             related_tags = await generate_related_tags(original_query, existing_tags)
             print(f"Generated related tags: {related_tags}")
         
+        print(f"[RAG] Processing {len(queries)} queries with related tags: {related_tags}")
         # Process each query
         for query in queries:
             try:
@@ -514,6 +597,33 @@ async def rag(query_req: QueryRequest):
         raise
     except Exception as e:
         print(f"Error in RAG endpoint: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/chat/stream")
+async def stream_chat(chat_req: ChatRequest):
+    """Stream a chat response based on user prompt and retrieved chunks"""
+    try:
+        # Validate input
+        if not chat_req.prompt:
+            raise HTTPException(status_code=400, detail="Prompt cannot be empty")
+        
+        if not chat_req.chunks:
+            raise HTTPException(status_code=400, detail="No context chunks provided")
+        
+        # Create a streaming response
+        return StreamingResponse(
+            stream_bedrock_response(
+                chat_req.prompt, 
+                chat_req.chunks,
+                chat_req.system_prompt,
+                chat_req.max_tokens,
+                chat_req.temperature
+            ),
+            media_type="text/event-stream"
+        )
+        
+    except Exception as e:
+        print(f"Error in chat stream endpoint: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":

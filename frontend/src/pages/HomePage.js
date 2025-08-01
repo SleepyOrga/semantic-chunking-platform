@@ -246,24 +246,134 @@ const HomePage = () => {
     ]);
 
     try {
-      // Call retrieval service API
-      const response = await SearchService.searchDocuments(query, {
+      // Step 1: Retrieve chunks
+      console.log("Retrieving chunks for query:", query);
+      const chunks = await SearchService.getRelevantChunks(query, {
         topK: 20,
         finalN: 5,
         expandQuery: true,
         useHybrid: true,
       });
+      console.log("Retrieved chunks:", chunks);
 
-      // Add assistant response with the formatted result
+      if (!chunks || chunks.length === 0) {
+        setMessages((prev) => [
+          ...prev,
+          {
+            type: "assistant",
+            content:
+              "I couldn't find any relevant information to answer your question.",
+            isFile: false,
+          },
+        ]);
+        setIsLoading(false);
+        return;
+      }
+
+      // Add interim message showing chunks were found
+      const chunksSummary = SearchService.formatChunksSummary(chunks);
       setMessages((prev) => [
         ...prev,
         {
           type: "assistant",
-          content: response.result,
-          isFile: false,
-          chunks: response.rawChunks, // Store raw chunks for future use if needed
+          content: chunksSummary,
+          isInterim: true,
+          chunks: chunks,
         },
       ]);
+
+      // Step 2: Start streaming the response
+      let streamedResponse = "";
+
+      // Add a placeholder message for the streaming content
+      setMessages((prev) => [
+        ...prev,
+        {
+          type: "assistant",
+          content: "",
+          isStreaming: true,
+        },
+      ]);
+
+      try {
+        // Stream the response with error handling
+        await SearchService.streamChatResponse(
+          query,
+          chunks,
+          // On chunk received callback
+          (textChunk) => {
+            streamedResponse += textChunk;
+
+            // Update the streaming message
+            setMessages((prev) => {
+              const newMessages = [...prev];
+              const streamingMsgIndex = newMessages.findIndex(
+                (m) => m.isStreaming
+              );
+
+              if (streamingMsgIndex !== -1) {
+                newMessages[streamingMsgIndex] = {
+                  ...newMessages[streamingMsgIndex],
+                  content: streamedResponse,
+                };
+              }
+
+              return newMessages;
+            });
+          },
+          // On error callback
+          (errorMessage) => {
+            console.error("Streaming error:", errorMessage);
+
+            // Update the streaming message to show error
+            setMessages((prev) => {
+              const newMessages = [...prev];
+              const streamingMsgIndex = newMessages.findIndex(
+                (m) => m.isStreaming
+              );
+
+              if (streamingMsgIndex !== -1) {
+                newMessages[streamingMsgIndex] = {
+                  type: "assistant",
+                  content:
+                    streamedResponse ||
+                    "I started generating a response but encountered an error.",
+                  isError: true,
+                  errorMessage:
+                    errorMessage || "Error during response generation",
+                  isStreaming: false,
+                };
+              }
+
+              return newMessages;
+            });
+          }
+        );
+
+        // When streaming completes successfully, finalize the message
+        setMessages((prev) => {
+          const newMessages = [...prev];
+          const streamingMsgIndex = newMessages.findIndex((m) => m.isStreaming);
+
+          if (streamingMsgIndex !== -1) {
+            newMessages[streamingMsgIndex] = {
+              type: "assistant",
+              content: streamedResponse,
+              isFile: false,
+              isStreaming: false,
+            };
+          }
+
+          return newMessages;
+        });
+      } catch (streamingError) {
+        console.error(
+          "Streaming error caught in outer handler:",
+          streamingError
+        );
+        // The error is already handled by the onError callback
+        // No need to add another error message
+      }
     } catch (err) {
       console.error("Search error:", err);
       setMessages((prev) => [
@@ -277,6 +387,13 @@ const HomePage = () => {
       ]);
     } finally {
       setIsLoading(false);
+
+      // Safety check - make sure no messages are still marked as streaming
+      setMessages((prev) =>
+        prev.map((msg) =>
+          msg.isStreaming ? { ...msg, isStreaming: false } : msg
+        )
+      );
     }
   };
 

@@ -203,25 +203,25 @@ const DocumentViewer = ({ open, onClose, documentId, documentName }) => {
   };
 
   const isTabDisabled = (tabIndex) => {
-    console.log('[DEBUG] isTabDisabled called for tab:', tabIndex);
-    console.log('[DEBUG] documentDetails:', documentDetails);
+    //console.log('[DEBUG] isTabDisabled called for tab:', tabIndex);
+    //console.log('[DEBUG] documentDetails:', documentDetails);
     
     if (!documentDetails) {
-      console.log('[DEBUG] No document details, disabling tab');
+      //console.log('[DEBUG] No document details, disabling tab');
       return true;
     }
     
     switch (tabIndex) {
       case 0: // Raw file
         const rawDisabled = !documentDetails.path;
-        console.log('[DEBUG] Raw file tab disabled:', rawDisabled, 'path:', documentDetails.path);
+        //console.log('[DEBUG] Raw file tab disabled:', rawDisabled, 'path:', documentDetails.path);
         return rawDisabled;
       case 1: // Markdown
         const markdownDisabled = !documentDetails.path;
-        console.log('[DEBUG] Markdown tab disabled:', markdownDisabled, 'path:', documentDetails.path.replace(/\.[^.]+$/, '.md'));
+        //console.log('[DEBUG] Markdown tab disabled:', markdownDisabled, 'path:', documentDetails.path.replace(/\.[^.]+$/, '.md'));
         return markdownDisabled;
       case 2: // Chunks
-        console.log('[DEBUG] Chunks tab always enabled');
+        //console.log('[DEBUG] Chunks tab always enabled');
         return false; 
       default:
         return false;
