@@ -1,0 +1,9 @@
+Region | Revenue | Units Sold | Growth % | Top Product
+North America | $1,200,000 | 7800 | 15% | Product A
+Europe | $720,000 | 4680 | 25% | Product B
+Asia Pacific | $480,000 | 3120 | 12% | Product A
+
+Regional Sales Performance - Q3 2024
+
+Regional Analysis: North America remains our strongest market with consistent growth. Europe shows excellent potential with 25% growth driven by Product B adoption. Asia Pacific market is developing steadily with focus on Product A penetration.
+

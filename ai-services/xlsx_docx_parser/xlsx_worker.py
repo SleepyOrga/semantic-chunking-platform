@@ -7,7 +7,8 @@ import sys
 import traceback
 from dotenv import load_dotenv
 from parser_xlsx import extract_xlsx_to_markdown
-
+import pandas as pd
+from typing import List, Dict
 load_dotenv()
 
 # Configuration

@@ -12,6 +12,8 @@ import json
 import pika
 from typing import Dict, Any, Optional
 
+import pandas as pd
+from typing import List, Dict
 # Import required docling modules
 from docling.document_converter import DocumentConverter, ExcelFormatOption
 from docling.datamodel.base_models import InputFormat
@@ -147,7 +149,123 @@ def download_from_s3(s3_bucket, s3_key, local_path):
         logging.error(f"Failed to download from S3: {e}")
         raise
 
+def read_xlsx_and_convert(filepath: str) -> Dict[str, List[str]]:
+    xls = pd.ExcelFile(filepath)
+    result = {}
+
+    for sheetname in xls.sheet_names:
+        df = xls.parse(sheetname, header=None, dtype=str)
+        df = df.fillna("")
+        lines = []
+
+        current_table = []
+        current_text_block = []
+
+        for _, row in df.iterrows():
+            row_vals = [str(cell).strip() for cell in row if str(cell).strip()]
+            if not row_vals:
+                # End of a block
+                if current_table:
+                    lines.extend(convert_table_to_sentences(current_table))
+                    current_table = []
+                    lines.append("\n")  # Add a blank line to separate blocks
+                    
+                if current_text_block:
+                    lines.append("\n".join(current_text_block))
+                    lines.append("\n")  # Add a blank line to separate blocks
+                    current_text_block = []
+                continue
+
+            if is_probably_table_row(row):
+                # Flush text block if needed
+                if current_text_block:
+                    lines.append(" ".join(current_text_block))
+                    current_text_block = []
+
+                current_table.append(row.tolist())
+            else:
+                # Flush table block if needed
+                if current_table:
+                    lines.extend(convert_table_to_sentences(current_table))
+                    current_table = []
+                current_text_block.append("\n".join(row_vals))
+
+        # Flush any remaining data
+        if current_table:
+            lines.extend(convert_table_to_sentences(current_table))
+        if current_text_block:
+            lines.append("\n".join(current_text_block))
+
+        result[sheetname] = lines
+    return result
+
+
+def is_probably_table_row(row, min_non_empty=2) -> bool:
+    """
+    A row is likely part of a table if it has enough non-empty cells
+    and is consistent with tabular layout.
+    """
+    cells = [str(cell).strip() for cell in row]
+    non_empty = sum(1 for cell in cells if cell)
+    return non_empty >= min_non_empty
+
+
+def convert_table_to_sentences(table_rows: List[List[str]]) -> List[str]:
+    if not table_rows or len(table_rows) < 2:
+        return []
+
+    # Assume first row is header
+    header = [str(cell).strip() for cell in table_rows[0]]
+    sentences = []
+
+    for row in table_rows[1:]:
+        cells = [str(cell).strip() for cell in row]
+        parts = []
+        for col, val in zip(header, cells):
+            if col and val:
+                parts.append(f"{col}: {val}")
+        sentence = ". ".join(parts)
+        if sentence:
+            sentences.append(sentence)
+    return sentences
+
+
+def save_to_text_files(sheet_data: Dict[str, List[str]], output_path: str):
+    with open(output_path, "w", encoding="utf-8") as f:
+        for sheetname, lines in sheet_data.items():
+            f.write(f"# {sheetname}\n\n")
+            for line in lines:
+                f.write(line.strip() + "\n")
+            f.write("\n")  # Add a blank line after each sheet
+        
+              
 def extract_xlsx_to_markdown(input_path, output_dir=None, s3_bucket=None, s3_prefix=None, original_s3_key=None):
+    """
+    Extract XLSX to markdown.
+    
+    Args:
+        input_path: File path to the XLSX file (when used by worker) or S3 key
+        output_dir: Local directory to save output (when used by worker) or None for S3
+        s3_bucket: S3 bucket name to save the output (optional)
+        s3_prefix: S3 prefix for output files (optional)
+        original_s3_key: Original S3 key for proper naming (optional)
+        
+    Returns:
+        S3 key of the saved markdown file (if S3 mode) or local path (if local mode)
+    """
+    
+    # Simple local mode for worker usage
+    if output_dir and not s3_bucket:
+        sheet_data = read_xlsx_and_convert(input_path)
+        os.makedirs(output_dir, exist_ok=True)
+        output_name = input_path.stem + ".md"
+        output_path = os.path.join(output_dir, output_name)
+        save_to_text_files(sheet_data, output_path)
+        return output_path
+    
+    # S3 mode for direct S3 processing
+    return _extract_xlsx_to_markdown_s3(input_path, s3_bucket, s3_prefix, original_s3_key)  
+def extract_xlsx_to_markdown_old(input_path, output_dir=None, s3_bucket=None, s3_prefix=None, original_s3_key=None):
     """
     Extract XLSX to markdown.
     

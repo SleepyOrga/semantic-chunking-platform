@@ -1,0 +1,10 @@
+Product | Revenue | Units | Margin % | Market Share
+Product A | $960,000 | 6000 | 35% | 40%
+Product B | $840,000 | 5600 | 42% | 35%
+Product C | $360,000 | 2400 | 28% | 15%
+Product X | $240,000 | 1600 | 45% | 10%
+
+Product Performance Analysis - Q3 2024
+
+Product Insights: Product A maintains market leadership with strong adoption in APAC. Product B shows highest margins and growing European presence. Product X (new launch) exceeded expectations with 45% margin. Product C requires strategic review due to declining market share.
+
