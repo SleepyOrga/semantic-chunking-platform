@@ -38,7 +38,15 @@ def insert_chunks_to_postgres(document_id, chunks):
             payload = {
                 'document_id': document_id,
                 'chunk_index': idx,
-                'content': chunk.get('content', '')
+                'content': chunk.get('content', ''),
+                'title': chunk.get('title'),
+                'tags': chunk.get('tags'),
+                'header_level': chunk.get('header_level'),
+                'parent_chunk': chunk.get('parent_chunk'),
+                'is_subchunk': chunk.get('is_subchunk'),
+                'subchunk_index': chunk.get('subchunk_index'),
+                'is_embedding_chunk': chunk.get('is_embedding_chunk'),
+                'token_count': chunk.get('token_count'),
             }
             
             response = requests.post(

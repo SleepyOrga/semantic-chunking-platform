@@ -1195,7 +1195,7 @@ class EnhancedMarkdownSemanticChunker:
                         'is_subchunk': True,
                         'subchunk_index': part_index - 1,
                         'is_embedding_chunk': True,
-                        'parent_chunk': title,
+                        'parent_chunk': f"{title}_{chunk.get('start_pos', 0)}_{chunk.get('end_pos', 0)}",
                         'token_count': self._estimate_tokens(current_chunk)
                     })
                     part_index += 1
@@ -1218,7 +1218,7 @@ class EnhancedMarkdownSemanticChunker:
                                 'is_subchunk': True,
                                 'subchunk_index': part_index - 1,
                                 'is_embedding_chunk': True,
-                                'parent_chunk': title,
+                                'parent_chunk': f"{title}_{chunk.get('start_pos', 0)}_{chunk.get('end_pos', 0)}",
                                 'token_count': self._estimate_tokens(sentence_chunk)
                             })
                             part_index += 1
@@ -1243,7 +1243,7 @@ class EnhancedMarkdownSemanticChunker:
                 'is_subchunk': True,
                 'subchunk_index': part_index - 1,
                 'is_embedding_chunk': True,
-                'parent_chunk': title,
+                'parent_chunk': f"{title}_{chunk.get('start_pos', 0)}_{chunk.get('end_pos', 0)}",
                 'token_count': self._estimate_tokens(current_chunk)
             })
         
