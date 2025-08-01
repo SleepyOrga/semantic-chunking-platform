@@ -408,15 +408,19 @@ async def vector_search(embedding: List[float], top_k: int, tags: Optional[List[
         print(f"Error in vector search: {e}")
         return []
 
-async def stream_bedrock_response(prompt: str, chunks: List[ChunkOut], system_prompt: Optional[str] = None, max_tokens: int = 2000, temperature: float = 0.7) -> AsyncGenerator[str, None]:
+async def stream_bedrock_response(
+    prompt: str, 
+    chunks: List[ChunkOut], 
+    system_prompt: Optional[str] = None, 
+    max_tokens: int = 2000, 
+    temperature: float = 0.7
+) -> AsyncGenerator[str, None]:
     """Stream response from Bedrock using chunks as context"""
     try:
-        # Format chunks for context
         context = ""
         for i, chunk in enumerate(chunks):
             context += f"\n\nPASSAGE {i+1}:\n{chunk.content}"
-        
-        # Default system prompt if none provided
+
         if not system_prompt:
             system_prompt = """You are a helpful AI assistant that answers questions based on the provided document passages.
             When answering:
@@ -424,10 +428,8 @@ async def stream_bedrock_response(prompt: str, chunks: List[ChunkOut], system_pr
             - If the passages don't contain relevant information, say so politely
             - Do not make up information that isn't supported by the passages
             - Format your responses with markdown for readability
-            - Cite specific passages when possible by referring to PASSAGE X
-            """
-        
-        # Format user prompt with context
+            - Cite specific passages when possible by referring to PASSAGE X"""
+
         user_prompt = f"""Here are some relevant passages from documents:
 
 {context}
@@ -436,8 +438,8 @@ Based on these passages, please answer the following:
 
 {prompt}"""
 
-        # Create streaming request to Bedrock
-        stream = bedrock_client.invoke_model_with_response_stream(
+        # Call Bedrock with streaming response
+        response = bedrock_client.invoke_model_with_response_stream(
             modelId=BEDROCK_MODEL_ID_4,
             body=json.dumps({
                 "anthropic_version": "bedrock-2023-05-31",
@@ -452,21 +454,27 @@ Based on these passages, please answer the following:
                 ]
             })
         )
-        
-        # Process the streaming response
-        async for event in stream.get_response_stream():
-            if 'chunk' in event:
-                chunk_data = json.loads(event['chunk']['bytes'])
-                if 'content' in chunk_data and len(chunk_data['content']) > 0:
-                    content_text = chunk_data['content'][0]['text']
-                    yield content_text
-                    
-        # Send an empty string to signal the end of the stream
+
+        stream = response['body']  # This is a StreamingBody object
+
+        while True:
+            chunk = stream.read(1024)  # Read in 1KB chunks
+            if not chunk:
+                break
+            # Parse content
+            try:
+                decoded = chunk.decode("utf-8")
+                yield decoded
+            except Exception as e:
+                print(f"Error decoding stream chunk: {e}")
+                continue
+
         yield ""
-            
+
     except Exception as e:
         print(f"Error in streaming Bedrock response: {e}")
         yield f"\n\nI encountered an error while generating a response: {str(e)}"
+
 
 # API Endpoints
 @app.get("/health", response_model=HealthResponse)

@@ -1,5 +1,6 @@
 chunking_agent/.venv
 xlsx_docx_parser/.venv
+xlsx_docx_parser/__pycache__
 .venv
 .env
 temp
