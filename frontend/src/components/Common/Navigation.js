@@ -53,7 +53,7 @@ const Navigation = () => {
     <AppBar position="static" color="default" elevation={1}>
       <Toolbar>
         <Box sx={{ display: 'flex', alignItems: 'center', flexGrow: 1 }}>
-          <AutoAwesomeIcon sx={{ color: '#6e41e2', mr: 1 }} />
+          <AutoAwesomeIcon sx={{ color: 'primary.main', mr: 1 }} />
           <Typography 
             variant="h6" 
             component={Link} 
@@ -63,7 +63,7 @@ const Navigation = () => {
               textDecoration: 'none'
             }}
           >
-            Semantic Search
+            Sema
           </Typography>
         </Box>
 

@@ -427,6 +427,12 @@ const HomePage = () => {
         height: "100vh",
         display: "flex",
         overflow: "hidden",
+        background: "linear-gradient(135deg, #f8f9fb 0%, #eef2f7 100%)",
+        animation: "fadeIn 0.6s ease-out",
+        "@keyframes fadeIn": {
+          "0%": { opacity: 0 },
+          "100%": { opacity: 1 },
+        },
       }}
     >
       {/* Sidebar Component */}
@@ -447,7 +453,20 @@ const HomePage = () => {
           display: "flex",
           flexDirection: "column",
           height: "100%",
-          bgcolor: "#f5f7fb",
+          bgcolor: "transparent",
+          backdropFilter: "blur(10px)",
+          transition: "all 0.3s ease",
+          position: "relative",
+          "&::before": {
+            content: '""',
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            height: "200px",
+            background: "linear-gradient(180deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0) 100%)",
+            zIndex: 0,
+          },
         }}
       >
         {/* Header Component */}
@@ -457,29 +476,66 @@ const HomePage = () => {
           documentCount={uploadedFiles.length}
         />
 
-        {/* MessageList Component */}
-        <MessageList
-          messages={messages}
-          isLoading={isLoading}
-          onUploadClick={handleFileButtonClick}
-          messagesEndRef={messagesEndRef}
-        />
+        {/* Message Container with subtle pattern background */}
+        <Box 
+          sx={{ 
+            position: 'relative',
+            flexGrow: 1,
+            display: 'flex',
+            flexDirection: 'column',
+            overflow: 'hidden',
+            zIndex: 1,
+            "&::before": {
+              content: '""',
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              opacity: 0.02,
+              zIndex: -1,
+              backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'100\' height=\'100\' viewBox=\'0 0 100 100\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cpath d=\'M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5z\' fill=\'%23000000\' fill-opacity=\'1\' fill-rule=\'evenodd\'/%3E%3C/svg%3E")',
+            }
+          }}
+        >
+          {/* MessageList Component */}
+          <MessageList
+            messages={messages}
+            isLoading={isLoading}
+            onUploadClick={handleFileButtonClick}
+            messagesEndRef={messagesEndRef}
+          />
+        </Box>
 
         {/* Error Alert Component */}
         <ErrorAlert error={error} onClose={() => setError("")} />
 
-        {/* ChatInput Component */}
-        <ChatInput
-          input={input}
-          onInputChange={handleInputChange}
-          onSubmit={handleSendMessage}
-          file={file}
-          onFileButtonClick={handleFileButtonClick}
-          onClearFile={clearFile}
-          isLoading={isLoading}
-          fileInputRef={fileInputRef}
-          onFileChange={handleFileChange}
-        />
+        {/* ChatInput Component - with glass effect */}
+        <Box
+          sx={{
+            px: 2,
+            py: 1.5,
+            background: "rgba(255, 255, 255, 0.85)",
+            backdropFilter: "blur(10px)",
+            borderTop: "1px solid rgba(0,0,0,0.06)",
+            boxShadow: "0 -5px 15px rgba(0,0,0,0.03)",
+            position: "relative",
+            zIndex: 2,
+            transition: "all 0.3s ease",
+          }}
+        >
+          <ChatInput
+            input={input}
+            onInputChange={handleInputChange}
+            onSubmit={handleSendMessage}
+            file={file}
+            onFileButtonClick={handleFileButtonClick}
+            onClearFile={clearFile}
+            isLoading={isLoading}
+            fileInputRef={fileInputRef}
+            onFileChange={handleFileChange}
+          />
+        </Box>
       </Box>
 
       {/* Document Viewer Dialog */}

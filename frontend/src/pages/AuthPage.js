@@ -14,22 +14,28 @@ const AuthPage = () => {
   };
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
+    <Container maxWidth="lg" sx={{ py: 6 }}>
       <Box sx={{ 
         display: 'flex',
         flexDirection: 'column',
-        alignItems: 'center'
+        alignItems: 'center',
+        minHeight: '80vh',
+        justifyContent: 'center'
       }}>
         <Box 
           sx={{ 
             display: 'flex', 
             alignItems: 'center', 
-            mb: 4
+            mb: 4,
+            background: 'linear-gradient(45deg, #7FE786, #58A7FE)',
+            p: 2,
+            borderRadius: 2,
+            boxShadow: '0 4px 20px rgba(88, 167, 254, 0.15)'
           }}
         >
-          <AutoAwesomeIcon sx={{ fontSize: 40, color: '#6e41e2', mr: 1 }} />
-          <Typography variant="h4" component="h1" fontWeight="500">
-            Semantic Search Platform
+          <AutoAwesomeIcon sx={{ fontSize: 40, color: '#fff', mr: 1 }} />
+          <Typography variant="h4" component="h1" fontWeight="600" color="white">
+            Sema
           </Typography>
         </Box>
 
@@ -44,7 +50,7 @@ const AuthPage = () => {
           }}
         >
           <Typography variant="h5" gutterBottom>
-            Welcome to Semantic Search Platform
+            Welcome to Sema
           </Typography>
           <Typography variant="body1" paragraph>
             Upload your documents and use AI-powered semantic search to find exactly what you're looking for.
