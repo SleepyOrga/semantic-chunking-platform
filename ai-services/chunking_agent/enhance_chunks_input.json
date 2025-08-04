@@ -36,6 +36,7 @@
     "is_subchunk": true,
     "subchunk_index": 0,
     "total_subchunks": 2,
+    "parent_chunk": "WHAT IS A CREDIT CARD_135_2486",
     "token_count": 344,
     "tags": [
       "Loan Terms",
@@ -52,6 +53,7 @@
     "is_subchunk": true,
     "subchunk_index": 1,
     "total_subchunks": 2,
+    "parent_chunk": "WHAT IS A CREDIT CARD_135_2486",
     "token_count": 242,
     "tags": [
       "Loan Terms",
@@ -69,6 +71,7 @@
     "is_subchunk": true,
     "subchunk_index": 0,
     "total_subchunks": 4,
+    "parent_chunk": "INDUSTRY HISTORY_2506_7215",
     "token_count": 362,
     "tags": [
       "Loan Terms",
@@ -86,6 +89,7 @@
     "is_subchunk": true,
     "subchunk_index": 1,
     "total_subchunks": 4,
+    "parent_chunk": "INDUSTRY HISTORY_2506_7215",
     "token_count": 346,
     "tags": [
       "Loan Terms",
@@ -102,6 +106,7 @@
     "is_subchunk": true,
     "subchunk_index": 2,
     "total_subchunks": 4,
+    "parent_chunk": "INDUSTRY HISTORY_2506_7215",
     "token_count": 364,
     "tags": [
       "Loan Terms",
@@ -118,6 +123,7 @@
     "is_subchunk": true,
     "subchunk_index": 3,
     "total_subchunks": 4,
+    "parent_chunk": "INDUSTRY HISTORY_2506_7215",
     "token_count": 103,
     "tags": [
       "Loan Terms"
@@ -221,6 +227,7 @@
     "is_subchunk": true,
     "subchunk_index": 0,
     "total_subchunks": 2,
+    "parent_chunk": "Corporate Credit Card Programs_12411_14300",
     "token_count": 352,
     "tags": [
       "Loan Terms",
@@ -238,6 +245,7 @@
     "is_subchunk": true,
     "subchunk_index": 1,
     "total_subchunks": 2,
+    "parent_chunk": "Corporate Credit Card Programs_12411_14300",
     "token_count": 119,
     "tags": [
       "Loan Terms",
@@ -280,6 +288,7 @@
     "is_subchunk": true,
     "subchunk_index": 0,
     "total_subchunks": 2,
+    "parent_chunk": "Proprietary Credit Cards_15536_17164",
     "token_count": 348,
     "tags": [
       "Loan Terms",
@@ -297,6 +306,7 @@
     "is_subchunk": true,
     "subchunk_index": 1,
     "total_subchunks": 2,
+    "parent_chunk": "Proprietary Credit Cards_15536_17164",
     "token_count": 58,
     "tags": [
       "Loan Terms"

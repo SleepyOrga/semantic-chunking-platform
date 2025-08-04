@@ -475,6 +475,7 @@ class EnhancedMarkdownSemanticChunker:
                         'is_subchunk': True,
                         'subchunk_index': j,
                         'total_subchunks': len(sub_chunks),
+                        'parent_chunk': f"{header_text}_{section_start}_{section_end}",
                         'token_count': self._estimate_tokens(sub_content)
                     })
             else:
@@ -1138,6 +1139,7 @@ class EnhancedMarkdownSemanticChunker:
                                         'total_subchunks': len(parts),
                                         'llm_enhanced': True,
                                         'split_from': original_chunk['title'],
+                                        'parent_chunk': f"{original_chunk['title']}_{original_chunk.get('start_pos', 0)}_{original_chunk.get('end_pos', 0)}",  # Made distinct with position info
                                         'reorganization_reason': reorg_item.get('reason', "Split for semantic coherence"),
                                         'token_count': self._estimate_tokens(part)
                                     }
@@ -1193,9 +1195,45 @@ class EnhancedMarkdownSemanticChunker:
         Returns:
             List of embedding-appropriate chunks
         """
+        # First validate all chunks
+        validated_chunks = []
+        for chunk in chunks:
+            # Skip chunks without content
+            if 'content' not in chunk or not chunk.get('content'):
+                logger.warning(f"Skipping chunk without content: {chunk.get('title', 'Untitled')}")
+                continue
+                
+            # Validate that all subchunks have a parent_chunk
+            if chunk.get('is_subchunk', False) and 'parent_chunk' not in chunk:
+                logger.warning(f"Found subchunk without parent_chunk reference, setting from available fields: {chunk.get('title', 'Untitled')}")
+                # Try to set parent_chunk from other available fields
+                title = None
+                start_pos = chunk.get('start_pos', 0)
+                end_pos = chunk.get('end_pos', 0)
+                
+                if 'split_from' in chunk:
+                    title = chunk['split_from']
+                elif 'original_title' in chunk:
+                    title = chunk['original_title']
+                else:
+                    # Create a parent_chunk reference from the title pattern if possible
+                    chunk_title = chunk.get('title', '')
+                    # Extract base title from patterns like "Title (part X/Y)" or "Title (part X)"
+                    match = re.match(r'(.+?)\s*\(part\s+\d+(?:/\d+)?\)', chunk_title)
+                    if match:
+                        title = match.group(1).strip()
+                    else:
+                        # If all else fails, set parent_chunk to a default value
+                        title = "Unknown Parent"
+                
+                # Create a distinct parent chunk identifier using title and position
+                chunk['parent_chunk'] = f"{title}_{start_pos}_{end_pos}"
+                        
+            validated_chunks.append(chunk)
+            
         embedding_chunks = []
         
-        for chunk in chunks:
+        for chunk in validated_chunks:
             # Check if chunk is too large for embedding
             token_count = chunk.get('token_count', self._estimate_tokens(chunk['content']))
             
@@ -1261,7 +1299,7 @@ class EnhancedMarkdownSemanticChunker:
                         'is_subchunk': True,
                         'subchunk_index': part_index - 1,
                         'is_embedding_chunk': True,
-                        'parent_chunk': title,
+                        'parent_chunk': f"{title}_{chunk.get('start_pos', 0)}_{chunk.get('end_pos', 0)}",
                         'token_count': self._estimate_tokens(current_chunk)
                     })
                     part_index += 1
@@ -1284,7 +1322,7 @@ class EnhancedMarkdownSemanticChunker:
                                 'is_subchunk': True,
                                 'subchunk_index': part_index - 1,
                                 'is_embedding_chunk': True,
-                                'parent_chunk': title,
+                                'parent_chunk': f"{title}_{chunk.get('start_pos', 0)}_{chunk.get('end_pos', 0)}",
                                 'token_count': self._estimate_tokens(sentence_chunk)
                             })
                             part_index += 1
