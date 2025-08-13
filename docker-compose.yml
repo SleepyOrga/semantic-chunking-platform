@@ -7,8 +7,8 @@ services:
       - "5672:5672"   # AMQP
       - "15672:15672" # Web UI
     environment:
-      RABBITMQ_DEFAULT_USER: admin
-      RABBITMQ_DEFAULT_PASS: admin
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
     restart: always
 
   postgres:
@@ -18,7 +18,7 @@ services:
     environment:
       POSTGRES_DB: ${DB_NAME:-app_db}
       POSTGRES_USER: ${DB_USER:-app_user}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-secret123}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
     ports:
       - "${DB_PORT:-5433}:5432"
     volumes:
@@ -32,8 +32,8 @@ services:
   pgadmin:
     image: dpage/pgadmin4
     environment:
-      PGADMIN_DEFAULT_EMAIL: admin@admin.com
-      PGADMIN_DEFAULT_PASSWORD: admin
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD}
     ports:
       - "5050:80"
 
