@@ -1,0 +1,41 @@
+# Use Node.js 20 LTS slim image
+FROM node:20-slim
+
+# Set working directory
+WORKDIR /app
+
+# Set NODE_ENV
+ENV NODE_ENV=production
+
+# Install only production dependencies
+COPY package*.json ./
+# Use npm install instead of npm ci since package-lock.json is missing
+RUN npm install --omit=dev && npm cache clean --force
+
+# Copy pre-built application
+COPY dist/ ./dist/
+COPY .env.production ./
+COPY src/database/migrations/ ./dist/database/migrations/
+COPY src/database/knexfile.ts ./dist/database/knexfile.ts
+
+# Install curl for healthcheck
+RUN apt-get update && apt-get install -y curl && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Create a non-root user and change ownership
+RUN groupadd -r appuser && \
+    useradd -r -g appuser -d /app appuser && \
+    chown -R appuser:appuser /app
+
+# Switch to non-root user
+USER appuser
+
+# Expose the application port
+EXPOSE 4000
+
+# Health check to ensure the application is running
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+  CMD curl -f http://localhost:4000/health || exit 1
+
+# Run the application
+CMD ["node", "dist/main"]

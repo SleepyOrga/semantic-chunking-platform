@@ -1,11 +1,15 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { AppController } from './app.controller';
-import { S3Service } from './s3.service';
-import { RabbitMQService } from './rabbitmq.service';
 import { DocumentModule } from './document/document.module';
 import { ChunkModule } from './chunk/chunk.module';
 import { KnexModule } from './database/knex.module';
+import { AuthModule } from './auth/auth.module';
+import { QueueModule } from './queue/queue.module';
+import { UploadModule } from './upload/upload.module';
+import { TagsModule } from './tags/tag.module';
+import { ChunkComponentModule } from './chunk-component/chunk-component.module';
+import { ParserGatewayModule } from './parser-gateway/parser-gateway.module';
+import { HealthModule } from './health/health.module';
 
 @Module({
   imports: [
@@ -15,8 +19,15 @@ import { KnexModule } from './database/knex.module';
     DocumentModule,
     ChunkModule,
     KnexModule,
+    AuthModule,
+    QueueModule,
+    UploadModule,
+    TagsModule,
+    ChunkComponentModule,
+    ParserGatewayModule,
+    HealthModule,
   ],
-  controllers: [AppController],
-  providers: [S3Service, RabbitMQService],
+  controllers: [], // Moved AppController to UploadModule where it belongs
+  providers: [],
 })
 export class AppModule {}

@@ -7,11 +7,12 @@ export async function up(knex: Knex): Promise<void> {
     table.integer('chunk_index').notNullable()
       .comment('Sequential index of chunk within document');
     table.text('content').notNullable();
-    table.specificType('embedding', 'vector(1536)')
-      .comment('OpenAI embedding vector with 1536 dimensions');
-    table.specificType('tag_embedding', 'vector(1536)')
+    table.specificType('embedding', 'vector(1024)')
+      .comment('OpenAI embedding vector with 1024 dimensions');
+    // Replace tag_embedding with tags array
+    table.specificType('tags', 'TEXT[]')
       .nullable()
-      .comment('Tag embedding vector for semantic tagging and categorization');
+      .comment('Array of tag names referencing tags table');
     table.timestamp('created_at').defaultTo(knex.fn.now()).notNullable();
     
     // Foreign key constraint
@@ -29,16 +30,56 @@ export async function up(knex: Knex): Promise<void> {
     ON chunks USING hnsw (embedding vector_cosine_ops)
   `);
   
-  // Create vector index for tag embedding similarity search
+  // Create GIN index for tags array
   await knex.raw(`
-    CREATE INDEX IF NOT EXISTS chunks_tag_embedding_idx 
-    ON chunks USING hnsw (tag_embedding vector_cosine_ops)
+    CREATE INDEX IF NOT EXISTS chunks_tags_idx 
+    ON chunks USING GIN (tags)
   `);
   
-  console.log('Chunks table created with content and tag vector indexes');
+  // Create a trigger to validate tags exist in the tags table
+  await knex.raw(`
+    CREATE OR REPLACE FUNCTION validate_chunk_tags()
+    RETURNS TRIGGER AS $$
+    DECLARE
+      invalid_tags TEXT[];
+    BEGIN
+      IF NEW.tags IS NOT NULL THEN
+        -- Find any tags in the array that don't exist in the tags table
+        SELECT ARRAY_AGG(t)
+        INTO invalid_tags
+        FROM UNNEST(NEW.tags) AS t
+        WHERE NOT EXISTS (
+          SELECT 1 FROM tags WHERE name = t
+        );
+        
+        -- If invalid tags were found, raise an error
+        IF invalid_tags IS NOT NULL AND array_length(invalid_tags, 1) > 0 THEN
+          RAISE EXCEPTION 'Tags not found in tags table: %', invalid_tags;
+        END IF;
+      END IF;
+      
+      RETURN NEW;
+    END;
+    $$ LANGUAGE plpgsql;
+  `);
+  
+  await knex.raw(`
+    CREATE TRIGGER validate_chunk_tags_trigger
+    BEFORE INSERT OR UPDATE ON chunks
+    FOR EACH ROW
+    EXECUTE FUNCTION validate_chunk_tags();
+  `);
+  
+  console.log('Chunks table created with content embedding vector index and tags array');
 }
 
 export async function down(knex: Knex): Promise<void> {
+  // Drop the trigger and function first
+  await knex.raw(`
+    DROP TRIGGER IF EXISTS validate_chunk_tags_trigger ON chunks;
+    DROP FUNCTION IF EXISTS validate_chunk_tags();
+  `);
+  
   await knex.schema.dropTableIfExists('chunks');
   console.log('Chunks table dropped');
 }

@@ -30,6 +30,8 @@ async function testChunkService() {
   let documentId: string | undefined = undefined;
   let chunkId1: string | undefined = undefined;
   let chunkId2: string | undefined = undefined;
+  // Create some test tags
+  const testTags = ['test-tag', 'important', 'technical'];
 
   // Test tracking
   const testResults = {
@@ -66,6 +68,22 @@ async function testChunkService() {
     console.log(
       `${colors.cyan}===== Testing Chunk Service =====${colors.reset}`,
     );
+
+    // Create test tags in the database
+    console.log('\nCreating test tags...');
+    try {
+      for (const tagName of testTags) {
+        await knex('tags').insert({
+          name: tagName,
+          created_at: new Date(),
+        });
+      }
+      console.log(`Created test tags: ${testTags.join(', ')}`);
+      logTestResult('Create test tags', true);
+    } catch (error) {
+      logTestResult('Create test tags', false, error);
+      // We can continue even if tag creation fails
+    }
 
     // Create a test user directly in the database
     console.log('\nCreating test user...');
@@ -131,20 +149,20 @@ async function testChunkService() {
       logTestResult('1. Add first chunk', false, error);
     }
 
-    // 2. Add second chunk to the document
-    console.log('\n2. Adding second chunk with tag embedding...');
+    // 2. Add second chunk to the document with tags
+    console.log('\n2. Adding second chunk with tags...');
     try {
       chunkId2 = await chunkService.addChunk({
         document_id: documentId,
         chunk_index: 1,
         content: 'This is the second chunk of text from the document.',
         embedding: new Array(1536).fill(0).map(() => Math.random()),
-        tag_embedding: new Array(1536).fill(0).map(() => Math.random()),
+        tags: [testTags[0], testTags[1]] // Add two tags
       });
       console.log(`Second chunk created with ID: ${chunkId2}`);
-      logTestResult('2. Add second chunk with tag embedding', true);
+      logTestResult('2. Add second chunk with tags', true);
     } catch (error) {
-      logTestResult('2. Add second chunk with tag embedding', false, error);
+      logTestResult('2. Add second chunk with tags', false, error);
     }
 
     // 3. Get a specific chunk
@@ -163,7 +181,7 @@ async function testChunkService() {
           chunk_index: chunk.chunk_index,
           content: chunk.content,
           embedding_length: chunk.embedding ? chunk.embedding.length : 0,
-          has_tag_embedding: !!chunk.tag_embedding,
+          tags: chunk.tags || []
         });
         logTestResult('3. Retrieve specific chunk', true);
       }
@@ -215,28 +233,27 @@ async function testChunkService() {
       logTestResult('5. Update chunk content and embedding', false, error);
     }
 
-    // 6. Update tag embedding for a chunk
-    console.log('\n6. Updating tag embedding for a chunk...');
+    // 6. Update tags for a chunk (previously was tag_embedding)
+    console.log('\n6. Adding tags to a chunk...');
     try {
       if (!chunkId1) {
         logTestSkipped(
-          '6. Update tag embedding',
+          '6. Add tags to chunk',
           'First chunk creation failed',
         );
       } else {
-        await chunkService.updateTagEmbedding(
-          chunkId1,
-          new Array(1536).fill(0).map(() => Math.random()),
-        );
+        await chunkService.setChunkTags(chunkId1, { tags: [testTags[0], testTags[2]] });
+        
         const taggedChunk = await chunkService.getChunkById(chunkId1);
         console.log(
-          'Chunk now has tag embedding:',
-          !!taggedChunk.tag_embedding,
+          'Chunk now has tags:',
+          taggedChunk.tags || []
         );
-        logTestResult('6. Update tag embedding', !!taggedChunk.tag_embedding);
+        const hasTags = Array.isArray(taggedChunk.tags) && taggedChunk.tags.length > 0;
+        logTestResult('6. Add tags to chunk', hasTags);
       }
     } catch (error) {
-      logTestResult('6. Update tag embedding', false, error);
+      logTestResult('6. Add tags to chunk', false, error);
     }
 
     // 7. Search similar chunks by content
@@ -258,23 +275,22 @@ async function testChunkService() {
       logTestResult('7. Search similar chunks by content', false, err);
     }
 
-    // 8. Search similar chunks by tag
-    console.log('\n8. Searching similar chunks by tag...');
+    // 8. Search chunks by tags (previously was tag embedding)
+    console.log('\n8. Searching chunks by tags...');
     try {
-      // Generate a random tag embedding vector for testing
-      const testTagEmbedding = new Array(1536).fill(0).map(() => Math.random());
-      const similarByTag = await chunkService.searchByTags({
-        tag_embedding: testTagEmbedding,
-        limit: 5,
+      const tagSearchResults = await chunkService.searchByTags({
+        tags: [testTags[0]], // Search for chunks with this tag
+        matchAll: false,
+        limit: 5
       });
-      console.log(`Found ${similarByTag.length} similar chunks by tag`);
-      similarByTag.forEach((result, i) => {
-        console.log(`  [${i}] ${result.content.substring(0, 30)}...`);
+      console.log(`Found ${tagSearchResults.chunks.length} chunks with specified tags`);
+      tagSearchResults.chunks.forEach((result, i) => {
+        console.log(`  [${i}] ${result.content.substring(0, 30)}... Tags: ${result.tags?.join(', ') || 'none'}`);
       });
-      logTestResult('8. Search similar chunks by tag', true);
+      logTestResult('8. Search chunks by tags', true);
     } catch (err) {
-      console.log('Search by tag similarity error:', err.message);
-      logTestResult('8. Search similar chunks by tag', false, err);
+      console.log('Search by tags error:', err.message);
+      logTestResult('8. Search chunks by tags', false, err);
     }
 
     let chunkIdTest10 = chunkId1; // Store before deletion
@@ -429,6 +445,10 @@ async function testChunkService() {
         console.log(`- Cleaning up user ${userId}...`);
         await knex('users').where('id', userId).delete();
       }
+      
+      // Delete test tags
+      console.log(`- Cleaning up test tags...`);
+      await knex('tags').whereIn('name', testTags).delete();
 
       console.log('All test resources cleaned up');
     } catch (cleanupError) {

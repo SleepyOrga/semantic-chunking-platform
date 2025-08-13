@@ -1,5 +1,4 @@
 import { Knex } from 'knex';
-import { v4 as uuidv4 } from 'uuid';
 import * as bcrypt from 'bcrypt';
 
 export async function seed(knex: Knex): Promise<void> {
@@ -9,31 +8,31 @@ export async function seed(knex: Knex): Promise<void> {
   // Generate hashed passwords
   const passwordHash = await bcrypt.hash('password123', 10);
   
-  // Create test users with UUIDs
+  // Create test users with hardcoded UUIDs
   const users = [
     {
-      id: uuidv4(),
+      id: "05b207af-8ea7-4a72-8c37-f5723303d01e",
       email: 'admin@example.com',
       password_hash: passwordHash,
       full_name: 'Admin User',
       created_at: new Date()
     },
     {
-      id: uuidv4(),
+      id: "7c11e1ce-1144-42bf-92d8-59392314e0c0",
       email: 'user1@example.com',
       password_hash: passwordHash,
       full_name: 'Test User One',
       created_at: new Date()
     },
     {
-      id: uuidv4(),
+      id: "3b9ad953-7245-42e8-a8c8-8ff1a5986f89",
       email: 'user2@example.com',
       password_hash: passwordHash,
       full_name: 'Test User Two',
       created_at: new Date()
     },
     {
-      id: uuidv4(),
+      id: "d4f25424-7b17-4b88-b9c4-20ea66655a05",
       email: 'demo@example.com',
       password_hash: passwordHash,
       full_name: 'Demo Account',
@@ -41,7 +40,7 @@ export async function seed(knex: Knex): Promise<void> {
     }
   ];
 
-  // Log the generated users for reference (especially in tests)
+  // Log the generated users for reference
   console.log('Seeded users:');
   users.forEach(user => {
     console.log(`- ${user.full_name} (${user.email}): ${user.id}`);

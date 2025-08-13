@@ -1,0 +1,8 @@
+python-dotenv
+requests
+botocore
+nltk
+pika
+boto3
+anthropic[bedrock]
+json5

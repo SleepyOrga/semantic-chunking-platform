@@ -1,0 +1,11 @@
+pika>=1.3.0
+vllm>=0.9.0
+vllm-dolphin==0.1
+pymupdf
+boto3>=1.26.0
+anthropic>=0.3.0
+python-dotenv>=1.0.0
+docling
+pydantic
+langchain
+rapidocr_onnxruntime

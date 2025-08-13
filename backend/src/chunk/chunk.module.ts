@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ChunkService } from './chunk.service';
 import { ChunkRepository } from '../repositories/chunk.repository';
 import { DocumentRepository } from '../repositories/document.repository';
+import { ChunkController } from './chunk.controller';
 
 @Module({
   providers: [
@@ -12,5 +13,6 @@ import { DocumentRepository } from '../repositories/document.repository';
   exports: [
     ChunkService,
   ],
+  controllers: [ChunkController],
 })
 export class ChunkModule {}

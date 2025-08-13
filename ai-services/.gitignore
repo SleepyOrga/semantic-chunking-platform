@@ -1,0 +1,11 @@
+chunking_agent/.venv
+xlsx_docx_parser/.venv
+xlsx_docx_parser/__pycache__
+.venv
+.env
+temp
+ocr_parser/.venv
+ocr_parser/__pycache__
+ocr_parser/venv/
+venv
+__pycache__

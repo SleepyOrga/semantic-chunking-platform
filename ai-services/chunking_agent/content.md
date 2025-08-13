@@ -1,0 +1,134 @@
+Risk Management Examination Manual of Credit Card Activities
+
+Chapter I
+
+## II. CREDIT CARDS - GENERAL OVERVIEW
+
+### WHAT IS A CREDIT CARD
+
+In its non-physical form, a credit card represents a payment mechanism which facilitates both consumer and commercial business transactions, including purchases and cash advances. A credit card generally operates as a substitute for cash or a check and most often provides an unsecured revolving line of credit. The borrower is required to pay at least part of the card's outstanding balance each billing cycle, depending on the terms as set forth in the cardholder agreement. As the debt reduces, the available credit increases for accounts in good standing. These complex financial arrangements have ever-shifting terms and prices. A charge card differs from a credit card in that the charge card must be paid in full each month.
+
+In physical form, a credit card traditionally is a thin, rectangular plastic card. The front of the card contains a series of numbers that are representative of various items such as the applicable network, bank, and account. These numbers are generally referred to in aggregate as the account number or card number. A magnetic stripe, often called a magstripe, runs across the back of the card and contains some of the account's information electronically. The back of the card also contains a cardholder signature box. There are many other physical attributes to a credit card; however, as technologies progress, their physical form is morphing. For example, multi-application cards (sometimes referred to as smart cards) involve aspects of cryptography (secret codes) and, in place of the magstripe, have a microprocessor, or chip, built into the card. The enhanced memory and processing capacity greatly exceeds that of the traditional magstripe card, and the multi-application cards can enable consumers to access several financial accounts and other services or data (like merchant loyalty programs) with a single card. Emerging formats also include contactless and biometric payment options. With the contactless payment format, cards are tapped on readers (instead of swiped) at the point-of-sale. This format is also known as proximity, “tap 'n go,” or blink technology. The biometric format relies on a cardholder’s physical or biological features by using identification techniques like fingerprint verification, iris scans, or voice scans. Electronic payment innovations may well be only in their infancy.
+
+### INDUSTRY HISTORY
+
+The credit card lending business experiences rapid change, but not just in the technology environment. New competitors continue to emerge from not only the banking industry, but from phone companies, retailers and others. At the same time, consolidation among credit card issuers has also increased. For example, during a four-month period in 2005, the three largest monoline credit card banks (MBNA, Capital One Financial Corporation, and Providian) all announced some type of acquisition transactions. 1 The credit card industry’s focus has shifted from prestige to merchant acceptance to pricing and perks. Intense competition, market saturation, and changing consumer postures have forced issuers to be innovative with the credit card products offered and to develop sophisticated customer selection and management methods. Processes have evolved to risk ranking applicants and pricing each account accordingly. Risk-based pricing has allowed banks to issue cards to less-qualified applicants in exchange for a higher interest rate or other fees and to essentially offer customized card products. Rewards programs are extremely popular, and credit cards can now be used to purchase items in well over 100 currencies.
+
+1 According to an article entitled “Overview of Recent Developments in the Credit Card Industry” found in the November 2005 issue of the FDIC Banking Review and authored by Douglas Akers, Jay Golter, Brian Lamm, and Martha Solt.
+
+March 2007
+
+FDIC- Division of Supervision and Consumer Protection
+
+10
+
+---
+
+Credit Cards - General Overview
+
+Visa and MasterCard (together referred to as Associations ) quickly come to mind when the term "credit card" is used. Traditionally banks purchased memberships in the Associations, and, in return, receive the right to offer credit card products or other services under the applicable Association's logo. $^2$ In addition to operating worldwide sophisticated payment networks, the Associations provide services including, but not limited to, advertising, statistical analysis, industry studies, and advisory services. They require their member banks to be insured and to operate within certain policies. The Associations do not issue cards or financial services directly to consumers or merchants. Rather, they focus on advancing payment products and technologies for their member banks, and the member banks manage the relationships with consumers and merchants. The Associations offer various membership grades, which can be subject to certain requirements, such as capital levels or acceptable growth projections.
+
+While the Associations remain the prominent brands in the bank credit card industry, other brands, such as American Express and Discover, are challenging their share. Unlike the Associations, American Express and Discover traditionally both issued their own cards. While they have long been in the credit card business, they only recently expanded their access within the bank credit card business as a result of court rulings in 2004. Those rulings said that the Associations’ policies barring member banks from contracting with American Express and Discover violated antitrust rules. The rulings have not only resulted in some Visa and MasterCard banks now also offering American Express and /or Discover cards, but are also leading to dual-branding. For simplicity, MasterCard, Visa, American Express, and Discover are collectively referred to as Networks in this manual. The term Networks is used because these companies interconnect a large and widely-distributed group of people and entities to communicate with one another and work together as a system to facilitate card transactions. The system allows for the routing of a transaction's information between the participants in a matter of fractions of a second. Payment systems for credit cards are discussed in Chapter XIX, Merchant Processing.
+
+The legal and regulatory environment for the bank credit card industry continues to shape the industry as well. For instance, in the 1970’s, the U.S. Supreme Court ruled that the lender’s location, not the consumer’s state of residence, determined the applicable state usury ceiling. As a result, large card issuers have sought out states with lender-friendly usury ceilings in which to establish national operations. For example, several bank credit card operations are located in South Dakota and Delaware. The 1970’s also saw Congress enact a number of consumer credit protection laws. More recent banking regulatory developments include the issuance of subprime lending guidance in 1999 and 2001 and account management and loss allowance guidance in 2003. $^3$ Concepts from these documents are discussed throughout this manual.
+
+## CARD TYPES AND ATTRIBUTES
+
+A multitude of credit card products are available to consumers, and the number of products is growing. Terms and conditions of each credit card product offered, such as the Annual Percentage Rate (APR), the monthly minimum payment formula, and certain fees, are detailed in a cardholder agreement which is required by regulation. The following sections provide an overview of some common credit card product categories.
+
+2 MasterCard became a private, SEC-registered share company whose shares were owned by the principal members of MasterCard International in 2002, and in May 2006 it announced an initial public offering and began trading on the New York Stock Exchange under the symbol “MA.”
+
+$^{s}$ March 1, 1999 Interagency Guidance on Subprime Lending (FIL-20-99); January 31, 2001 DSC Memorandum Transmittal Number 01-005 Expanded Guidance for Evaluating Subprime Lending Guidance (FIL-9-2001); and January 8 2003 Account Management and Loss Allowance Guidance for Credit Card Lending (FIL-2-2003).
+
+March 2007 FDIC - Division of Supervision and Consumer Protection
+
+11
+
+---
+
+Risk Management Examination Manual of Credit Card Activities
+
+Chapter I
+
+## General Purpose Credit Cards
+
+General purpose, or universal, credit cards can be used at a variety of stores and businesses. They take on many forms, including standard, premium, affinity, co-branded, corporate, home equity, and cash secured programs, each of which is briefly described next.
+
+### Standard Credit Card Programs:
+
+Standard credit card programs are a traditional form of credit card issuance. These programs are usually marketed to consumers who meet or exceed the institution’s minimum credit criteria but that may lack sufficient credit history or may fail to meet some of the institution’s other credit criteria. Due to the higher credit risk and loss rates, these programs generally carry higher interest rates, higher fees, and lower credit limits than premium credit card programs. In addition to cash secured credit cards (discussed later), unsecured standard credit card programs are frequently used for providing credit to subprime borrowers.
+
+### Premium Credit Card Programs:
+
+Premium credit card programs tend to be marketed to consumers that have higher income and/or higher credit scores than those consumers offered standard credit cards. Premium programs have traditionally consisted of gold and platinum credit cards. However, some issuers have moved toward using these premium-sounding titles with more standard-type products to combat strong competition and entice consumers to opt for their cards. Premium credit card programs usually carry lower interest rates, waived annual fees, and higher credit limits. The risk with this type of program is a large volume of high-balance accounts. Over-reliance on the premium sector creates the potential of greater losses in the event high outstanding balances exist during an economic downturn.
+
+### Affinity Credit Card Programs:
+
+Affinity relationships are partnerships formed between financial institutions and unaffiliated groups (affinity partners), generally nonprofit organizations such as, but not limited to, alumni associations, professional organizations, and fan clubs. A contractual agreement governs the relationship with the affinity partner, and the affinity cards issued usually carry the affinity partner's logo. Compensation varies, but the affinity partner endorsing the card usually receives financial compensation based on the projected level of acceptance and use by its members. Compensation often comes in the form of the sharing of annual fees, renewal fees, interchange income, and interest income. Issuers seek affinity endorsements to increase response, usage, and retention rates.
+
+### Co-branded Credit Card Programs:
+
+Co-branded relationships are partnerships formed between financial institutions and unaffiliated organizations, generally for-profit organizations such as airlines, automobile manufactures, and retailers. Similar to the affinity program, a contractual agreement governs the co-branded relationship, and the co-branded card usually carries the co-branded partner's logo.
+
+Compensation to the co-branding partner often takes the form of sharing interchange fees and/or rebates to its customers. Rebates to customers are normally based on a percentage of purchases or transactions, and the percentage often varies depending on whether purchases were made with the co-branding party or another entity. The institution benefits from a cobranding arrangement because it generally increases credit card receivables, and accordingly interest and interchange income, due to the consumers' willingness to use the credit card more frequently to reap the financial rewards. However, institutions typically face the risk that higher cardholder monthly payment rates could erode profits. Nevertheless, for some programs the considerable volume of interchange income generated by high cardholder transaction volumes might substantially offset the interest income opportunity that is lost with higher payment rates.
+
+March 2007
+
+FDIC- Division of Supervision and Consumer Protection
+
+12
+
+---
+
+Credit Cards - General Overview
+
+### Corporate Credit Card Programs
+
+Corporate card programs come in more than one form to serve different business needs. In general, they are contractual agreements between a sponsoring entity and a financial institution, in which the financial institution issues corporate cards to select employees of the sponsoring company. The sponsoring entities may take on several forms including small businesses; middle market businesses; local, state, or Federal governments; and large corporations. With this type of program, examiners should determine if the institution is allowed to make commercial loans.
+
+While most banks are permitted to make commercial loans, others are prohibited by state law or charter restrictions.
+
+Travel and entertainment (T&E) cards are used for business functions such as travel, lodging, and entertainment. The contract identifies the repayment terms and whether the sponsoring company guarantees the loans. These terms often dictate how the bank sets the credit limits.
+
+Procurement cards are used for a business’s purchases of materials, office supplies, and miscellaneous items. Businesses are attracted to this product because it simplifies accounting, especially for small-ticket items. Purchase orders are not needed, and only one payables check is necessary. In addition, institutions can provide value-added features such as detailed account statements and summary statistical information on purchasing patterns. The ability to provide value-added features is a critical competitive factor between institutions. Depending on the needs of the corporation these accounts may have credit limits in the millions of dollars.
+
+Corporate card accounts generally pay monthly; thus, issuing banks normally forego finance charges, which could make past due accounts very costly to the bank. The primary source of income on these accounts consists of service fees, annual fees, and interchange income.
+
+### Home Equity Credit Card Programs:
+
+Home equity credit cards are secured by housing assets. These credit cards provide consumers with the benefits of a traditional home equity line of credit (attractive interest rates and potential tax deductibility) while allowing them quick, easy access to the line's funds via the credit card. Home equity credit card lending involves a significant amount of documentation due to the mortgages, insurances, and other aspects involved. Points unique to these programs compared to unsecured programs include loan-to-value (LTV) and foreclosure considerations.
+
+### Cash Secured Credit Card Programs:
+
+Cash secured credit cards are generally marketed to two consumers groups: those with poor credit scores or prior credit problems and those with a limited or non-existent credit history. These programs can allow consumers an opportunity to establish or re-establish their credit. The accounts are collateralized by savings accounts or certificates of deposits. Cash secured credit card lending can be profitable and attractive to institutions because the receivables are self funding, finance charges and fees are high, the collateral is liquid, and new markets are opened.
+
+## Proprietary Credit Cards
+
+Proprietary cards, also called private label cards, are issued under a contractual agreement between financial institutions and third parties, usually large retailers, for the purpose of consumers transacting business with that entity. Some are also issued by the retailers and do not involve a financial institution. Private label cards often exhibit different traits than general purpose cards in that private label cards normally have lower credit limits, higher interest rates, higher credit risk profiles, and limited use (for example, limited to a particular merchant). There is risk of the retail partner failing. While significant direct exposure to the company may not be evident, high losses may still result if cardholders do not feel compelled to repay outstanding
+
+March 2007 FDIC - Division of Supervision and Consumer Protection
+
+13
+
+---
+
+Risk Management Examination Manual of Credit Card Activities
+
+Chapter I
+
+balances. Some customers may not honor obligations due to lost warranties or rights to return merchandise. Others might not repay the debt simply because the merchant is no longer in business. In either case, the bankruptcy of a retail partner usually creates a significant collection problem. In addition, credit risk is closely correlated with the traits of the cardholder population which are usually small, niche markets tending to have volatile performance patterns. The credit quality of these populations also tends to be lower because there is generally an incentive to establish liberal underwriting standards and enroll as many applicants as possible to generate business for the retail partner.
+
+## Cash Access Credit Cards
+
+Cash access credit cards are marketed to consumers who tend to prefer cash advances over purchases. These cards are not used for traditional point-of-sale transactions. Cash-users are typically considered a higher-risk population. In some cases these borrowers may be using cash advances to pay debts, including balances on this or other credit cards (this can also be true for some borrowers who use cash advance features of their general purpose cards).
+
+## Other Types of Bankcards
+
+Not all cards issued by banks are credit cards. For example, banks also issue debit cards and prepaid or stored value cards. Examples of stored-value cards include payroll cards, electronic benefits transfer (EBT) cards, travel fund cards, and store gift cards. This manual focuses on credit cards.
+
+March 2007
+
+FDIC- Division of Supervision and Consumer Protection
+
+14
+
